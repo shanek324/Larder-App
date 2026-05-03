@@ -67,8 +67,8 @@ export function scaleAmount(amountStr, ratio) {
   return unit ? `${formatted}${unit}` : formatted;
 }
 
-export async function callClaude(messages, system = "") {
-  const body = { model: API_MODEL, max_tokens: 1000, messages };
+export async function callClaude(messages, system = "", maxTokens = 1000) {
+  const body = { model: API_MODEL, max_tokens: maxTokens, messages };
   if (system) body.system = system;
   const res = await fetch("/api/claude", {
     method: "POST",

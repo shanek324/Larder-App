@@ -27,10 +27,10 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
     const ingredientList = rawIngredients.map(i => (i.amount ? i.amount + " " : "") + i.name).join("\n");
     const messages = [{
       role: "user",
-      content: "You are a shopping list consolidator. Given these raw ingredients from multiple recipes, consolidate them into a clean shopping list. Combine duplicates and similar items intelligently (e.g. 2 chicken breasts and 500g chicken should become one item). For each item return the best combined name, combined amounts, and which aisle it belongs to from this list: " + aisleNames + ", Other.\n\nIngredients:\n" + ingredientList + "\n\nRespond with ONLY a JSON array, no other text. Each item: name (string), amounts (array of strings), aisle (string), key (unique slug prefixed with con-)."
+      content: "Consolidate these shopping ingredients, combining duplicates intelligently. Aisles: " + aisleNames + ", Other.\n\n" + ingredientList + "\n\nReply ONLY with a JSON array. Each item: name, amounts (string array), aisle, key (con- prefixed slug)."
     }];
     try {
-      const res = await callClaude(messages);
+      const res = await callClaude(messages, "", 2000);
       const cleaned = res.replace(/```json/g, "").replace(/```/g, "").trim();
       const parsed = JSON.parse(cleaned);
       const filtered = parsed.filter(item => !matchesPantry(item.name, pantryItems));
