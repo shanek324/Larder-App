@@ -7,6 +7,7 @@ import ShoppingListView from "./views/ShoppingListView";
 import PantryView from "./views/PantryView";
 import GenerateModal from "./views/GenerateModal";
 import AddRecipeModal from "./views/AddRecipeModal";
+import Login from "./Login";
 
 const NAV = [
   { key: "home", label: "Recipes", icon: "🍳" },
@@ -46,6 +47,7 @@ function recipeFromDb(r) {
     notes: r.notes,
     createdAt: r.created_at,
     lastCooked: r.last_cooked,
+    user_id: session?.user?.id,
   };
 }
 
@@ -56,6 +58,7 @@ function collectionToDb(c) {
     emoji: c.emoji,
     recipe_ids: c.recipeIds,
     created_at: c.createdAt,
+    user_id: session?.user?.id,
   };
 }
 
@@ -75,6 +78,7 @@ function pantryToDb(p) {
     name: p.name,
     aisle: p.aisle,
     added_at: p.addedAt,
+    user_id: session?.user?.id,
   };
 }
 
@@ -92,6 +96,7 @@ export default function App() {
   const [collections, setCollections] = useState([]);
   const [pantryItems, setPantryItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState(null);
 
   const [view, setView] = useState("home");
   const [activeRecipeId, setActiveRecipeId] = useState(null);
@@ -99,6 +104,12 @@ export default function App() {
   const [filterTag, setFilterTag] = useState(null);
   const [showGenerate, setShowGenerate] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+
+  // Auth state
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    supabase.auth.onAuthStateChange((_event, session) => setSession(session));
+  }, []);
 
   // Load all data from Supabase on mount
   useEffect(() => {
@@ -175,6 +186,8 @@ export default function App() {
   function handleBack() { setActiveRecipeId(null); setView("home"); }
 
   const activeRecipe = recipes.find(r => r.id === activeRecipeId);
+
+  if (!session) return <Login />;
 
   if (loading) {
     return (
