@@ -113,6 +113,7 @@ export default function App() {
 
   // Load all data from Supabase on mount
   useEffect(() => {
+	  if(!session) return;
     async function loadData() {
       setLoading(true);
 
