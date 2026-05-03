@@ -1,12 +1,14 @@
 import { useState } from "react";
-import { categoriseIngredient } from "../utils";
+import { categoriseIngredient, callClaude } from "../utils";
 import { DUNNES_AISLES } from "../constants";
 
 export default function PantryView({ pantryItems, onUpdatePantry }) {
   const [newItem, setNewItem] = useState("");
   const [search, setSearch] = useState("");
+  const [cleaning, setCleaning] = useState(false);
 
   const aisleOrder = DUNNES_AISLES.map(a => a.name).concat(["Other"]);
+  const aisleNames = DUNNES_AISLES.map(a => a.name).join(", ");
 
   function addItem() {
     if (!newItem.trim()) return;
@@ -22,6 +24,31 @@ export default function PantryView({ pantryItems, onUpdatePantry }) {
 
   function removeItem(id) {
     onUpdatePantry(pantryItems.filter(i => i.id !== id));
+  }
+
+  async function handleCleanup() {
+    setCleaning(true);
+    try {
+      const itemList = pantryItems.map(i => i.name).join("\n");
+      const messages = [{
+        role: "user",
+        content: "Deduplicate and clean this pantry list. Combine similar items (e.g. Garlic, Garlic cloves, Garlic minced = Garlic). Use short clean names only. Aisles: " + aisleNames + ", Other.\n\n" + itemList + "\n\nReply ONLY with a JSON array. Each item: name (short clean string), aisle (string), key (con- prefixed slug)."
+      }];
+      const res = await callClaude(messages, "", 2000, "claude-haiku-4-5-20251001");
+      const cleaned = res.replace(/```json/g, "").replace(/```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+      const newItems = parsed.map((i, idx) => ({
+        id: "pantry-" + Date.now() + idx,
+        name: i.name,
+        aisle: i.aisle || "Other",
+        addedAt: Date.now(),
+      }));
+      await onUpdatePantry(newItems);
+    } catch(e) {
+      console.error("Cleanup error:", e);
+      alert("Cleanup failed, please try again.");
+    }
+    setCleaning(false);
   }
 
   const filtered = pantryItems.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
@@ -41,6 +68,11 @@ export default function PantryView({ pantryItems, onUpdatePantry }) {
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, color: "#2c1810", margin: "0 0 4px", fontWeight: 700 }}>Pantry</h1>
           <p style={{ margin: 0, color: "#9e8a73", fontSize: 14, fontFamily: "'DM Sans', sans-serif" }}>{pantryItems.length} item{pantryItems.length !== 1 ? "s" : ""} in stock</p>
         </div>
+        {pantryItems.length > 0 && (
+          <button onClick={handleCleanup} disabled={cleaning} style={{ background: "#f5e6c8", color: "#8b6914", border: "none", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600 }}>
+            {cleaning ? "Cleaning..." : "✦ Clean up"}
+          </button>
+        )}
       </div>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
@@ -65,7 +97,7 @@ export default function PantryView({ pantryItems, onUpdatePantry }) {
         <div style={{ textAlign: "center", padding: "60px 20px", color: "#9e8a73" }}>
           <p style={{ fontSize: 40, marginBottom: 12 }}>🥫</p>
           <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: "#5c4a2a", marginBottom: 8 }}>Your pantry is empty</p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>Add items you always have in stock — they'll be excluded from your shopping list.</p>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>Add items you always have in stock — they will be excluded from your shopping list.</p>
         </div>
       ) : (
         sortedAisles.map(aisle => {

@@ -27,7 +27,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
     const ingredientList = rawIngredients.map(i => (i.amount ? i.amount + " " : "") + i.name).join("\n");
     const messages = [{
       role: "user",
-      content: "Consolidate these shopping ingredients, combining duplicates intelligently. Aisles: " + aisleNames + ", Other.\n\n" + ingredientList + "\n\nReply ONLY with a JSON array. Each item: name, amounts (string array), aisle, key (con- prefixed slug)."
+      content: "Consolidate these shopping ingredients into a clean list. Rules: 1) Combine duplicates and similar items (e.g. chicken breast, chicken breasts, 500g chicken = one item called Chicken Breast). 2) Use short clean names only - no descriptors like minced, sliced, grated, cubed. 3) Assign aisle from: " + aisleNames + ", Other.\n\n" + ingredientList + "\n\nReply ONLY with a JSON array. Each item: name (short clean string), amounts (string array), aisle (string), key (con- prefixed slug of name)."
     }];
     try {
       const res = await callClaude(messages, "", 2000, "claude-haiku-4-5-20251001");
