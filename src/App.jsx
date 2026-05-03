@@ -106,8 +106,9 @@ export default function App() {
   const [showAdd, setShowAdd] = useState(false);
 
   // Auth state
+  const [authLoading, setAuthLoading] = useState(true);
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    supabase.auth.getSession().then(({ data: { session } }) => { setSession(session); setAuthLoading(false); });
     supabase.auth.onAuthStateChange((_event, session) => setSession(session));
   }, []);
 
@@ -188,6 +189,7 @@ export default function App() {
 
   const activeRecipe = recipes.find(r => r.id === activeRecipeId);
 
+  if (authLoading) return null;
   if (!session) return <Login />;
 
   if (loading) {
