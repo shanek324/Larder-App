@@ -30,7 +30,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
       content: "Consolidate these shopping ingredients, combining duplicates intelligently. Aisles: " + aisleNames + ", Other.\n\n" + ingredientList + "\n\nReply ONLY with a JSON array. Each item: name, amounts (string array), aisle, key (con- prefixed slug)."
     }];
     try {
-      const res = await callClaude(messages, "", 2000);
+      const res = await callClaude(messages, "", 2000, "claude-haiku-4-5-20251001");
       const cleaned = res.replace(/```json/g, "").replace(/```/g, "").trim();
       const parsed = JSON.parse(cleaned);
       const filtered = parsed.filter(item => !matchesPantry(item.name, pantryItems));
