@@ -176,6 +176,7 @@ export default function App() {
     if (newItems.length > 0) await supabase.from("pantry").insert(newItems.map(p => ({ ...pantryToDb(p), user_id: session?.user?.id })));
     if (removedIds.length > 0) await supabase.from("pantry").delete().in("id", removedIds);
     setPantryItems(updated);
+  }
 
   async function saveShoppingList(items) {
     if (savedShoppingList) {
@@ -306,5 +307,4 @@ export default function App() {
       {showAdd && <AddRecipeModal onClose={() => setShowAdd(false)} onAdd={addRecipe} />}
     </div>
   );
-}
 }
