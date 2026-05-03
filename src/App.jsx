@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { STORAGE_KEY, COLLECTIONS_KEY, PANTRY_KEY, SHOPPING_LIST_KEY, SAMPLE_RECIPES, SAMPLE_COLLECTIONS } from "./constants";
+import { supabase } from "./supabase";
+import { SAMPLE_RECIPES, SAMPLE_COLLECTIONS } from "./constants";
 import HomeView from "./views/HomeView";
 import RecipeView from "./views/RecipeView";
 import CollectionsView from "./views/CollectionsView";
@@ -15,19 +16,83 @@ const NAV = [
   { key: "pantry", label: "Pantry", icon: "🥫" },
 ];
 
+function recipeToDb(r) {
+  return {
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    tags: r.tags,
+    servings: r.servings,
+    prep_time: r.prepTime,
+    cook_time: r.cookTime,
+    ingredients: r.ingredients,
+    method: r.method,
+    notes: r.notes,
+    created_at: r.createdAt,
+    last_cooked: r.lastCooked || null,
+  };
+}
+
+function recipeFromDb(r) {
+  return {
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    tags: r.tags || [],
+    servings: r.servings,
+    prepTime: r.prep_time,
+    cookTime: r.cook_time,
+    ingredients: r.ingredients || [],
+    method: r.method || [],
+    notes: r.notes,
+    createdAt: r.created_at,
+    lastCooked: r.last_cooked,
+  };
+}
+
+function collectionToDb(c) {
+  return {
+    id: c.id,
+    name: c.name,
+    emoji: c.emoji,
+    recipe_ids: c.recipeIds,
+    created_at: c.createdAt,
+  };
+}
+
+function collectionFromDb(c) {
+  return {
+    id: c.id,
+    name: c.name,
+    emoji: c.emoji,
+    recipeIds: c.recipe_ids || [],
+    createdAt: c.created_at,
+  };
+}
+
+function pantryToDb(p) {
+  return {
+    id: p.id,
+    name: p.name,
+    aisle: p.aisle,
+    added_at: p.addedAt,
+  };
+}
+
+function pantryFromDb(p) {
+  return {
+    id: p.id,
+    name: p.name,
+    aisle: p.aisle,
+    addedAt: p.added_at,
+  };
+}
+
 export default function App() {
-  const [recipes, setRecipes] = useState(() => {
-    try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : SAMPLE_RECIPES; } catch { return SAMPLE_RECIPES; }
-  });
-  const [collections, setCollections] = useState(() => {
-    try { const s = localStorage.getItem(COLLECTIONS_KEY); return s ? JSON.parse(s) : SAMPLE_COLLECTIONS; } catch { return SAMPLE_COLLECTIONS; }
-  });
-  const [pantryItems, setPantryItems] = useState(() => {
-    try { const s = localStorage.getItem(PANTRY_KEY); return s ? JSON.parse(s) : []; } catch { return []; }
-  });
-  const [shoppingList, setShoppingList] = useState(() => {
-    try { const s = localStorage.getItem(SHOPPING_LIST_KEY); return s ? JSON.parse(s) : []; } catch { return []; }
-  });
+  const [recipes, setRecipes] = useState([]);
+  const [collections, setCollections] = useState([]);
+  const [pantryItems, setPantryItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [view, setView] = useState("home");
   const [activeRecipeId, setActiveRecipeId] = useState(null);
@@ -36,32 +101,106 @@ export default function App() {
   const [showGenerate, setShowGenerate] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
 
-  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes)); }, [recipes]);
-  useEffect(() => { localStorage.setItem(COLLECTIONS_KEY, JSON.stringify(collections)); }, [collections]);
-  useEffect(() => { localStorage.setItem(PANTRY_KEY, JSON.stringify(pantryItems)); }, [pantryItems]);
-  useEffect(() => { localStorage.setItem(SHOPPING_LIST_KEY, JSON.stringify(shoppingList)); }, [shoppingList]);
+  // Load all data from Supabase on mount
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
 
-  function addRecipe(recipe) { setRecipes(r => [recipe, ...r]); }
-  function updateRecipe(updated) { setRecipes(r => r.map(x => x.id === updated.id ? updated : x)); }
-  function deleteRecipe(id) { setRecipes(r => r.filter(x => x.id !== id)); setView("home"); setActiveRecipeId(null); }
+      const [{ data: recipeData }, { data: colData }, { data: pantryData }] = await Promise.all([
+        supabase.from("recipes").select("*").order("created_at", { ascending: false }),
+        supabase.from("collections").select("*").order("created_at", { ascending: true }),
+        supabase.from("pantry").select("*").order("added_at", { ascending: true }),
+      ]);
+
+      const loadedRecipes = recipeData ? recipeData.map(recipeFromDb) : [];
+
+      // Seed sample data if DB is empty
+      if (loadedRecipes.length === 0) {
+        const { data: seeded } = await supabase
+          .from("recipes")
+          .insert(SAMPLE_RECIPES.map(recipeToDb))
+          .select();
+        const { data: seededCols } = await supabase
+          .from("collections")
+          .insert(SAMPLE_COLLECTIONS.map(collectionToDb))
+          .select();
+        setRecipes(seeded ? seeded.map(recipeFromDb) : SAMPLE_RECIPES);
+        setCollections(seededCols ? seededCols.map(collectionFromDb) : SAMPLE_COLLECTIONS);
+      } else {
+        setRecipes(loadedRecipes);
+        setCollections(colData ? colData.map(collectionFromDb) : []);
+      }
+
+      setPantryItems(pantryData ? pantryData.map(pantryFromDb) : []);
+      setLoading(false);
+    }
+
+    loadData();
+  }, []);
+
+  async function addRecipe(recipe) {
+    const { data } = await supabase.from("recipes").insert(recipeToDb(recipe)).select().single();
+    if (data) setRecipes(r => [recipeFromDb(data), ...r]);
+  }
+
+  async function updateRecipe(updated) {
+    const { data } = await supabase.from("recipes").update(recipeToDb(updated)).eq("id", updated.id).select().single();
+    if (data) setRecipes(r => r.map(x => x.id === updated.id ? recipeFromDb(data) : x));
+  }
+
+  async function deleteRecipe(id) {
+    await supabase.from("recipes").delete().eq("id", id);
+    setRecipes(r => r.filter(x => x.id !== id));
+    setView("home");
+    setActiveRecipeId(null);
+  }
+
+  async function updateCollections(updated) {
+    // Upsert all collections
+    await supabase.from("collections").upsert(updated.map(collectionToDb));
+    // Delete removed ones
+    const updatedIds = updated.map(c => c.id);
+    const removedIds = collections.filter(c => !updatedIds.includes(c.id)).map(c => c.id);
+    if (removedIds.length > 0) await supabase.from("collections").delete().in("id", removedIds);
+    setCollections(updated);
+  }
+
+  async function updatePantry(updated) {
+    const newItems = updated.filter(i => !pantryItems.find(p => p.id === i.id));
+    const removedIds = pantryItems.filter(p => !updated.find(i => i.id === p.id)).map(p => p.id);
+    if (newItems.length > 0) await supabase.from("pantry").insert(newItems.map(pantryToDb));
+    if (removedIds.length > 0) await supabase.from("pantry").delete().in("id", removedIds);
+    setPantryItems(updated);
+  }
+
+  async function handleUpdateShoppingList(updatedList, addToPantry = []) {
+    if (addToPantry.length > 0) {
+      const existing = pantryItems.map(i => i.name.toLowerCase());
+      const newItems = addToPantry
+        .filter(i => !existing.includes(i.name.toLowerCase()))
+        .map(i => ({ id: "pantry-" + Date.now() + Math.random(), name: i.name, aisle: i.aisle, addedAt: Date.now() }));
+      if (newItems.length > 0) {
+        await supabase.from("pantry").insert(newItems.map(pantryToDb));
+        setPantryItems(p => [...p, ...newItems]);
+      }
+    }
+  }
 
   function viewRecipe(id) { setActiveRecipeId(id); setView("recipe"); }
   function handleBack() { setActiveRecipeId(null); setView("home"); }
 
-  function handleUpdateShoppingList(updatedList, addToPantry = []) {
-    setShoppingList(updatedList);
-    if (addToPantry.length > 0) {
-      setPantryItems(p => {
-        const existing = p.map(i => i.name.toLowerCase());
-        const newItems = addToPantry
-          .filter(i => !existing.includes(i.name.toLowerCase()))
-          .map(i => ({ id: "pantry-" + Date.now() + Math.random(), name: i.name, aisle: i.aisle, addedAt: Date.now() }));
-        return [...p, ...newItems];
-      });
-    }
-  }
-
   const activeRecipe = recipes.find(r => r.id === activeRecipeId);
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#faf7f2", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <p style={{ fontSize: 40, marginBottom: 16 }}>🫙</p>
+          <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: "#2c1810" }}>Loading your Larder…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "#faf7f2", fontFamily: "'DM Sans', sans-serif" }}>
@@ -95,27 +234,27 @@ export default function App() {
             onUpdate={updateRecipe}
             onDelete={() => deleteRecipe(activeRecipeId)}
             collections={collections}
-            onUpdateCollections={setCollections}
+            onUpdateCollections={updateCollections}
             onCookedIt={() => updateRecipe({ ...activeRecipe, lastCooked: Date.now() })}
           />
         ) : view === "collections" ? (
           <CollectionsView
             collections={collections}
             recipes={recipes}
-            onUpdateCollections={setCollections}
+            onUpdateCollections={updateCollections}
             onViewRecipe={viewRecipe}
           />
         ) : view === "shopping" ? (
           <ShoppingListView
             recipes={recipes}
             pantryItems={pantryItems}
-            shoppingList={shoppingList}
+            shoppingList={[]}
             onUpdateShoppingList={handleUpdateShoppingList}
           />
         ) : view === "pantry" ? (
           <PantryView
             pantryItems={pantryItems}
-            onUpdatePantry={setPantryItems}
+            onUpdatePantry={updatePantry}
           />
         ) : (
           <HomeView
