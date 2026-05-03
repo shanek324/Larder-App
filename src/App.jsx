@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabase";
-import { SAMPLE_RECIPES, SAMPLE_COLLECTIONS } from "./constants";
 import HomeView from "./views/HomeView";
 import RecipeView from "./views/RecipeView";
 import CollectionsView from "./views/CollectionsView";
@@ -114,22 +113,8 @@ export default function App() {
 
       const loadedRecipes = recipeData ? recipeData.map(recipeFromDb) : [];
 
-      // Seed sample data if DB is empty
-      if (loadedRecipes.length === 0) {
-        const { data: seeded } = await supabase
-          .from("recipes")
-          .insert(SAMPLE_RECIPES.map(recipeToDb))
-          .select();
-        const { data: seededCols } = await supabase
-          .from("collections")
-          .insert(SAMPLE_COLLECTIONS.map(collectionToDb))
-          .select();
-        setRecipes(seeded ? seeded.map(recipeFromDb) : SAMPLE_RECIPES);
-        setCollections(seededCols ? seededCols.map(collectionFromDb) : SAMPLE_COLLECTIONS);
-      } else {
-        setRecipes(loadedRecipes);
-        setCollections(colData ? colData.map(collectionFromDb) : []);
-      }
+      setRecipes(loadedRecipes);
+      setCollections(colData ? colData.map(collectionFromDb) : []);
 
       setPantryItems(pantryData ? pantryData.map(pantryFromDb) : []);
       setLoading(false);
