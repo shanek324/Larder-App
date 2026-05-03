@@ -31,7 +31,8 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
     }];
     try {
       const res = await callClaude(messages);
-      const parsed = JSON.parse(res);
+      const cleaned = res.replace(/```json/g, "").replace(/```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
       const filtered = parsed.filter(item => !matchesPantry(item.name, pantryItems));
       setConsolidated(filtered);
     } catch(e) {
