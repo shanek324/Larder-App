@@ -4,6 +4,7 @@ import HomeView from "./views/HomeView";
 import RecipeView from "./views/RecipeView";
 import CollectionsView from "./views/CollectionsView";
 import ShoppingListView from "./views/ShoppingListView";
+import InShopView from "./views/InShopView";
 import PantryView from "./views/PantryView";
 import GenerateModal from "./views/GenerateModal";
 import AddRecipeModal from "./views/AddRecipeModal";
@@ -95,6 +96,7 @@ export default function App() {
   const [recipes, setRecipes] = useState([]);
   const [collections, setCollections] = useState([]);
   const [pantryItems, setPantryItems] = useState([]);
+  const [savedShoppingList, setSavedShoppingList] = useState(null);
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState(null);
 
@@ -120,10 +122,11 @@ export default function App() {
       
       try {
 
-      const [{ data: recipeData }, { data: colData }, { data: pantryData }] = await Promise.all([
+      const [{ data: recipeData }, { data: colData }, { data: pantryData }, { data: shopData }] = await Promise.all([
         supabase.from("recipes").select("*").order("created_at", { ascending: false }),
         supabase.from("collections").select("*").order("created_at", { ascending: true }),
         supabase.from("pantry").select("*").order("added_at", { ascending: true }),
+        supabase.from("shopping_list").select("*").order("created_at", { ascending: false }).limit(1),
       ]);
 
       const loadedRecipes = recipeData ? recipeData.map(recipeFromDb) : [];
@@ -132,6 +135,7 @@ export default function App() {
       setCollections(colData ? colData.map(collectionFromDb) : []);
 
       setPantryItems(pantryData ? pantryData.map(pantryFromDb) : []);
+      setSavedShoppingList(shopData?.[0] || null);
       setLoading(false);
       } catch(e) { console.error("loadData error", e); setLoading(false); }
     }
@@ -172,6 +176,22 @@ export default function App() {
     if (newItems.length > 0) await supabase.from("pantry").insert(newItems.map(p => ({ ...pantryToDb(p), user_id: session?.user?.id })));
     if (removedIds.length > 0) await supabase.from("pantry").delete().in("id", removedIds);
     setPantryItems(updated);
+
+  async function saveShoppingList(items) {
+    if (savedShoppingList) {
+      await supabase.from("shopping_list").update({ items }).eq("id", savedShoppingList.id);
+      setSavedShoppingList({ ...savedShoppingList, items });
+    } else {
+      const { data } = await supabase.from("shopping_list").insert({ items, user_id: session?.user?.id, created_at: Date.now() }).select().single();
+      setSavedShoppingList(data);
+    }
+  }
+
+  async function clearShoppingList() {
+    if (savedShoppingList) {
+      await supabase.from("shopping_list").delete().eq("id", savedShoppingList.id);
+      setSavedShoppingList(null);
+    }
   }
 
   async function handleUpdateShoppingList(updatedList, addToPantry = []) {
@@ -250,12 +270,20 @@ export default function App() {
             onViewRecipe={viewRecipe}
           />
         ) : view === "shopping" ? (
-          <ShoppingListView
-            recipes={recipes}
-            pantryItems={pantryItems}
-            shoppingList={[]}
-            onUpdateShoppingList={handleUpdateShoppingList}
-          />
+          savedShoppingList ? (
+            <InShopView
+              savedList={savedShoppingList}
+              pantryItems={pantryItems}
+              onClearList={clearShoppingList}
+              onUpdatePantry={updatePantry}
+            />
+          ) : (
+            <ShoppingListView
+              recipes={recipes}
+              pantryItems={pantryItems}
+              onSaveList={saveShoppingList}
+            />
+          )
         ) : view === "pantry" ? (
           <PantryView
             pantryItems={pantryItems}
