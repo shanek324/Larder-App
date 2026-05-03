@@ -117,7 +117,7 @@ export default function App() {
 	  if(!session) return;
     async function loadData() {
       setLoading(true);
-      console.log("session uid:", session?.user?.id);
+      
       try {
 
       const [{ data: recipeData }, { data: colData }, { data: pantryData }] = await Promise.all([
