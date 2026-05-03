@@ -47,7 +47,7 @@ function recipeFromDb(r) {
     notes: r.notes,
     createdAt: r.created_at,
     lastCooked: r.last_cooked,
-    user_id: session?.user?.id,
+
   };
 }
 
@@ -58,7 +58,7 @@ function collectionToDb(c) {
     emoji: c.emoji,
     recipe_ids: c.recipeIds,
     created_at: c.createdAt,
-    user_id: session?.user?.id,
+
   };
 }
 
@@ -78,7 +78,7 @@ function pantryToDb(p) {
     name: p.name,
     aisle: p.aisle,
     added_at: p.addedAt,
-    user_id: session?.user?.id,
+
   };
 }
 
@@ -140,7 +140,7 @@ export default function App() {
   }, [session]);
 
   async function addRecipe(recipe) {
-    const { data } = await supabase.from("recipes").insert(recipeToDb(recipe)).select().single();
+    const { data } = await supabase.from("recipes").insert({ ...recipeToDb(recipe), user_id: session?.user?.id }).select().single();
     if (data) setRecipes(r => [recipeFromDb(data), ...r]);
   }
 
