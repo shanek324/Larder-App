@@ -132,7 +132,7 @@ export default function App() {
     }
 
     loadData();
-  }, []);
+  }, [session]);
 
   async function addRecipe(recipe) {
     const { data } = await supabase.from("recipes").insert(recipeToDb(recipe)).select().single();
