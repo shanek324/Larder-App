@@ -117,6 +117,7 @@ export default function App() {
 	  if(!session) return;
     async function loadData() {
       setLoading(true);
+      try {
 
       const [{ data: recipeData }, { data: colData }, { data: pantryData }] = await Promise.all([
         supabase.from("recipes").select("*").order("created_at", { ascending: false }),
@@ -131,6 +132,7 @@ export default function App() {
 
       setPantryItems(pantryData ? pantryData.map(pantryFromDb) : []);
       setLoading(false);
+      } catch(e) { console.error("loadData error", e); setLoading(false); }
     }
 
     loadData();
