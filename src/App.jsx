@@ -158,7 +158,7 @@ export default function App() {
 
   async function updateCollections(updated) {
     // Upsert all collections
-    await supabase.from("collections").upsert(updated.map(collectionToDb));
+    await supabase.from("collections").upsert(updated.map(c => ({ ...collectionToDb(c), user_id: session?.user?.id })));
     // Delete removed ones
     const updatedIds = updated.map(c => c.id);
     const removedIds = collections.filter(c => !updatedIds.includes(c.id)).map(c => c.id);
@@ -169,7 +169,7 @@ export default function App() {
   async function updatePantry(updated) {
     const newItems = updated.filter(i => !pantryItems.find(p => p.id === i.id));
     const removedIds = pantryItems.filter(p => !updated.find(i => i.id === p.id)).map(p => p.id);
-    if (newItems.length > 0) await supabase.from("pantry").insert(newItems.map(pantryToDb));
+    if (newItems.length > 0) await supabase.from("pantry").insert(newItems.map(p => ({ ...pantryToDb(p), user_id: session?.user?.id })));
     if (removedIds.length > 0) await supabase.from("pantry").delete().in("id", removedIds);
     setPantryItems(updated);
   }
@@ -181,7 +181,7 @@ export default function App() {
         .filter(i => !existing.includes(i.name.toLowerCase()))
         .map(i => ({ id: "pantry-" + Date.now() + Math.random(), name: i.name, aisle: i.aisle, addedAt: Date.now() }));
       if (newItems.length > 0) {
-        await supabase.from("pantry").insert(newItems.map(pantryToDb));
+        await supabase.from("pantry").insert(newItems.map(p => ({ ...pantryToDb(p), user_id: session?.user?.id })));
         setPantryItems(p => [...p, ...newItems]);
       }
     }
@@ -216,6 +216,7 @@ export default function App() {
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={() => setShowGenerate(true)} style={{ background: "#f5e6c8", color: "#8b6914", border: "none", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600 }}>✦ Generate</button>
+	  <button onClick={() => supabase.auth.signOut()} style={{ background: "none", color: "#9e8a73", border: "1.5px solid #e8e0d5", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Sign Out</button>
           <button onClick={() => setShowAdd(true)} style={{ background: "#2c1810", color: "#f5e6c8", border: "none", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600 }}>+ Add</button>
         </div>
       </div>
