@@ -35,7 +35,8 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
       const filtered = parsed.filter(item => !matchesPantry(item.name, pantryItems));
       setConsolidated(filtered);
     } catch(e) {
-      alert("Failed to generate list, please try again.");
+      console.error("Generate error:", e);
+      alert("Failed to generate list: " + e.message);
     }
     setGenerating(false);
   }
