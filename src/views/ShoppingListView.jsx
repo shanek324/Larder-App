@@ -1,31 +1,44 @@
 import { useState } from "react";
 import { DUNNES_AISLES } from "../constants";
-import { autoConsolidate, matchesPantry } from "../utils";
+import { callClaude, matchesPantry } from "../utils";
 
 export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
   const [selectedRecipes, setSelectedRecipes] = useState([]);
+  const [consolidated, setConsolidated] = useState(null);
   const [crossedOff, setCrossedOff] = useState({});
+  const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const aisleOrder = DUNNES_AISLES.map(a => a.name).concat(["Other"]);
+  const aisleNames = DUNNES_AISLES.map(a => a.name).join(", ");
 
   function toggleRecipe(id) {
     setSelectedRecipes(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+    setConsolidated(null);
+    setCrossedOff({});
   }
 
   const rawIngredients = recipes
     .filter(r => selectedRecipes.includes(r.id))
-    .flatMap(r => r.ingredients.map(ing => ({ ...ing, recipeTitle: r.title })));
+    .flatMap(r => r.ingredients);
 
-  const consolidated = autoConsolidate(rawIngredients).filter(item => !matchesPantry(item.name, pantryItems));
-
-  const grouped = {};
-  consolidated.forEach(item => {
-    const a = item.aisle || "Other";
-    if (!grouped[a]) grouped[a] = [];
-    grouped[a].push(item);
-  });
-  const sortedAisles = Object.keys(grouped).sort((a, b) => aisleOrder.indexOf(a) - aisleOrder.indexOf(b));
+  async function handleGenerate() {
+    setGenerating(true);
+    const ingredientList = rawIngredients.map(i => (i.amount ? i.amount + " " : "") + i.name).join("\n");
+    const messages = [{
+      role: "user",
+      content: "You are a shopping list consolidator. Given these raw ingredients from multiple recipes, consolidate them into a clean shopping list. Combine duplicates and similar items intelligently (e.g. 2 chicken breasts and 500g chicken should become one item). For each item return the best combined name, combined amounts, and which aisle it belongs to from this list: " + aisleNames + ", Other.\n\nIngredients:\n" + ingredientList + "\n\nRespond with ONLY a JSON array, no other text. Each item: name (string), amounts (array of strings), aisle (string), key (unique slug prefixed with con-)."
+    }];
+    try {
+      const res = await callClaude(messages);
+      const parsed = JSON.parse(res);
+      const filtered = parsed.filter(item => !matchesPantry(item.name, pantryItems));
+      setConsolidated(filtered);
+    } catch(e) {
+      alert("Failed to generate list, please try again.");
+    }
+    setGenerating(false);
+  }
 
   async function handleFinalise() {
     setSaving(true);
@@ -34,14 +47,22 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
     setSaving(false);
   }
 
+  const grouped = {};
+  (consolidated || []).forEach(item => {
+    const a = item.aisle || "Other";
+    if (!grouped[a]) grouped[a] = [];
+    grouped[a].push(item);
+  });
+  const sortedAisles = Object.keys(grouped).sort((a, b) => aisleOrder.indexOf(a) - aisleOrder.indexOf(b));
+
   return (
     <div style={{ maxWidth: "100%", width: "100%" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <div>
           <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, color: "#2c1810", margin: "0 0 4px", fontWeight: 700 }}>Shopping List</h1>
-          <p style={{ margin: 0, color: "#9e8a73", fontSize: 14 }}>Select recipes, cross off what you have, then finalise</p>
+          <p style={{ margin: 0, color: "#9e8a73", fontSize: 14 }}>Select recipes, generate your list, cross off what you have</p>
         </div>
-        {consolidated.length > 0 && (
+        {consolidated && consolidated.length > 0 && (
           <button onClick={handleFinalise} disabled={saving} style={{ background: "#2c1810", color: "#f5e6c8", border: "none", borderRadius: 10, padding: "10px 18px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600 }}>
             {saving ? "Saving..." : "Finalise List →"}
           </button>
@@ -65,8 +86,19 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
         </div>
       </div>
 
-      {selectedRecipes.length > 0 && consolidated.length === 0 && (
-        <div style={{ textAlign: "center", padding: "40px 20px", color: "#9e8a73" }}>
+      {selectedRecipes.length > 0 && !consolidated && (
+        <div style={{ textAlign: "center", padding: "32px 20px" }}>
+          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#9e8a73", marginBottom: 16 }}>
+            {rawIngredients.length} ingredients across {selectedRecipes.length} recipe{selectedRecipes.length !== 1 ? "s" : ""}
+          </p>
+          <button onClick={handleGenerate} disabled={generating} style={{ background: "#c8a96e", color: "#2c1810", border: "none", borderRadius: 10, padding: "12px 24px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 700 }}>
+            {generating ? "Generating..." : "✦ Generate List"}
+          </button>
+        </div>
+      )}
+
+      {consolidated && consolidated.length === 0 && (
+        <div style={{ textAlign: "center", padding: "40px 20px" }}>
           <p style={{ fontSize: 30, marginBottom: 8 }}>✅</p>
           <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, color: "#5c4a2a" }}>Everything is already in your pantry!</p>
         </div>
@@ -93,7 +125,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
                   <span style={{ flex: 1, fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: crossedOff[item.key] ? "#9e8a73" : "#2c1810", textDecoration: crossedOff[item.key] ? "line-through" : "none" }}>
                     {item.name}
                   </span>
-                  {item.amounts?.length > 0 && (
+                  {item.amounts && item.amounts.length > 0 && (
                     <span style={{ fontSize: 12, color: "#c8a96e", fontWeight: 600 }}>{item.amounts.join(" + ")}</span>
                   )}
                 </label>
