@@ -95,7 +95,7 @@ export default function App() {
   const [recipes, setRecipes] = useState([]);
   const [collections, setCollections] = useState([]);
   const [pantryItems, setPantryItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [session, setSession] = useState(null);
 
   const [view, setView] = useState("home");
