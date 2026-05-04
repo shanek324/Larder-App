@@ -14,9 +14,11 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const [tips, setTips] = useState(null);
   const [removedPantryIds, setRemovedPantryIds] = useState([]);
 
-  const steps = recipe.method || [];
+  const ingredients = recipe.ingredients || [];
+  const steps = ["__ingredients__", ...(recipe.method || [])];
   const totalSteps = steps.length;
   const isLastStep = currentStep === totalSteps - 1;
+  const isIngredientCard = currentStep === 0;
 
   function goNext() {
     if (isLastStep) {
@@ -95,10 +97,10 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
           <button onClick={onExit} style={{ background: "none", border: "none", color: "#c8a96e", fontFamily: "'DM Sans', sans-serif", fontSize: 14, cursor: "pointer" }}>← Exit</button>
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#9e8a73" }}>Step {currentStep + 1} of {totalSteps}</span>
-          <button onClick={openNote} style={{ background: "none", border: "1px solid #c8a96e", color: "#c8a96e", borderRadius: 8, padding: "6px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, cursor: "pointer" }}>
+          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#9e8a73" }}>{isIngredientCard ? "Ingredients" : "Step " + currentStep + " of " + (totalSteps - 1)}</span>
+          {!isIngredientCard && <button onClick={openNote} style={{ background: "none", border: "1px solid #c8a96e", color: "#c8a96e", borderRadius: 8, padding: "6px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, cursor: "pointer" }}>
             {note ? "✎ Edit note" : "+ Note"}
-          </button>
+          </button>}
         </div>
 
         {/* Recipe title */}
@@ -116,10 +118,26 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
             width: "100%",
             boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
           }}>
-            <div style={{ width: 36, height: 36, background: "#c8a96e", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: "#fff", marginBottom: 20 }}>
-              {currentStep + 1}
-            </div>
-            <p style={{ margin: 0, fontFamily: "'DM Sans', sans-serif", fontSize: 20, color: "#2c1810", lineHeight: 1.7 }}>{step}</p>
+            {isIngredientCard ? (
+              <>
+                <p style={{ margin: "0 0 16px", fontFamily: "'Playfair Display', serif", fontSize: 20, color: "#2c1810", fontWeight: 700 }}>Ingredients</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {ingredients.map((ing, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #e8e0d5" }}>
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#2c1810" }}>{ing.name}</span>
+                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: "#c8a96e" }}>{ing.amount}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ width: 36, height: 36, background: "#c8a96e", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: "#fff", marginBottom: 20 }}>
+                  {currentStep}
+                </div>
+                <p style={{ margin: 0, fontFamily: "'DM Sans', sans-serif", fontSize: 20, color: "#2c1810", lineHeight: 1.7 }}>{step}</p>
+              </>
+            )}
 
             {note && (
               <div style={{ marginTop: 20, background: "#fdf6e8", border: "1px solid #e8d5a0", borderRadius: 10, padding: "12px 14px" }}>
@@ -129,6 +147,11 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
             )}
           </div>
         </div>
+
+        {/* Floating ingredients button */}
+        {!isIngredientCard && (
+          <button onClick={() => setCurrentStep(0)} style={{ position: "fixed", bottom: 100, right: 20, background: "#c8a96e", color: "#2c1810", border: "none", borderRadius: 50, width: 48, height: 48, fontSize: 20, cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", zIndex: 10 }}>🥘</button>
+        )}
 
         {/* Progress dots */}
         <div style={{ display: "flex", justifyContent: "center", gap: 6, padding: "8px 20px" }}>
