@@ -6,6 +6,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
   const [selectedRecipes, setSelectedRecipes] = useState([]);
   const [consolidated, setConsolidated] = useState(null);
   const [crossedOff, setCrossedOff] = useState({});
+  const [expandedSources, setExpandedSources] = useState({});
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
@@ -19,10 +20,15 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
     setSelectedRecipes(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
     setConsolidated(null);
     setCrossedOff({});
+    setExpandedSources({});
   }
 
   function toggleCross(key) {
     setCrossedOff(c => ({ ...c, [key]: !c[key] }));
+  }
+
+  function toggleSources(key) {
+    setExpandedSources(s => ({ ...s, [key]: !s[key] }));
   }
 
   const filteredRecipes = recipes.filter(r => {
@@ -32,17 +38,21 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
     return matchSearch && matchTag;
   });
 
-  const rawIngredients = recipes
-    .filter(r => selectedRecipes.includes(r.id))
-    .flatMap(r => r.ingredients);
+  const selectedRecipeObjects = recipes.filter(r => selectedRecipes.includes(r.id));
+  const rawIngredients = selectedRecipeObjects.flatMap(r => r.ingredients);
 
   async function handleGenerate() {
     setGenerating(true);
-    const ingredientList = rawIngredients.map(i => (i.amount ? i.amount + " " : "") + i.name).join("\n");
+
+    const ingredientLines = selectedRecipeObjects.flatMap(r =>
+      r.ingredients.map(i => (i.amount ? i.amount + " " : "") + i.name + " [" + r.title + "]")
+    ).join("\n");
+
     const messages = [{
       role: "user",
-      content: "Consolidate these shopping ingredients into a clean list. Rules: 1) Combine duplicates and similar items (e.g. chicken breast, chicken breasts, 500g chicken = one item called Chicken Breast). 2) Use short clean names only - no descriptors like minced, sliced, grated, cubed. 3) Assign aisle from: " + aisleNames + ", Other.\n\n" + ingredientList + "\n\nReply ONLY with a JSON array. Each item: name (short clean string), amounts (string array), aisle (string), key (con- prefixed slug of name)."
+      content: "Consolidate these shopping ingredients into a clean list. Each line ends with [Recipe Name] showing the source. Rules: 1) Combine duplicates and similar items. 2) Use short clean names only - no descriptors like minced, sliced, grated. 3) Assign aisle from: " + aisleNames + ", Other. 4) Include a sources array listing which recipes need each item.\n\n" + ingredientLines + "\n\nReply ONLY with a JSON array. Each item: name (string), amounts (string array), aisle (string), key (con- prefixed slug), sources (string array of recipe names)."
     }];
+
     try {
       const res = await callClaude(messages, "", 4000, "claude-haiku-4-5-20251001");
       const cleaned = res.replace(/```json/g, "").replace(/```/g, "").trim();
@@ -56,11 +66,12 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
     setGenerating(false);
   }
 
-  async function handleFinalise() {
+  async function handleGoToShop() {
     setSaving(true);
     const finalItems = consolidated.filter(i => !crossedOff[i.key]);
     await onSaveList(finalItems);
     setSaving(false);
+    // App.jsx will now show InShopView because savedShoppingList is set
   }
 
   const grouped = {};
@@ -79,7 +90,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
           <p className="page-subtitle">
             {selectedRecipes.length === 0
               ? "Select recipes to build your list"
-              : `${selectedRecipes.length} recipe${selectedRecipes.length !== 1 ? "s" : ""} selected · ${rawIngredients.length} ingredients`}
+              : selectedRecipes.length + " recipe" + (selectedRecipes.length !== 1 ? "s" : "") + " · " + rawIngredients.length + " ingredients"}
           </p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -89,8 +100,8 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
             </button>
           )}
           {consolidated && consolidated.length > 0 && (
-            <button onClick={handleFinalise} disabled={saving} className="btn btn-primary btn-lg">
-              {saving ? "Saving..." : "Finalise →"}
+            <button onClick={handleGoToShop} disabled={saving} className="btn btn-primary btn-lg">
+              {saving ? "Saving..." : "Go to Shop →"}
             </button>
           )}
         </div>
@@ -164,8 +175,8 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
       {consolidated && consolidated.length > 0 && (
         <>
           <div className="shopping-list-header">
-            <p className="shopping-list-subtitle">Cross off anything you already have</p>
-            <button onClick={() => { setConsolidated(null); setCrossedOff({}); }} className="btn btn-secondary">← Back to recipes</button>
+            <p className="shopping-list-subtitle">Cross off anything you already have — then head to the shop</p>
+            <button onClick={() => { setConsolidated(null); setCrossedOff({}); setExpandedSources({}); }} className="btn btn-secondary">← Back to recipes</button>
           </div>
           {sortedAisles.map(aisle => {
             const aisleInfo = DUNNES_AISLES.find(a => a.name === aisle) || { icon: "🛒" };
@@ -178,13 +189,36 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
                 </div>
                 <div className="shopping-items">
                   {grouped[aisle].map(item => (
-                    <label key={item.key} onClick={() => toggleCross(item.key)} className={"shopping-item" + (crossedOff[item.key] ? " crossed" : "")}>
-                      <input type="checkbox" checked={!!crossedOff[item.key]} onChange={() => toggleCross(item.key)} className="shopping-item-check" />
-                      <span className="shopping-item-name">{item.name}</span>
-                      {item.amounts && item.amounts.length > 0 && (
-                        <span className="shopping-item-amount">{item.amounts.join(" + ")}</span>
+                    <div key={item.key} className="shopping-item-wrapper">
+                      <label className={"shopping-item" + (crossedOff[item.key] ? " crossed" : "")}
+                        onClick={() => toggleCross(item.key)}>
+                        <input
+                          type="checkbox"
+                          checked={!!crossedOff[item.key]}
+                          onChange={() => toggleCross(item.key)}
+                          className="shopping-item-check"
+                        />
+                        <span className="shopping-item-name">{item.name}</span>
+                        {item.amounts && item.amounts.length > 0 && (
+                          <span className="shopping-item-amount">{item.amounts.join(" + ")}</span>
+                        )}
+                        {item.sources && item.sources.length > 1 && (
+                          <button
+                            onClick={e => { e.preventDefault(); e.stopPropagation(); toggleSources(item.key); }}
+                            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "var(--color-text-muted)", padding: "0 4px", flexShrink: 0 }}
+                          >
+                            {expandedSources[item.key] ? "▲" : "▼"}
+                          </button>
+                        )}
+                      </label>
+                      {item.sources && item.sources.length > 0 && expandedSources[item.key] && (
+                        <div className="shopping-item-sources">
+                          {item.sources.map((src, i) => (
+                            <span key={i} className="shopping-item-source">{src}</span>
+                          ))}
+                        </div>
                       )}
-                    </label>
+                    </div>
                   ))}
                 </div>
               </div>
