@@ -2670,3 +2670,24 @@ textarea.input {
     gap: 8px;
   }
 }
+
+/* Shopping items fix */
+.shopping-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shopping-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  transition: all 0.12s;
+  width: 100%;
+  box-sizing: border-box;
+}
