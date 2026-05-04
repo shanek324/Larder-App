@@ -2,9 +2,9 @@ import { useState } from "react";
 import { DUNNES_AISLES } from "../constants";
 import { callClaude, matchesPantry } from "../utils";
 
-export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
+export default function ShoppingListView({ recipes, pantryItems, onSaveList, savedList, onClearList }) {
   const [selectedRecipes, setSelectedRecipes] = useState([]);
-  const [consolidated, setConsolidated] = useState(null);
+  const [consolidated, setConsolidated] = useState(savedList ? savedList.items : null);
   const [crossedOff, setCrossedOff] = useState({});
   const [expandedSources, setExpandedSources] = useState({});
   const [generating, setGenerating] = useState(false);
@@ -59,6 +59,8 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
       const parsed = JSON.parse(cleaned);
       const filtered = parsed.filter(item => !matchesPantry(item.name, pantryItems));
       setConsolidated(filtered);
+      // Save immediately so navigating away and back restores the list
+      await onSaveList(filtered, false);
     } catch(e) {
       console.error("Generate error:", e);
       alert("Failed to generate list: " + e.message);
@@ -68,10 +70,10 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
 
   async function handleGoToShop() {
     setSaving(true);
+    // Remove crossed-off items and mark as prepared (in-shop phase)
     const finalItems = consolidated.filter(i => !crossedOff[i.key]);
-    await onSaveList(finalItems);
+    await onSaveList(finalItems, true);
     setSaving(false);
-    // App.jsx will now show InShopView because savedShoppingList is set
   }
 
   const grouped = {};
@@ -175,8 +177,8 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList }) {
       {consolidated && consolidated.length > 0 && (
         <>
           <div className="shopping-list-header">
-            <p className="shopping-list-subtitle">Cross off anything you already have — then head to the shop</p>
-            <button onClick={() => { setConsolidated(null); setCrossedOff({}); setExpandedSources({}); }} className="btn btn-secondary">← Back to recipes</button>
+            <p className="shopping-list-subtitle">Cross off anything you already have</p>
+            <button onClick={async () => { if (onClearList) await onClearList(); setConsolidated(null); setCrossedOff({}); setExpandedSources({}); }} className="btn btn-secondary">← Back to recipes</button>
           </div>
           {sortedAisles.map(aisle => {
             const aisleInfo = DUNNES_AISLES.find(a => a.name === aisle) || { icon: "🛒" };

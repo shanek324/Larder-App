@@ -178,12 +178,12 @@ export default function App() {
     setPantryItems(updated);
   }
 
-  async function saveShoppingList(items) {
+  async function saveShoppingList(items, prepared = false) {
     if (savedShoppingList) {
-      await supabase.from("shopping_list").update({ items }).eq("id", savedShoppingList.id);
-      setSavedShoppingList({ ...savedShoppingList, items });
+      await supabase.from("shopping_list").update({ items, prepared }).eq("id", savedShoppingList.id);
+      setSavedShoppingList({ ...savedShoppingList, items, prepared });
     } else {
-      const { data } = await supabase.from("shopping_list").insert({ items, user_id: session?.user?.id, created_at: Date.now() }).select().single();
+      const { data } = await supabase.from("shopping_list").insert({ items, prepared, user_id: session?.user?.id, created_at: Date.now() }).select().single();
       setSavedShoppingList(data);
     }
   }
@@ -287,7 +287,7 @@ export default function App() {
             onViewRecipe={viewRecipe}
           />
         ) : view === "shopping" ? (
-          savedShoppingList ? (
+          savedShoppingList && savedShoppingList.prepared ? (
             <InShopView
               savedList={savedShoppingList}
               pantryItems={pantryItems}
@@ -299,6 +299,8 @@ export default function App() {
               recipes={recipes}
               pantryItems={pantryItems}
               onSaveList={saveShoppingList}
+              savedList={savedShoppingList}
+              onClearList={clearShoppingList}
             />
           )
         ) : view === "pantry" ? (
