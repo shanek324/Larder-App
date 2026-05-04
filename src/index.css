@@ -2519,3 +2519,154 @@ textarea.input {
   font-size: 14px;
   color: var(--color-primary);
 }
+
+/* ========================================
+   SHOPPING LIST — RECIPE SELECTION
+   ======================================== */
+
+.shopping-selected-bar {
+  background: var(--color-note-bg);
+  border: 1px solid var(--color-border-note);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.shopping-selected-label {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.shopping-selected-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.shopping-selected-pill {
+  background: var(--color-gold);
+  color: var(--color-primary);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.shopping-selected-pill:hover {
+  opacity: 0.8;
+}
+
+.shopping-search-bar {
+  margin-bottom: 12px;
+}
+
+.shopping-recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.shopping-recipe-card {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s;
+}
+
+.shopping-recipe-card:hover {
+  border-color: var(--color-gold);
+}
+
+.shopping-recipe-card.selected {
+  background: var(--color-gold-light);
+  border-color: var(--color-gold);
+}
+
+.shopping-recipe-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--color-gold);
+  color: #fff;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.shopping-recipe-title {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  color: var(--color-primary);
+  margin: 0 0 8px;
+  font-weight: 700;
+  padding-right: 28px;
+}
+
+.shopping-recipe-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.shopping-recipe-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.shopping-recipe-tag {
+  font-size: 10px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-surface-alt);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.shopping-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.shopping-list-subtitle {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .shopping-recipe-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+}
