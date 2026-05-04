@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { callClaude } from "../utils";
 
@@ -13,12 +13,27 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const [generatingTips, setGeneratingTips] = useState(false);
   const [tips, setTips] = useState(null);
   const [removedPantryIds, setRemovedPantryIds] = useState([]);
+  const [cookLogs, setCookLogs] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
 
   const ingredients = recipe.ingredients || [];
   const steps = ["__ingredients__", ...(recipe.method || [])];
   const totalSteps = steps.length;
   const isLastStep = currentStep === totalSteps - 1;
   const isIngredientCard = currentStep === 0;
+
+  useEffect(() => {
+    async function loadLogs() {
+      const { data } = await supabase
+        .from("cook_logs")
+        .select("*")
+        .eq("recipe_id", recipe.id)
+        .order("cooked_at", { ascending: false })
+        .limit(5);
+      if (data) setCookLogs(data);
+    }
+    loadLogs();
+  }, [recipe.id]);
 
   function goNext() {
     if (isLastStep) setPhase("review");
@@ -77,6 +92,10 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
       await onUpdatePantry(pantryItems.filter(i => !removedPantryIds.includes(i.id)));
     }
     onExit();
+  }
+
+  function formatDate(ts) {
+    return new Date(ts).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" });
   }
 
   // COOKING PHASE
@@ -184,6 +203,36 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
           <p className="cooking-review-emoji">🍽</p>
           <h2 className="cooking-review-title">How did it go?</h2>
           <p className="cooking-review-subtitle">{recipe.title}</p>
+
+          {cookLogs.length > 0 && (
+            <div className="cook-log-history">
+              <button
+                className="cook-log-history-toggle"
+                onClick={() => setShowHistory(h => !h)}
+              >
+                <span>📋 Previous cook notes ({cookLogs.length})</span>
+                <span>{showHistory ? "▲" : "▼"}</span>
+              </button>
+              {showHistory && (
+                <div className="cook-log-entries">
+                  {cookLogs.map((log, i) => (
+                    <div key={i} className="cook-log-entry">
+                      <div className="cook-log-entry-meta">
+                        <span className="cook-log-entry-date">{formatDate(log.cooked_at)}</span>
+                        <span className="cook-log-entry-rating">{"⭐".repeat(log.rating)}</span>
+                      </div>
+                      {log.feedback && (
+                        <p className="cook-log-entry-feedback">"{log.feedback}"</p>
+                      )}
+                      {log.ai_tips && (
+                        <p className="cook-log-entry-tips">{log.ai_tips}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <p className="cooking-review-label">Rating</p>
           <div className="cooking-stars">

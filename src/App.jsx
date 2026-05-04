@@ -82,6 +82,7 @@ function pantryToDb(p) {
     name: p.name,
     aisle: p.aisle,
     added_at: p.addedAt,
+    stock_level: p.stockLevel || "high",
   };
 }
 
@@ -91,6 +92,7 @@ function pantryFromDb(p) {
     name: p.name,
     aisle: p.aisle,
     addedAt: p.added_at,
+    stockLevel: p.stock_level || "high",
   };
 }
 

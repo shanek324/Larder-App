@@ -2,6 +2,12 @@ import { useState } from "react";
 import { categoriseIngredient, callClaude } from "../utils";
 import { DUNNES_AISLES } from "../constants";
 
+const STOCK_LEVELS = [
+  { key: "high", label: "High" },
+  { key: "med",  label: "Med" },
+  { key: "low",  label: "Low" },
+];
+
 export default function PantryView({ pantryItems, onUpdatePantry }) {
   const [newItem, setNewItem] = useState("");
   const [search, setSearch] = useState("");
@@ -17,6 +23,7 @@ export default function PantryView({ pantryItems, onUpdatePantry }) {
       name: newItem.trim(),
       aisle: categoriseIngredient(newItem.trim()),
       addedAt: Date.now(),
+      stockLevel: "high",
     };
     onUpdatePantry([...pantryItems, item]);
     setNewItem("");
@@ -24,6 +31,10 @@ export default function PantryView({ pantryItems, onUpdatePantry }) {
 
   function removeItem(id) {
     onUpdatePantry(pantryItems.filter(i => i.id !== id));
+  }
+
+  function setStockLevel(id, level) {
+    onUpdatePantry(pantryItems.map(i => i.id === id ? { ...i, stockLevel: level } : i));
   }
 
   async function handleCleanup() {
@@ -42,6 +53,7 @@ export default function PantryView({ pantryItems, onUpdatePantry }) {
         name: i.name,
         aisle: i.aisle || "Other",
         addedAt: Date.now(),
+        stockLevel: "high",
       }));
       await onUpdatePantry(newItems);
     } catch(e) {
@@ -113,6 +125,17 @@ export default function PantryView({ pantryItems, onUpdatePantry }) {
                 {grouped[aisle].map(item => (
                   <div key={item.id} className="pantry-item">
                     <span className="pantry-item-name">{item.name}</span>
+                    <div className="stock-toggle">
+                      {STOCK_LEVELS.map(({ key, label }) => (
+                        <button
+                          key={key}
+                          onClick={() => setStockLevel(item.id, key)}
+                          className={"stock-btn" + (item.stockLevel === key ? " active-" + key : "")}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
                     <span onClick={() => removeItem(item.id)} className="pantry-item-remove">×</span>
                   </div>
                 ))}
