@@ -6,7 +6,8 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
   const [showConfirm, setShowConfirm] = useState(false);
 
   const items = savedList?.items || [];
-  const allChecked = items.length > 0 && items.every(i => checked[i.key]);
+  const tickedCount = items.filter(i => checked[i.key]).length;
+  const allChecked = items.length > 0 && tickedCount === items.length;
 
   function toggleItem(key) {
     setChecked(c => ({ ...c, [key]: !c[key] }));
@@ -35,15 +36,15 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
   const sortedAisles = Object.keys(grouped).sort((a, b) => aisleOrder.indexOf(a) - aisleOrder.indexOf(b));
 
   return (
-    <div style={{ maxWidth: "100%", width: "100%" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+    <div className="view">
+      <div className="view-header">
         <div>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, color: "#2c1810", margin: "0 0 4px", fontWeight: 700 }}>Shopping</h1>
-          <p style={{ margin: 0, color: "#9e8a73", fontSize: 14 }}>{items.filter(i => checked[i.key]).length} of {items.length} items ticked</p>
+          <h1 className="page-title">Shopping</h1>
+          <p className="page-subtitle">{tickedCount} of {items.length} items ticked</p>
         </div>
         {allChecked && (
-          <button onClick={() => setShowConfirm(true)} style={{ background: "#2c1810", color: "#f5e6c8", border: "none", borderRadius: 10, padding: "10px 18px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600 }}>
-            Finished Shopping
+          <button onClick={() => setShowConfirm(true)} className="btn btn-primary btn-lg">
+            Finished Shopping ✓
           </button>
         )}
       </div>
@@ -51,26 +52,28 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
       {sortedAisles.map(aisle => {
         const aisleInfo = DUNNES_AISLES.find(a => a.name === aisle) || { icon: "🛒" };
         return (
-          <div key={aisle} style={{ marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, paddingBottom: 6, borderBottom: "1.5px solid #e8e0d5" }}>
-              <span style={{ fontSize: 16 }}>{aisleInfo.icon}</span>
-              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: "#2c1810" }}>{aisle}</span>
-              <span style={{ fontSize: 12, color: "#9e8a73", marginLeft: 4 }}>({grouped[aisle].length})</span>
+          <div key={aisle} className="aisle-section">
+            <div className="aisle-header">
+              <span>{aisleInfo.icon}</span>
+              <span className="aisle-name">{aisle}</span>
+              <span className="aisle-count">({grouped[aisle].length})</span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div className="shopping-items">
               {grouped[aisle].map(item => (
-                <label key={item.key} style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "10px 12px", borderRadius: 10, cursor: "pointer",
-                  background: checked[item.key] ? "#f5f0e8" : "#fffdf8",
-                  border: "1px solid", borderColor: checked[item.key] ? "#e8d5a0" : "#e8e0d5",
-                }}>
-                  <input type="checkbox" checked={!!checked[item.key]} onChange={() => toggleItem(item.key)} style={{ accentColor: "#c8a96e", width: 16, height: 16, flexShrink: 0 }} />
-                  <span style={{ flex: 1, fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: checked[item.key] ? "#9e8a73" : "#2c1810", textDecoration: checked[item.key] ? "line-through" : "none" }}>
-                    {item.name}
-                  </span>
+                <label
+                  key={item.key}
+                  onClick={() => toggleItem(item.key)}
+                  className={"shopping-item" + (checked[item.key] ? " crossed" : "")}
+                >
+                  <input
+                    type="checkbox"
+                    checked={!!checked[item.key]}
+                    onChange={() => toggleItem(item.key)}
+                    className="shopping-item-check"
+                  />
+                  <span className="shopping-item-name">{item.name}</span>
                   {item.amounts && item.amounts.length > 0 && (
-                    <span style={{ fontSize: 12, color: "#c8a96e", fontWeight: 600 }}>{item.amounts.join(" + ")}</span>
+                    <span className="shopping-item-amount">{item.amounts.join(" + ")}</span>
                   )}
                 </label>
               ))}
@@ -80,14 +83,16 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
       })}
 
       {showConfirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(44,24,16,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, padding: 20 }}>
-          <div style={{ background: "#fffdf8", borderRadius: 20, padding: 28, width: "100%", maxWidth: 400, textAlign: "center" }}>
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
             <p style={{ fontSize: 40, marginBottom: 8 }}>🛒</p>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: "#2c1810", marginBottom: 8 }}>All done?</h2>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#7a6651", marginBottom: 24 }}>This will add your bought items to the pantry and clear your shopping list.</p>
+            <h2 className="section-title" style={{ textAlign: "center" }}>All done?</h2>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
+              This will add your bought items to the pantry and clear your shopping list.
+            </p>
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={handleFinished} style={{ flex: 1, background: "#2c1810", color: "#f5e6c8", border: "none", borderRadius: 10, padding: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 14 }}>Yes, finish up</button>
-              <button onClick={() => setShowConfirm(false)} style={{ background: "#f0ebe3", color: "#5c4a2a", border: "none", borderRadius: 10, padding: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>Cancel</button>
+              <button onClick={handleFinished} className="btn btn-primary btn-lg" style={{ flex: 1 }}>Yes, finish up</button>
+              <button onClick={() => setShowConfirm(false)} className="btn btn-secondary btn-lg">Cancel</button>
             </div>
           </div>
         </div>

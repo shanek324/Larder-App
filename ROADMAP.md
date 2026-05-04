@@ -7,13 +7,14 @@
 - Modular file structure (components, views, constants, utils)
 - GitHub repo at shanek324/Larder-App
 - Deployed to Vercel at larder-app-omega.vercel.app
-- Supabase database (recipes, collections, pantry tables)
+- Supabase database (recipes, collections, pantry, shopping_list tables)
 - Auto-deploy on git push
 - Supabase Row Level Security (RLS) — data locked per user
 - Supabase Auth — email/password login and logout
 - Claude API proxy via Vercel serverless function
 - AI features (Generate, Assistant) working on deployed app
 - Anthropic API key safely server-side
+- Haiku model for mechanical tasks, Sonnet for creative tasks
 
 ### App Features
 - Recipe library with search and tag filtering
@@ -23,8 +24,11 @@
 - Add recipe manually via form
 - Collections (group recipes into named sets)
 - Pantry (track what you have in stock)
-- Shopping list (select recipes, auto-consolidate ingredients, organised by Dunnes aisle order)
-- Finalise list flow (tick what you have, optionally save to pantry)
+- Pantry cleanup via Claude (deduplicates messy entries)
+- Shopping list — select recipes, Claude consolidates ingredients intelligently
+- Cross off items you already have before finalising
+- Finalise list saves to Supabase (persists across sessions)
+- In-shop mode — tick off items as you shop, add bought items to pantry on completion
 - AI recipe assistant per recipe (ask questions, request modifications)
 - AI recipe generator (describe a dish, get a full recipe)
 - Cooked it! button (tracks last cooked date)
@@ -39,16 +43,29 @@
 
 ## 📋 Next Up
 
-### Features
-- Shopping list persistence (currently resets on page reload)
-- Recipe cook count tracking (how many times cooked)
-- Recipe rating / favourites
-- Cooking mode — fullscreen step-by-step view with large text, tap to advance, timers per step
-- Step annotations — add notes to individual steps while cooking (e.g. "added extra garlic", "kept in pan")
-- Merge annotations back into recipe via Claude ("Update recipe from my notes")
+### Cooking Mode (major feature)
+- Trigger from recipe detail view
+- Card-based step-by-step view, near fullscreen
+- Carousel navigation — swipe or tap through steps
+- Smooth rolodex-style transition animation between cards
+- Add notes to individual steps while cooking
+- End of cooking flow:
+  - Mark as cooked (increment cook count)
+  - 5-star rating
+  - Free text feedback (e.g. "needed more flavour")
+  - Claude generates closing tips from feedback
+  - Tips appear as contextual notes on relevant steps next time
+  - Option to remove used-up items from pantry
 
-### Technical
-- CSS refactor — move inline styles to stylesheet for easier theming and global style changes
+### Pantry Improvements
+- Stock level per item — High / Medium / Low
+- Future hook: low stock items auto-added to shopping list
+
+### Mobile / Responsive UI
+- Full responsive design for all screen sizes
+- Nav bar always accessible on phone
+- Nothing cut off on small screens
+- CSS refactor — move inline styles to stylesheet
 
 ---
 
@@ -57,12 +74,13 @@
 ### Features
 - Meal planner (drag recipes onto a weekly calendar)
 - Recipe cost calculator (estimate cost per meal based on ingredient prices)
-- Receipt scanning — photograph a Dunnes/Tesco receipt, Claude extracts items and prices, update pantry and attach prices to ingredients
+- Receipt scanning — photograph a receipt, Claude extracts items and prices, update pantry and attach prices to ingredients
+- Low stock pantry reminders — auto-add to shopping list
 - Nutritional info (AI-generated approximate macros per recipe)
 - Recipe import from URL (paste a link, AI extracts the recipe)
 - Share a recipe via link
 - Eve access — shared account or multi-user support
-- Mobile PWA improvements (offline support, better mobile UI)
+- Mobile PWA improvements (offline support)
 
 ### Integrations
 - Grocery delivery integration (add shopping list to Tesco/Dunnes online)
@@ -72,6 +90,6 @@
 ---
 
 ## 🔧 Known Issues / Technical Debt
-- App is desktop-first — mobile UI could be improved
+- App is desktop-first — mobile UI needs full responsive overhaul (planned)
 - No error handling UI (failures are silent)
 - Styles are inline in JSX — hard to do global theme changes (CSS refactor planned)

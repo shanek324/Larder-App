@@ -62,58 +62,58 @@ export default function PantryView({ pantryItems, onUpdatePantry }) {
   const sortedAisles = Object.keys(grouped).sort((a, b) => aisleOrder.indexOf(a) - aisleOrder.indexOf(b));
 
   return (
-    <div style={{ maxWidth: "100%", width: "100%" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+    <div className="view">
+      <div className="view-header">
         <div>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, color: "#2c1810", margin: "0 0 4px", fontWeight: 700 }}>Pantry</h1>
-          <p style={{ margin: 0, color: "#9e8a73", fontSize: 14, fontFamily: "'DM Sans', sans-serif" }}>{pantryItems.length} item{pantryItems.length !== 1 ? "s" : ""} in stock</p>
+          <h1 className="page-title">Pantry</h1>
+          <p className="page-subtitle">{pantryItems.length} item{pantryItems.length !== 1 ? "s" : ""} in stock</p>
         </div>
         {pantryItems.length > 0 && (
-          <button onClick={handleCleanup} disabled={cleaning} style={{ background: "#f5e6c8", color: "#8b6914", border: "none", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600 }}>
+          <button onClick={handleCleanup} disabled={cleaning} className="btn btn-gold">
             {cleaning ? "Cleaning..." : "✦ Clean up"}
           </button>
         )}
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+      <div className="pantry-add-row">
         <input
           value={newItem}
           onChange={e => setNewItem(e.target.value)}
           onKeyDown={e => e.key === "Enter" && addItem()}
           placeholder="Add item to pantry…"
-          style={{ flex: 1, padding: "10px 14px", border: "1.5px solid #ddd5c8", borderRadius: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 14, background: "#fffdf8", outline: "none", color: "#3a2e22" }}
+          className="input"
         />
-        <button onClick={addItem} style={{ background: "#c8a96e", color: "#fff", border: "none", borderRadius: 10, padding: "10px 18px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600 }}>Add</button>
+        <button onClick={addItem} className="btn btn-gold btn-lg">Add</button>
       </div>
 
       <input
         value={search}
         onChange={e => setSearch(e.target.value)}
         placeholder="Search pantry…"
-        style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #ddd5c8", borderRadius: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 14, background: "#fffdf8", outline: "none", color: "#3a2e22", marginBottom: 20, boxSizing: "border-box" }}
+        className="input pantry-search"
       />
 
       {pantryItems.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "60px 20px", color: "#9e8a73" }}>
-          <p style={{ fontSize: 40, marginBottom: 12 }}>🥫</p>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: "#5c4a2a", marginBottom: 8 }}>Your pantry is empty</p>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14 }}>Add items you always have in stock — they will be excluded from your shopping list.</p>
+        <div className="empty-state">
+          <p className="empty-state-emoji">🥫</p>
+          <p className="empty-state-title">Your pantry is empty</p>
+          <p className="empty-state-text">Add items you always have in stock — they will be excluded from your shopping list.</p>
         </div>
       ) : (
         sortedAisles.map(aisle => {
           const aisleInfo = DUNNES_AISLES.find(a => a.name === aisle) || { icon: "🛒" };
           return (
-            <div key={aisle} style={{ marginBottom: 24 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, paddingBottom: 6, borderBottom: "1.5px solid #e8e0d5" }}>
-                <span style={{ fontSize: 16 }}>{aisleInfo.icon}</span>
-                <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 700, color: "#2c1810" }}>{aisle}</span>
-                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: "#9e8a73", marginLeft: 4 }}>({grouped[aisle].length})</span>
+            <div key={aisle} className="aisle-section">
+              <div className="aisle-header">
+                <span>{aisleInfo.icon}</span>
+                <span className="aisle-name">{aisle}</span>
+                <span className="aisle-count">({grouped[aisle].length})</span>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div className="pantry-items">
                 {grouped[aisle].map(item => (
-                  <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, background: "#fffdf8", border: "1px solid #e8e0d5" }}>
-                    <span style={{ flex: 1, fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#2c1810" }}>{item.name}</span>
-                    <span onClick={() => removeItem(item.id)} style={{ color: "#c0392b", opacity: 0.5, cursor: "pointer", fontSize: 18, lineHeight: 1 }}>×</span>
+                  <div key={item.id} className="pantry-item">
+                    <span className="pantry-item-name">{item.name}</span>
+                    <span onClick={() => removeItem(item.id)} className="pantry-item-remove">×</span>
                   </div>
                 ))}
               </div>

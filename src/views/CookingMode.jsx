@@ -7,7 +7,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const [stepNotes, setStepNotes] = useState(recipe.step_notes || {});
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [noteText, setNoteText] = useState("");
-  const [phase, setPhase] = useState("cooking"); // cooking | review | pantry
+  const [phase, setPhase] = useState("cooking");
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [generatingTips, setGeneratingTips] = useState(false);
@@ -21,11 +21,8 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const isIngredientCard = currentStep === 0;
 
   function goNext() {
-    if (isLastStep) {
-      setPhase("review");
-    } else {
-      setCurrentStep(s => s + 1);
-    }
+    if (isLastStep) setPhase("review");
+    else setCurrentStep(s => s + 1);
   }
 
   function goPrev() {
@@ -54,8 +51,6 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
       }];
       const aiTips = await callClaude(messages, "", 500, "claude-haiku-4-5-20251001");
       setTips(aiTips);
-
-      // Save cook log
       await supabase.from("cook_logs").insert({
         user_id: session?.user?.id,
         recipe_id: recipe.id,
@@ -64,11 +59,8 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
         feedback,
         ai_tips: aiTips,
       });
-
-      // Update recipe cook count and last cooked
       const newCount = (recipe.cook_count || 0) + 1;
       await onUpdateRecipe({ ...recipe, cook_count: newCount, lastCooked: Date.now() });
-
     } catch(e) {
       console.error("Review error:", e);
     }
@@ -93,99 +85,89 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     const note = stepNotes[currentStep];
 
     return (
-      <div style={{ position: "fixed", inset: 0, background: "#1a0f0a", zIndex: 300, display: "flex", flexDirection: "column" }}>
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-          <button onClick={onExit} style={{ background: "none", border: "none", color: "#c8a96e", fontFamily: "'DM Sans', sans-serif", fontSize: 14, cursor: "pointer" }}>← Exit</button>
-          <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: "#9e8a73" }}>{isIngredientCard ? "Ingredients" : "Step " + currentStep + " of " + (totalSteps - 1)}</span>
-          {!isIngredientCard && <button onClick={openNote} style={{ background: "none", border: "1px solid #c8a96e", color: "#c8a96e", borderRadius: 8, padding: "6px 12px", fontFamily: "'DM Sans', sans-serif", fontSize: 12, cursor: "pointer" }}>
-            {note ? "✎ Edit note" : "+ Note"}
-          </button>}
+      <div className="cooking-screen">
+        <div className="cooking-header">
+          <button onClick={onExit} className="cooking-exit-btn">← Exit</button>
+          <span className="cooking-progress-label">
+            {isIngredientCard ? "Ingredients" : "Step " + currentStep + " of " + (totalSteps - 1)}
+          </span>
+          {!isIngredientCard ? (
+            <button onClick={openNote} className="cooking-note-btn">
+              {note ? "✎ Edit note" : "+ Note"}
+            </button>
+          ) : <div style={{ width: 80 }} />}
         </div>
 
-        {/* Recipe title */}
-        <div style={{ padding: "12px 20px 0", textAlign: "center" }}>
-          <p style={{ margin: 0, fontFamily: "'Playfair Display', serif", fontSize: 16, color: "#c8a96e" }}>{recipe.title}</p>
-        </div>
+        <div className="cooking-recipe-title">{recipe.title}</div>
 
-        {/* Step card */}
-        <div style={{ flex: 1, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "20px", overflowY: "auto" }}>
-          <div style={{
-            background: "#fffdf8",
-            borderRadius: 24,
-            padding: "40px 36px",
-            maxWidth: 600,
-            width: "100%",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
-          }}>
+        <div className="cooking-card-wrapper">
+          <div className="cooking-card">
             {isIngredientCard ? (
               <>
-                <p style={{ margin: "0 0 16px", fontFamily: "'Playfair Display', serif", fontSize: 20, color: "#2c1810", fontWeight: 700 }}>Ingredients</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <p className="cooking-card-ingredients-title">Ingredients</p>
+                <div className="cooking-ingredients-list">
                   {ingredients.map((ing, i) => (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #e8e0d5" }}>
-                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#2c1810" }}>{ing.name}</span>
-                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, fontWeight: 600, color: "#c8a96e" }}>{ing.amount}</span>
+                    <div key={i} className="cooking-ingredient-row">
+                      <span className="cooking-ingredient-name">{ing.name}</span>
+                      <span className="cooking-ingredient-amount">{ing.amount}</span>
                     </div>
                   ))}
                 </div>
               </>
             ) : (
               <>
-                <div style={{ width: 36, height: 36, background: "#c8a96e", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 16, color: "#fff", marginBottom: 20 }}>
-                  {currentStep}
-                </div>
-                <p style={{ margin: 0, fontFamily: "'DM Sans', sans-serif", fontSize: 20, color: "#2c1810", lineHeight: 1.7 }}>{step}</p>
+                <div className="cooking-step-num">{currentStep}</div>
+                <p className="cooking-step-text">{step}</p>
               </>
             )}
 
             {note && (
-              <div style={{ marginTop: 20, background: "#fdf6e8", border: "1px solid #e8d5a0", borderRadius: 10, padding: "12px 14px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: 11, fontWeight: 600, color: "#9e8a73", fontFamily: "'DM Sans', sans-serif", textTransform: "uppercase" }}>Your note</p>
-                <p style={{ margin: 0, fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#5c4a2a", lineHeight: 1.5 }}>{note}</p>
+              <div className="cooking-note">
+                <p className="cooking-note-label">Your note</p>
+                <p className="cooking-note-text">{note}</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Floating ingredients button */}
         {!isIngredientCard && (
-          <button onClick={() => setCurrentStep(0)} style={{ position: "fixed", bottom: 100, right: 20, background: "#c8a96e", color: "#2c1810", border: "none", borderRadius: 50, width: 48, height: 48, fontSize: 20, cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", zIndex: 10 }}>🥘</button>
+          <button onClick={() => setCurrentStep(0)} className="cooking-ingredients-fab">🥘</button>
         )}
 
-        {/* Progress dots */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 6, padding: "8px 20px" }}>
+        <div className="cooking-dots">
           {steps.map((_, i) => (
-            <div key={i} onClick={() => setCurrentStep(i)} style={{ width: i === currentStep ? 20 : 8, height: 8, borderRadius: 4, background: i === currentStep ? "#c8a96e" : i < currentStep ? "#5c4a2a" : "#3a2e22", cursor: "pointer", transition: "all 0.2s" }} />
+            <div
+              key={i}
+              onClick={() => setCurrentStep(i)}
+              className={"cooking-dot" + (i === currentStep ? " active" : i < currentStep ? " past" : "")}
+            />
           ))}
         </div>
 
-        {/* Navigation */}
-        <div style={{ display: "flex", gap: 12, padding: "16px 20px 32px" }}>
+        <div className="cooking-nav">
           {currentStep > 0 && (
-            <button onClick={goPrev} style={{ flex: 1, background: "rgba(255,255,255,0.1)", color: "#f5e6c8", border: "none", borderRadius: 14, padding: 16, fontFamily: "'DM Sans', sans-serif", fontSize: 16, cursor: "pointer", fontWeight: 600 }}>← Back</button>
+            <button onClick={goPrev} className="cooking-nav-back">← Back</button>
           )}
-          <button onClick={goNext} style={{ flex: 2, background: "#c8a96e", color: "#2c1810", border: "none", borderRadius: 14, padding: 16, fontFamily: "'DM Sans', sans-serif", fontSize: 16, cursor: "pointer", fontWeight: 700 }}>
+          <button onClick={goNext} className="cooking-nav-next">
             {isLastStep ? "Finished Cooking 🍽" : "Next Step →"}
           </button>
         </div>
 
-        {/* Note input modal */}
         {showNoteInput && (
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "flex-end", zIndex: 400 }}>
-            <div style={{ background: "#fffdf8", borderRadius: "20px 20px 0 0", padding: 24, width: "100%" }}>
-              <h3 style={{ margin: "0 0 12px", fontFamily: "'Playfair Display', serif", color: "#2c1810" }}>Note for step {currentStep + 1}</h3>
+          <div className="cooking-note-overlay">
+            <div className="cooking-note-sheet">
+              <h3 className="cooking-note-sheet-title">Note for step {currentStep}</h3>
               <textarea
                 value={noteText}
                 onChange={e => setNoteText(e.target.value)}
                 placeholder="e.g. Added extra garlic, kept sauce on longer..."
                 autoFocus
                 rows={3}
-                style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #ddd5c8", borderRadius: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 14, resize: "none", boxSizing: "border-box", marginBottom: 12 }}
+                className="input cooking-note-textarea"
               />
               <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={saveNote} style={{ flex: 1, background: "#2c1810", color: "#f5e6c8", border: "none", borderRadius: 10, padding: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 700 }}>Save Note</button>
-                <button onClick={() => setShowNoteInput(false)} style={{ background: "#f0ebe3", color: "#5c4a2a", border: "none", borderRadius: 10, padding: "12px 16px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Cancel</button>
+                <button onClick={saveNote} className="btn btn-primary" style={{ flex: 1 }}>Save Note</button>
+                <button onClick={() => setShowNoteInput(false)} className="btn btn-secondary">Cancel</button>
               </div>
             </div>
           </div>
@@ -197,33 +179,33 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   // REVIEW PHASE
   if (phase === "review") {
     return (
-      <div style={{ position: "fixed", inset: 0, background: "#1a0f0a", zIndex: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ background: "#fffdf8", borderRadius: 24, padding: 36, maxWidth: 500, width: "100%" }}>
-          <p style={{ fontSize: 48, textAlign: "center", marginBottom: 8 }}>🍽</p>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, color: "#2c1810", textAlign: "center", margin: "0 0 6px" }}>How did it go?</h2>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#9e8a73", textAlign: "center", marginBottom: 24 }}>{recipe.title}</p>
+      <div className="cooking-screen cooking-screen-centered">
+        <div className="cooking-review-card">
+          <p className="cooking-review-emoji">🍽</p>
+          <h2 className="cooking-review-title">How did it go?</h2>
+          <p className="cooking-review-subtitle">{recipe.title}</p>
 
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: "#5c4a2a", marginBottom: 10 }}>Rating</p>
-          <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
+          <p className="cooking-review-label">Rating</p>
+          <div className="cooking-stars">
             {[1,2,3,4,5].map(n => (
-              <button key={n} onClick={() => setRating(n)} style={{ flex: 1, fontSize: 28, background: rating >= n ? "#fdf6e8" : "#f0ebe3", border: rating >= n ? "2px solid #c8a96e" : "2px solid transparent", borderRadius: 10, padding: "10px 0", cursor: "pointer" }}>⭐</button>
+              <button key={n} onClick={() => setRating(n)} className={"cooking-star" + (rating >= n ? " active" : "")}>⭐</button>
             ))}
           </div>
 
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: "#5c4a2a", marginBottom: 8 }}>Any feedback?</p>
+          <p className="cooking-review-label">Any feedback?</p>
           <textarea
             value={feedback}
             onChange={e => setFeedback(e.target.value)}
             placeholder="e.g. Needed more seasoning, sauce was too thick..."
             rows={3}
-            style={{ width: "100%", padding: "10px 14px", border: "1.5px solid #ddd5c8", borderRadius: 10, fontFamily: "'DM Sans', sans-serif", fontSize: 14, resize: "none", boxSizing: "border-box", marginBottom: 20 }}
+            className="input cooking-feedback-input"
           />
 
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={handleFinishReview} disabled={rating === 0 || generatingTips} style={{ flex: 1, background: "#2c1810", color: "#f5e6c8", border: "none", borderRadius: 10, padding: 14, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15 }}>
+            <button onClick={handleFinishReview} disabled={rating === 0 || generatingTips} className="btn btn-primary btn-lg" style={{ flex: 1 }}>
               {generatingTips ? "Generating tips..." : "Done →"}
             </button>
-            <button onClick={handleFinishPantry} style={{ background: "#f0ebe3", color: "#5c4a2a", border: "none", borderRadius: 10, padding: "14px 16px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Skip</button>
+            <button onClick={handleFinishPantry} className="btn btn-secondary btn-lg">Skip</button>
           </div>
         </div>
       </div>
@@ -232,32 +214,30 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
 
   // PANTRY PHASE
   return (
-    <div style={{ position: "fixed", inset: 0, background: "#1a0f0a", zIndex: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, overflowY: "auto" }}>
-      <div style={{ background: "#fffdf8", borderRadius: 24, padding: 36, maxWidth: 500, width: "100%" }}>
+    <div className="cooking-screen cooking-screen-centered">
+      <div className="cooking-review-card">
         {tips && (
-          <div style={{ background: "#fdf6e8", border: "1px solid #e8d5a0", borderRadius: 12, padding: "14px 16px", marginBottom: 24 }}>
-            <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 600, color: "#9e8a73", fontFamily: "'DM Sans', sans-serif", textTransform: "uppercase" }}>Tips for next time</p>
-            <p style={{ margin: 0, fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#5c4a2a", lineHeight: 1.6 }}>{tips}</p>
+          <div className="card-note cooking-tips">
+            <p className="label-uppercase" style={{ marginBottom: 6 }}>Tips for next time</p>
+            <p className="cooking-tips-text">{tips}</p>
           </div>
         )}
 
-        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: "#2c1810", margin: "0 0 6px" }}>Update Pantry?</h2>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#9e8a73", marginBottom: 20 }}>Tick anything you used up while cooking</p>
+        <h2 className="cooking-review-title" style={{ textAlign: "left", fontSize: 22 }}>Update Pantry?</h2>
+        <p className="cooking-review-subtitle" style={{ textAlign: "left", marginBottom: 20 }}>Tick anything you used up while cooking</p>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24, maxHeight: 300, overflowY: "auto" }}>
+        <div className="cooking-pantry-list">
           {pantryItems.map(item => (
-            <label key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, cursor: "pointer", background: removedPantryIds.includes(item.id) ? "#fce4e4" : "#f7f3ec", border: removedPantryIds.includes(item.id) ? "1px solid #f5a0a0" : "1px solid transparent" }}>
-              <input type="checkbox" checked={removedPantryIds.includes(item.id)} onChange={() => togglePantryRemove(item.id)} style={{ accentColor: "#c0392b", width: 16, height: 16 }} />
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 14, color: "#2c1810" }}>{item.name}</span>
+            <label key={item.id} className={"cooking-pantry-item" + (removedPantryIds.includes(item.id) ? " removed" : "")}>
+              <input type="checkbox" checked={removedPantryIds.includes(item.id)} onChange={() => togglePantryRemove(item.id)} style={{ accentColor: "var(--color-danger)", width: 16, height: 16 }} />
+              <span className="cooking-pantry-item-name">{item.name}</span>
             </label>
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={handleFinishPantry} style={{ flex: 1, background: "#2c1810", color: "#f5e6c8", border: "none", borderRadius: 10, padding: 14, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: 15 }}>
-            {removedPantryIds.length > 0 ? "Update & Finish" : "Finish"}
-          </button>
-        </div>
+        <button onClick={handleFinishPantry} className="btn btn-primary btn-full btn-lg">
+          {removedPantryIds.length > 0 ? "Update & Finish" : "Finish"}
+        </button>
       </div>
     </div>
   );

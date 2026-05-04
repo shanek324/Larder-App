@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { callClaude } from "../utils";
 
+const SUGGESTIONS = [
+  "Make this for 4 people",
+  "Swap the cream for crème fraîche",
+  "Make it spicier",
+  "What can I substitute for the main protein?",
+];
+
 export default function AIChat({ recipe, onUpdate }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -9,9 +16,9 @@ export default function AIChat({ recipe, onUpdate }) {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
-  async function send() {
-    if (!input.trim() || loading) return;
-    const userMsg = input.trim();
+  async function send(text) {
+    const userMsg = (text || input).trim();
+    if (!userMsg || loading) return;
     setInput("");
     const newMessages = [...messages, { role: "user", content: userMsg }];
     setMessages(newMessages);
@@ -50,38 +57,48 @@ If just a question, reply normally. Be concise. Use metric/Irish measurements.`;
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#faf7f2", borderRadius: 12, border: "1.5px solid #e8e0d5", overflow: "hidden" }}>
-      <div style={{ padding: "14px 18px", borderBottom: "1px solid #e8e0d5", background: "#fffdf8" }}>
-        <p style={{ margin: 0, fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: "#5c4a2a" }}>✦ AI Recipe Assistant</p>
-        <p style={{ margin: "2px 0 0", fontSize: 11, color: "#9e8a73", fontFamily: "'DM Sans', sans-serif" }}>Ask me to adjust servings, swap ingredients, or change the method</p>
+    <div className="aichat">
+      <div className="aichat-header">
+        <div>
+          <p className="aichat-header-title">✦ AI Recipe Assistant</p>
+          <p className="aichat-header-subtitle">Ask me to adjust, swap ingredients, or change the method</p>
+        </div>
+        {messages.length > 0 && (
+          <button onClick={() => setMessages([])} className="aichat-clear">Clear</button>
+        )}
       </div>
-      <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+
+      <div className="aichat-messages">
         {messages.length === 0 && (
-          <div style={{ textAlign: "center", color: "#b5a48e", fontSize: 13, marginTop: 20, fontFamily: "'DM Sans', sans-serif", fontStyle: "italic" }}>
-            Try: "Make this for 4 people" or "Swap the cream for crème fraîche"
+          <div className="aichat-suggestions">
+            <p className="aichat-suggestions-label">Try asking:</p>
+            <div className="aichat-suggestions-list">
+              {SUGGESTIONS.map(s => (
+                <button key={s} onClick={() => send(s)} className="aichat-suggestion">{s}</button>
+              ))}
+            </div>
           </div>
         )}
         {messages.map((m, i) => (
-          <div key={i} style={{ alignSelf: m.role === "user" ? "flex-end" : "flex-start", maxWidth: "85%", background: m.role === "user" ? "#c8a96e" : "#fff", color: m.role === "user" ? "#fff" : "#3a2e22", padding: "10px 14px", borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "4px 16px 16px 16px", fontSize: 13, fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6, border: m.role === "assistant" ? "1px solid #e8e0d5" : "none", whiteSpace: "pre-wrap" }}>
+          <div key={i} className={"aichat-msg" + (m.role === "user" ? " aichat-msg-user" : " aichat-msg-assistant")}>
             {m.content}
           </div>
         ))}
         {loading && (
-          <div style={{ alignSelf: "flex-start", background: "#fff", border: "1px solid #e8e0d5", padding: "10px 14px", borderRadius: "4px 16px 16px 16px", fontSize: 13, color: "#9e8a73", fontFamily: "'DM Sans', sans-serif" }}>
-            Thinking…
-          </div>
+          <div className="aichat-msg aichat-msg-assistant aichat-thinking">Thinking…</div>
         )}
         <div ref={bottomRef} />
       </div>
-      <div style={{ padding: "12px 16px", borderTop: "1px solid #e8e0d5", display: "flex", gap: 8 }}>
+
+      <div className="aichat-input-row">
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && send()}
           placeholder="Ask something about this recipe..."
-          style={{ flex: 1, padding: "9px 14px", border: "1.5px solid #ddd5c8", borderRadius: 24, fontFamily: "'DM Sans', sans-serif", fontSize: 13, background: "#fffdf8", outline: "none", color: "#3a2e22" }}
+          className="input aichat-input"
         />
-        <button onClick={send} disabled={loading} style={{ background: "#c8a96e", color: "#fff", border: "none", borderRadius: 24, padding: "9px 18px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, opacity: loading ? 0.6 : 1 }}>
+        <button onClick={() => send()} disabled={loading} className="btn btn-gold aichat-send">
           Send
         </button>
       </div>

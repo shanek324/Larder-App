@@ -32,6 +32,8 @@ function recipeToDb(r) {
     notes: r.notes,
     created_at: r.createdAt,
     last_cooked: r.lastCooked || null,
+    cook_count: r.cook_count || 0,
+    step_notes: r.step_notes || {},
   };
 }
 
@@ -49,7 +51,8 @@ function recipeFromDb(r) {
     notes: r.notes,
     createdAt: r.created_at,
     lastCooked: r.last_cooked,
-
+    cook_count: r.cook_count || 0,
+    step_notes: r.step_notes || {},
   };
 }
 
@@ -60,7 +63,6 @@ function collectionToDb(c) {
     emoji: c.emoji,
     recipe_ids: c.recipeIds,
     created_at: c.createdAt,
-
   };
 }
 
@@ -80,7 +82,6 @@ function pantryToDb(p) {
     name: p.name,
     aisle: p.aisle,
     added_at: p.addedAt,
-
   };
 }
 
@@ -100,6 +101,7 @@ export default function App() {
   const [savedShoppingList, setSavedShoppingList] = useState(null);
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const [view, setView] = useState("home");
   const [activeRecipeId, setActiveRecipeId] = useState(null);
@@ -109,38 +111,35 @@ export default function App() {
   const [showAdd, setShowAdd] = useState(false);
 
   // Auth state
-  const [authLoading, setAuthLoading] = useState(true);
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => { setSession(session); setAuthLoading(false); });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
     supabase.auth.onAuthStateChange((_event, session) => setSession(session));
   }, []);
 
   // Load all data from Supabase on mount
   useEffect(() => {
-	  if(!session) return;
+    if (!session) return;
     async function loadData() {
       setLoading(true);
-      
       try {
-
-      const [{ data: recipeData }, { data: colData }, { data: pantryData }, { data: shopData }] = await Promise.all([
-        supabase.from("recipes").select("*").order("created_at", { ascending: false }),
-        supabase.from("collections").select("*").order("created_at", { ascending: true }),
-        supabase.from("pantry").select("*").order("added_at", { ascending: true }),
-        supabase.from("shopping_list").select("*").order("created_at", { ascending: false }).limit(1),
-      ]);
-
-      const loadedRecipes = recipeData ? recipeData.map(recipeFromDb) : [];
-
-      setRecipes(loadedRecipes);
-      setCollections(colData ? colData.map(collectionFromDb) : []);
-
-      setPantryItems(pantryData ? pantryData.map(pantryFromDb) : []);
-      setSavedShoppingList(shopData?.[0] || null);
+        const [{ data: recipeData }, { data: colData }, { data: pantryData }, { data: shopData }] = await Promise.all([
+          supabase.from("recipes").select("*").order("created_at", { ascending: false }),
+          supabase.from("collections").select("*").order("created_at", { ascending: true }),
+          supabase.from("pantry").select("*").order("added_at", { ascending: true }),
+          supabase.from("shopping_list").select("*").order("created_at", { ascending: false }).limit(1),
+        ]);
+        setRecipes(recipeData ? recipeData.map(recipeFromDb) : []);
+        setCollections(colData ? colData.map(collectionFromDb) : []);
+        setPantryItems(pantryData ? pantryData.map(pantryFromDb) : []);
+        setSavedShoppingList(shopData?.[0] || null);
+      } catch(e) {
+        console.error("loadData error", e);
+      }
       setLoading(false);
-      } catch(e) { console.error("loadData error", e); setLoading(false); }
     }
-
     loadData();
   }, [session]);
 
@@ -162,9 +161,7 @@ export default function App() {
   }
 
   async function updateCollections(updated) {
-    // Upsert all collections
     await supabase.from("collections").upsert(updated.map(c => ({ ...collectionToDb(c), user_id: session?.user?.id })));
-    // Delete removed ones
     const updatedIds = updated.map(c => c.id);
     const removedIds = collections.filter(c => !updatedIds.includes(c.id)).map(c => c.id);
     if (removedIds.length > 0) await supabase.from("collections").delete().in("id", removedIds);
@@ -213,48 +210,54 @@ export default function App() {
   function handleBack() { setActiveRecipeId(null); setView("home"); }
 
   const activeRecipe = recipes.find(r => r.id === activeRecipeId);
+  const isCooking = view === "cooking" && activeRecipe;
 
   if (authLoading) return null;
   if (!session) return <Login />;
 
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", background: "#faf7f2", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ textAlign: "center" }}>
-          <p style={{ fontSize: 40, marginBottom: 16 }}>🫙</p>
-          <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: "#2c1810" }}>Loading your Larder…</p>
+      <div className="loading-screen">
+        <div className="loading-inner">
+          <p className="loading-emoji">🫙</p>
+          <p className="loading-text">Loading your Larder…</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#faf7f2", fontFamily: "'DM Sans', sans-serif" }}>
-      {/* Header */}
-      <div style={{ background: "#fffdf8", borderBottom: "1.5px solid #e8e0d5", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 60, position: "sticky", top: 0, zIndex: 100 }}>
-        <div onClick={() => { setView("home"); setActiveRecipeId(null); }} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 22 }}>🫙</span>
-          <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: "#2c1810" }}>Larder</span>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => setShowGenerate(true)} style={{ background: "#f5e6c8", color: "#8b6914", border: "none", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600 }}>✦ Generate</button>
-	  <button onClick={() => supabase.auth.signOut()} style={{ background: "none", color: "#9e8a73", border: "1.5px solid #e8e0d5", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>Sign Out</button>
-          <button onClick={() => setShowAdd(true)} style={{ background: "#2c1810", color: "#f5e6c8", border: "none", borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600 }}>+ Add</button>
-        </div>
-      </div>
+    <div className="app-wrapper">
+      {!isCooking && (
+        <>
+          <header className="app-header">
+            <div className="app-logo" onClick={() => { setView("home"); setActiveRecipeId(null); }}>
+              <span className="app-logo-icon">🫙</span>
+              <span className="app-logo-text">Larder</span>
+            </div>
+            <div className="header-actions">
+              <button onClick={() => setShowGenerate(true)} className="btn btn-gold">✦ Generate</button>
+              <button onClick={() => supabase.auth.signOut()} className="btn btn-outline">Sign Out</button>
+              <button onClick={() => setShowAdd(true)} className="btn btn-primary">+ Add</button>
+            </div>
+          </header>
 
-      {/* Nav */}
-      <div style={{ background: "#fffdf8", borderBottom: "1.5px solid #e8e0d5", padding: "0 24px", display: "flex", gap: 0 }}>
-        {NAV.map(n => (
-          <button key={n.key} onClick={() => { setView(n.key); setActiveRecipeId(null); }} style={{ background: "none", border: "none", padding: "12px 16px", fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: view === n.key || (n.key === "home" && view === "recipe") ? "#c8a96e" : "#9e8a73", borderBottom: view === n.key || (n.key === "home" && view === "recipe") ? "2px solid #c8a96e" : "2px solid transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-            <span>{n.icon}</span><span>{n.label}</span>
-          </button>
-        ))}
-      </div>
+          <nav className="app-nav">
+            {NAV.map(n => (
+              <button
+                key={n.key}
+                onClick={() => { setView(n.key); setActiveRecipeId(null); }}
+                className={"nav-btn" + (view === n.key || (n.key === "home" && view === "recipe") ? " active" : "")}
+              >
+                <span>{n.icon}</span><span>{n.label}</span>
+              </button>
+            ))}
+          </nav>
+        </>
+      )}
 
-      {/* Main */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px" }}>
-        {view === "cooking" && activeRecipe ? (
+      <div className={isCooking ? "" : "main-content"}>
+        {isCooking ? (
           <CookingMode
             recipe={activeRecipe}
             pantryItems={pantryItems}
