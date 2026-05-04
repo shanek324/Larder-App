@@ -109,7 +109,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
         </div>
 
         {/* Step card */}
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+        <div style={{ flex: 1, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "20px", overflowY: "auto" }}>
           <div style={{
             background: "#fffdf8",
             borderRadius: 24,
