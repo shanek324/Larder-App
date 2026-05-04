@@ -42,6 +42,9 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
           <h1 className="page-title">Shopping</h1>
           <p className="page-subtitle">{tickedCount} of {items.length} items ticked</p>
         </div>
+        <button onClick={() => { if(window.confirm("Clear your shopping list and start over?")) onClearList(); }} className="btn btn-secondary" style={{ fontSize: 12 }}>
+          Start over
+        </button>
         {allChecked && (
           <button onClick={() => setShowConfirm(true)} className="btn btn-primary btn-lg">
             Finished Shopping ✓
