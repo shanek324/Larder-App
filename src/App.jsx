@@ -9,6 +9,7 @@ import PantryView from "./views/PantryView";
 import GenerateModal from "./views/GenerateModal";
 import AddRecipeModal from "./views/AddRecipeModal";
 import Login from "./Login";
+import CookingMode from "./views/CookingMode";
 
 const NAV = [
   { key: "home", label: "Recipes", icon: "🍳" },
@@ -253,7 +254,16 @@ export default function App() {
 
       {/* Main */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px" }}>
-        {view === "recipe" && activeRecipe ? (
+        {view === "cooking" && activeRecipe ? (
+          <CookingMode
+            recipe={activeRecipe}
+            pantryItems={pantryItems}
+            onExit={() => setView("recipe")}
+            onUpdateRecipe={updateRecipe}
+            onUpdatePantry={updatePantry}
+            session={session}
+          />
+        ) : view === "recipe" && activeRecipe ? (
           <RecipeView
             recipe={activeRecipe}
             onBack={handleBack}
@@ -262,6 +272,7 @@ export default function App() {
             collections={collections}
             onUpdateCollections={updateCollections}
             onCookedIt={() => updateRecipe({ ...activeRecipe, lastCooked: Date.now() })}
+            onStartCooking={() => setView("cooking")}
           />
         ) : view === "collections" ? (
           <CollectionsView

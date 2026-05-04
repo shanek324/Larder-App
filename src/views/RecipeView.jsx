@@ -77,6 +77,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
             </>
           ) : (
             <>
+              <button onClick={onStartCooking} style={{ background: "#2c1810", color: "#f5e6c8", border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13 }}>👨‍🍳 Cook</button>
               <button onClick={onCookedIt} style={{ background: "#e8f5e9", color: "#2e7d32", border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: 13 }}>🍳 Cooked it!</button>
               <button onClick={() => setEditMode(true)} style={{ background: "#f0ebe3", color: "#5c4a2a", border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>Edit</button>
               <button onClick={onDelete} style={{ background: "#fce4e4", color: "#c0392b", border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>Delete</button>
