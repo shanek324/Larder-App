@@ -63,10 +63,12 @@
 
 ## 📋 Next Up
 
-### Recipe Cost Estimation
+### Recipe Cost Estimation ✅
 - getPriceEstimate() helper — queries last 5 prices per ingredient, returns rolling average
-- Recipe detail shows estimated total cost based on ingredient quantities × average prices
-- Shopping list shows estimated total cost for selected recipes
+- estimateRecipeCost() — sums across all ingredients with known prices
+- Recipe detail shows estimated total cost + coverage (e.g. 6/12 items) in meta row
+- Shopping list subtitle shows estimated total when recipes selected
+- Cost scales with serving scaler on recipe detail
 
 ### Recipe Improvements
 - Import recipe from URL — paste a link, Claude extracts and formats the recipe
