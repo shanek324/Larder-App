@@ -19,7 +19,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
   useEffect(() => {
     async function loadCost() {
       const result = await estimateRecipeCost(recipe.ingredients);
-      if (result.hasData) setCostEstimate(result.total);
+      if (result.hasData) setCostEstimate(result);
     }
     loadCost();
   }, [recipe.id]);
@@ -173,7 +173,10 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
         {costEstimate !== null && (
           <div className="recipe-meta-item">
             <div className="recipe-meta-label">Est. Cost</div>
-            <div className="recipe-meta-value">€{(costEstimate * ratio).toFixed(2)}</div>
+            <div className="recipe-meta-value">€{(costEstimate.total * ratio).toFixed(2)}</div>
+            <div className="recipe-meta-label" style={{ marginTop: 2 }}>
+              {costEstimate.breakdown.filter(b => b.estimate !== null).length}/{costEstimate.breakdown.length} items
+            </div>
           </div>
         )}
       </div>
