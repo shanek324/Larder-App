@@ -20,6 +20,7 @@
 
 
 export const API_MODEL = "claude-sonnet-4-5";
+export const HAIKU_MODEL = "claude-haiku-4-5-20251001";
 
 export const DUNNES_AISLES = [
   { name: "Fresh Produce", icon: "🥦", keywords: ["spinach","lettuce","onion","garlic","pepper","tomato","lemon","lime","cucumber","broccoli","mushroom","spring onion","coriander","parsley","ginger","potato","carrot","courgette","herb","tenderstem","fresh chilli","avocado","bean sprout"] },

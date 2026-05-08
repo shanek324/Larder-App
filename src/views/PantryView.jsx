@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ReceiptScanner from "../components/ReceiptScanner";
 import { categoriseIngredient, callClaude } from "../utils";
 import { DUNNES_AISLES } from "../constants";
 
@@ -8,13 +9,41 @@ const STOCK_LEVELS = [
   { key: "low",  label: "Low" },
 ];
 
-export default function PantryView({ pantryItems, onUpdatePantry }) {
+export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, session }) {
   const [newItem, setNewItem] = useState("");
   const [search, setSearch] = useState("");
   const [cleaning, setCleaning] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   const aisleOrder = DUNNES_AISLES.map(a => a.name).concat(["Other"]);
   const aisleNames = DUNNES_AISLES.map(a => a.name).join(", ");
+
+  async function handleReceiptConfirm(scannedItems) {
+    // Save prices to prices table
+    const priceEntries = scannedItems.map(i => ({
+      ingredient_name: i.name,
+      price_per_unit: i.price,
+      unit: i.unit,
+    }));
+    await onSavePrices(priceEntries);
+
+    // Add to pantry if not already there
+    const existing = pantryItems.map(p => p.name.toLowerCase());
+    const newItems = scannedItems
+      .filter(i => !existing.includes(i.name.toLowerCase()))
+      .map(i => ({
+        id: "pantry-" + Date.now() + Math.random(),
+        name: i.name,
+        aisle: i.aisle,
+        addedAt: Date.now(),
+        stockLevel: "high",
+        price: i.price,
+      }));
+    if (newItems.length > 0) {
+      onUpdatePantry([...pantryItems, ...newItems]);
+    }
+    setShowScanner(false);
+  }
 
   function addItem() {
     if (!newItem.trim()) return;
@@ -80,11 +109,14 @@ export default function PantryView({ pantryItems, onUpdatePantry }) {
           <h1 className="page-title">Pantry</h1>
           <p className="page-subtitle">{pantryItems.length} item{pantryItems.length !== 1 ? "s" : ""} in stock</p>
         </div>
-        {pantryItems.length > 0 && (
-          <button onClick={handleCleanup} disabled={cleaning} className="btn btn-gold">
-            {cleaning ? "Cleaning..." : "✦ Clean up"}
-          </button>
-        )}
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={() => setShowScanner(true)} className="btn btn-primary">🧾 Scan Receipt</button>
+          {pantryItems.length > 0 && (
+            <button onClick={handleCleanup} disabled={cleaning} className="btn btn-gold">
+              {cleaning ? "Cleaning..." : "✦ Clean up"}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="pantry-add-row">
@@ -143,6 +175,12 @@ export default function PantryView({ pantryItems, onUpdatePantry }) {
             </div>
           );
         })
+      )}
+      {showScanner && (
+        <ReceiptScanner
+          onConfirm={handleReceiptConfirm}
+          onClose={() => setShowScanner(false)}
+        />
       )}
     </div>
   );

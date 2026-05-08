@@ -83,6 +83,7 @@ function pantryToDb(p) {
     aisle: p.aisle,
     added_at: p.addedAt,
     stock_level: p.stockLevel || "high",
+    price: p.price || null,
   };
 }
 
@@ -93,6 +94,7 @@ function pantryFromDb(p) {
     aisle: p.aisle,
     addedAt: p.added_at,
     stockLevel: p.stock_level || "high",
+    price: p.price || null,
   };
 }
 
@@ -186,6 +188,18 @@ export default function App() {
       const { data } = await supabase.from("shopping_list").insert({ items, prepared, user_id: session?.user?.id, created_at: Date.now() }).select().single();
       setSavedShoppingList(data);
     }
+  }
+
+  async function savePrices(priceEntries) {
+    // priceEntries: [{ ingredient_name, price_per_unit, unit }]
+    const rows = priceEntries.map(e => ({
+      ingredient_name: e.ingredient_name,
+      price_per_unit: e.price_per_unit,
+      unit: e.unit || null,
+      user_id: session?.user?.id,
+      purchased_at: new Date().toISOString(),
+    }));
+    await supabase.from("prices").insert(rows);
   }
 
   async function clearShoppingList() {
@@ -307,6 +321,8 @@ export default function App() {
           <PantryView
             pantryItems={pantryItems}
             onUpdatePantry={updatePantry}
+            onSavePrices={savePrices}
+            session={session}
           />
         ) : (
           <HomeView
