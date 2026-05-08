@@ -7,7 +7,7 @@
 - Modular file structure (components, views, constants, utils)
 - GitHub repo at shanek324/Larder-App
 - Deployed to Vercel at larder-app-omega.vercel.app
-- Supabase database (recipes, collections, pantry, shopping_list, cook_logs tables)
+- Supabase database (recipes, collections, pantry, shopping_list, cook_logs, prices tables)
 - Auto-deploy on git push
 - Supabase Row Level Security (RLS) — data locked per user
 - Supabase Auth — email/password login and logout (Shane + Eve accounts)
@@ -26,7 +26,7 @@
 - AI recipe assistant per recipe (clickable suggestion chips)
 - Collections (group recipes into named sets with emoji)
 - Pantry (track what you have in stock, grouped by aisle)
-- Pantry stock levels — High / Med / Low badge per item
+- Pantry quantity + unit per item (e.g. 500g, 2 each)
 - Pantry cleanup via Claude Haiku (deduplicates and normalises messy entries)
 - Shopping list — recipe picker with search and tag filter
 - Claude Haiku consolidates ingredients intelligently (combines duplicates, assigns aisles)
@@ -46,18 +46,27 @@
 - Pantry cleanup prompt after cooking (tick off what you used)
 - Cooked it! button (tracks last cooked date without going through cooking mode)
 - Responsive UI — all views adapt to mobile, nav icons-only on very small screens
+- Receipt scanner — photograph supermarket receipt, Haiku extracts + normalises ingredient names
+- Confirm screen — toggle off non-food items, edit names/prices/quantities/units
+- Confirmed items saved to prices table (price per unit calculated) and added to pantry
 
 ### Data
 - 24 sample recipes seeded into Supabase
 - All recipes standardised to consistent format
 - cook_count, step_notes columns on recipes table
-- stock_level column on pantry table
+- quantity, unit, price columns on pantry table
 - prepared column on shopping_list table (tracks prep vs in-shop phase)
 - cook_logs table for rating, feedback and AI tips history
+- prices table — one row per purchase event, stores price_per_unit, quantity, unit, purchased_at
 
 ---
 
 ## 📋 Next Up
+
+### Recipe Cost Estimation
+- getPriceEstimate() helper — queries last 5 prices per ingredient, returns rolling average
+- Recipe detail shows estimated total cost based on ingredient quantities × average prices
+- Shopping list shows estimated total cost for selected recipes
 
 ### Recipe Improvements
 - Import recipe from URL — paste a link, Claude extracts and formats the recipe
@@ -72,10 +81,7 @@
 ### Shopping List Improvements
 - Remember last selected recipes so list can be quickly rebuilt
 - Quantity editing — adjust amounts per item before going to shop
-
-### Pantry Improvements
-- Low stock alert — items marked Low auto-suggested when building shopping list
-- Expiry dates per item (optional)
+- Low stock alert — pantry items with low quantity auto-suggested when building shopping list
 
 ### Mobile Polish
 - Cooking mode step text size auto-scales to fill card on phone
@@ -108,3 +114,4 @@
 - No loading skeleton UI — blank gaps while data loads
 - Collections layout switches to horizontal scroll on mobile which could feel odd with many collections
 - InShopView uses window.confirm for start-over — should be a proper modal
+- Receipt scanner untested in production — needs real receipt photo test
