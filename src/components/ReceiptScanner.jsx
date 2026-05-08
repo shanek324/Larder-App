@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { categoriseIngredient } from "../utils";
-import { HAIKU_MODEL } from "../constants";
+import { API_MODEL } from "../constants";
 
 function parseUnit(unitStr) {
   if (!unitStr || unitStr === "each") return { quantity: 1, unit: "each" };
@@ -34,7 +34,7 @@ export default function ReceiptScanner({ onConfirm, onClose }) {
       const mediaType = file.type || "image/jpeg";
 
       const body = {
-        model: HAIKU_MODEL,
+        model: API_MODEL,
         max_tokens: 1500,
         messages: [
           {
