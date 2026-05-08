@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DUNNES_AISLES } from "../constants";
-import { callClaude, matchesPantry } from "../utils";
+import { callClaude, matchesPantry, estimateRecipeCost } from "../utils";
 
 export default function ShoppingListView({ recipes, pantryItems, onSaveList, savedList, onClearList }) {
   const [selectedRecipes, setSelectedRecipes] = useState([]);
@@ -11,6 +11,17 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [filterTag, setFilterTag] = useState(null);
+  const [totalCost, setTotalCost] = useState(null);
+
+  useEffect(() => {
+    if (selectedRecipes.length === 0) { setTotalCost(null); return; }
+    async function calcCost() {
+      const allIngredients = selectedRecipeObjects.flatMap(r => r.ingredients);
+      const result = await estimateRecipeCost(allIngredients);
+      setTotalCost(result.hasData ? result.total : null);
+    }
+    calcCost();
+  }, [selectedRecipes]);
 
   const aisleOrder = DUNNES_AISLES.map(a => a.name).concat(["Other"]);
   const aisleNames = DUNNES_AISLES.map(a => a.name).join(", ");
@@ -92,7 +103,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
           <p className="page-subtitle">
             {selectedRecipes.length === 0
               ? "Select recipes to build your list"
-              : selectedRecipes.length + " recipe" + (selectedRecipes.length !== 1 ? "s" : "") + " · " + rawIngredients.length + " ingredients"}
+              : selectedRecipes.length + " recipe" + (selectedRecipes.length !== 1 ? "s" : "") + " · " + rawIngredients.length + " ingredients" + (totalCost !== null ? " · est. €" + totalCost.toFixed(2) : "")}
           </p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>

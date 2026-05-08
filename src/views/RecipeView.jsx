@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Tag from "../components/Tag";
 import ServingScaler from "../components/ServingScaler";
 import AIChat from "../components/AIChat";
-import { scaleAmount } from "../utils";
+import { scaleAmount, estimateRecipeCost } from "../utils";
 
 export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onCookedIt, onStartCooking }) {
   const [editMode, setEditMode] = useState(false);
@@ -12,8 +12,17 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
   const [newTag, setNewTag] = useState("");
   const [scaledServings, setScaledServings] = useState(recipe.servings);
   const [showCollectionPicker, setShowCollectionPicker] = useState(false);
+  const [costEstimate, setCostEstimate] = useState(null);
 
   useEffect(() => { setDraft(recipe); setScaledServings(recipe.servings); }, [recipe]);
+
+  useEffect(() => {
+    async function loadCost() {
+      const result = await estimateRecipeCost(recipe.ingredients);
+      if (result.hasData) setCostEstimate(result.total);
+    }
+    loadCost();
+  }, [recipe.id]);
 
   const ratio = scaledServings / recipe.servings;
 
@@ -159,6 +168,12 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
           <div className="recipe-meta-item">
             <div className="recipe-meta-label">Cooked</div>
             <div className="recipe-meta-value">{recipe.cook_count}x</div>
+          </div>
+        )}
+        {costEstimate !== null && (
+          <div className="recipe-meta-item">
+            <div className="recipe-meta-label">Est. Cost</div>
+            <div className="recipe-meta-value">€{(costEstimate * ratio).toFixed(2)}</div>
           </div>
         )}
       </div>

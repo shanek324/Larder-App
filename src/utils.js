@@ -1,4 +1,5 @@
 import { DUNNES_AISLES, API_MODEL } from "./constants";
+import { supabase } from "./supabase";
 
 export function categoriseIngredient(name) {
   const lower = name.toLowerCase();
@@ -77,4 +78,35 @@ export async function callClaude(messages, system = "", maxTokens = 1000, model 
   });
   const data = await res.json();
   return data.content?.map(b => b.text || "").join("") || "";
+}
+
+export async function getPriceEstimate(ingredientName) {
+  // Fetch last 5 purchases of this ingredient and return rolling average price_per_unit
+  const { data } = await supabase
+    .from("prices")
+    .select("price_per_unit, unit")
+    .ilike("ingredient_name", "%" + ingredientName + "%")
+    .order("purchased_at", { ascending: false })
+    .limit(5);
+  if (!data || data.length === 0) return null;
+  const avg = data.reduce((sum, r) => sum + parseFloat(r.price_per_unit), 0) / data.length;
+  return { pricePerUnit: avg, unit: data[0].unit };
+}
+
+export async function estimateRecipeCost(ingredients) {
+  // Returns { total, breakdown: [{ name, estimate }] }
+  const breakdown = await Promise.all(
+    ingredients.map(async ing => {
+      const estimate = await getPriceEstimate(ing.name);
+      if (!estimate) return { name: ing.name, estimate: null };
+      // Try to parse amount from ingredient e.g. "200g" -> 200
+      const amountMatch = ing.amount ? ing.amount.match(/^([\d.]+)/) : null;
+      const qty = amountMatch ? parseFloat(amountMatch[1]) : 1;
+      const cost = estimate.pricePerUnit * qty;
+      return { name: ing.name, estimate: cost };
+    })
+  );
+  const known = breakdown.filter(b => b.estimate !== null);
+  const total = known.reduce((sum, b) => sum + b.estimate, 0);
+  return { total, breakdown, hasData: known.length > 0 };
 }
