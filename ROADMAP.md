@@ -117,3 +117,4 @@
 - Collections layout switches to horizontal scroll on mobile which could feel odd with many collections
 - InShopView uses window.confirm for start-over — should be a proper modal
 - Receipt scanner untested in production — needs real receipt photo test
+- Receipt scanner modal styling fixed — was transparent due to wrong CSS class

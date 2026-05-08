@@ -96,18 +96,19 @@ Only include food/drink/grocery items — skip loyalty points, bags, totals, sub
 
   return (
     <div className="modal-overlay">
-      <div className="modal-box">
+      <div className="modal">
         <div className="modal-header">
           <h2 className="modal-title">🧾 Scan Receipt</h2>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <span className="modal-close" onClick={onClose}>×</span>
         </div>
 
         {stage === "upload" && (
           <div className="receipt-upload">
+            <div className="receipt-upload-icon">🧾</div>
+            <p className="receipt-hint">Take a photo of your supermarket receipt or upload an image. Larder will extract the items and prices automatically.</p>
             {error && <p className="receipt-error">{error}</p>}
-            <p className="receipt-hint">Take a photo of your supermarket receipt or upload an image.</p>
             <label className="receipt-upload-label">
-              <span>📷 Choose Photo</span>
+              📷 Choose Photo / Upload
               <input
                 type="file"
                 accept="image/*"
