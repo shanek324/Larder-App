@@ -82,7 +82,8 @@ function pantryToDb(p) {
     name: p.name,
     aisle: p.aisle,
     added_at: p.addedAt,
-    stock_level: p.stockLevel || "high",
+    quantity: p.quantity || null,
+    unit: p.unit || null,
     price: p.price || null,
   };
 }
@@ -93,7 +94,8 @@ function pantryFromDb(p) {
     name: p.name,
     aisle: p.aisle,
     addedAt: p.added_at,
-    stockLevel: p.stock_level || "high",
+    quantity: p.quantity || null,
+    unit: p.unit || null,
     price: p.price || null,
   };
 }
@@ -191,14 +193,19 @@ export default function App() {
   }
 
   async function savePrices(priceEntries) {
-    // priceEntries: [{ ingredient_name, price_per_unit, unit }]
-    const rows = priceEntries.map(e => ({
-      ingredient_name: e.ingredient_name,
-      price_per_unit: e.price_per_unit,
-      unit: e.unit || null,
-      user_id: session?.user?.id,
-      purchased_at: new Date().toISOString(),
-    }));
+    // priceEntries: [{ ingredient_name, total_price, quantity, unit }]
+    const rows = priceEntries.map(e => {
+      const qty = parseFloat(e.quantity) || 1;
+      const price_per_unit = e.total_price / qty;
+      return {
+        ingredient_name: e.ingredient_name,
+        price_per_unit,
+        quantity: qty,
+        unit: e.unit || null,
+        user_id: session?.user?.id,
+        purchased_at: new Date().toISOString(),
+      };
+    });
     await supabase.from("prices").insert(rows);
   }
 

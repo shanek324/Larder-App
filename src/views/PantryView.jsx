@@ -3,12 +3,6 @@ import ReceiptScanner from "../components/ReceiptScanner";
 import { categoriseIngredient, callClaude } from "../utils";
 import { DUNNES_AISLES } from "../constants";
 
-const STOCK_LEVELS = [
-  { key: "high", label: "High" },
-  { key: "med",  label: "Med" },
-  { key: "low",  label: "Low" },
-];
-
 export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, session }) {
   const [newItem, setNewItem] = useState("");
   const [search, setSearch] = useState("");
@@ -22,7 +16,8 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
     // Save prices to prices table
     const priceEntries = scannedItems.map(i => ({
       ingredient_name: i.name,
-      price_per_unit: i.price,
+      total_price: i.total_price,
+      quantity: i.quantity,
       unit: i.unit,
     }));
     await onSavePrices(priceEntries);
@@ -36,8 +31,9 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
         name: i.name,
         aisle: i.aisle,
         addedAt: Date.now(),
-        stockLevel: "high",
-        price: i.price,
+        quantity: i.quantity,
+        unit: i.unit,
+        price: i.total_price,
       }));
     if (newItems.length > 0) {
       onUpdatePantry([...pantryItems, ...newItems]);
@@ -62,8 +58,8 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
     onUpdatePantry(pantryItems.filter(i => i.id !== id));
   }
 
-  function setStockLevel(id, level) {
-    onUpdatePantry(pantryItems.map(i => i.id === id ? { ...i, stockLevel: level } : i));
+  function updateItemField(id, field, value) {
+    onUpdatePantry(pantryItems.map(i => i.id === id ? { ...i, [field]: value } : i));
   }
 
   async function handleCleanup() {
@@ -157,16 +153,25 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
                 {grouped[aisle].map(item => (
                   <div key={item.id} className="pantry-item">
                     <span className="pantry-item-name">{item.name}</span>
-                    <div className="stock-toggle">
-                      {STOCK_LEVELS.map(({ key, label }) => (
-                        <button
-                          key={key}
-                          onClick={() => setStockLevel(item.id, key)}
-                          className={"stock-btn" + (item.stockLevel === key ? " active-" + key : "")}
-                        >
-                          {label}
-                        </button>
-                      ))}
+                    <div className="pantry-item-qty">
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        className="receipt-price-input"
+                        value={item.quantity || ""}
+                        placeholder="qty"
+                        onChange={e => updateItemField(item.id, "quantity", parseFloat(e.target.value) || null)}
+                        onBlur={() => onUpdatePantry([...pantryItems])}
+                      />
+                      <input
+                        type="text"
+                        className="receipt-unit-input"
+                        value={item.unit || ""}
+                        placeholder="unit"
+                        onChange={e => updateItemField(item.id, "unit", e.target.value)}
+                        onBlur={() => onUpdatePantry([...pantryItems])}
+                      />
                     </div>
                     <span onClick={() => removeItem(item.id)} className="pantry-item-remove">×</span>
                   </div>

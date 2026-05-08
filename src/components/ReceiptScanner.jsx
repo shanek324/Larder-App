@@ -45,14 +45,26 @@ Only include food/drink/grocery items — skip loyalty points, bags, totals, sub
       const clean = raw.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean);
 
-      const withMeta = parsed.map((item, i) => ({
-        id: i,
-        name: item.name,
-        price: item.price,
-        unit: item.unit || "each",
-        aisle: categoriseIngredient(item.name),
-        selected: true,
-      }));
+      // Parse quantity and unit from pack size string e.g. "500g" -> qty=500, unit="g"
+      function parseUnit(unitStr) {
+        if (!unitStr || unitStr === "each") return { quantity: 1, unit: "each" };
+        const match = unitStr.match(/^([\d.]+)\s*([a-zA-Z]+)$/);
+        if (match) return { quantity: parseFloat(match[1]), unit: match[2].toLowerCase() };
+        return { quantity: 1, unit: unitStr };
+      }
+
+      const withMeta = parsed.map((item, i) => {
+        const { quantity, unit } = parseUnit(item.unit);
+        return {
+          id: i,
+          name: item.name,
+          total_price: item.price,
+          quantity,
+          unit,
+          aisle: categoriseIngredient(item.name),
+          selected: true,
+        };
+      });
 
       setItems(withMeta);
       setStage("confirm");
@@ -72,7 +84,13 @@ Only include food/drink/grocery items — skip loyalty points, bags, totals, sub
   }
 
   function handleConfirm() {
-    const selected = items.filter(i => i.selected);
+    const selected = items.filter(i => i.selected).map(i => ({
+      name: i.name,
+      total_price: i.total_price,
+      quantity: i.quantity,
+      unit: i.unit,
+      aisle: i.aisle,
+    }));
     onConfirm(selected);
   }
 
@@ -135,8 +153,16 @@ Only include food/drink/grocery items — skip loyalty points, bags, totals, sub
                       type="number"
                       step="0.01"
                       min="0"
-                      value={item.price}
-                      onChange={e => updateItem(item.id, "price", parseFloat(e.target.value) || 0)}
+                      value={item.total_price}
+                      onChange={e => updateItem(item.id, "total_price", parseFloat(e.target.value) || 0)}
+                    />
+                    <input
+                      className="receipt-qty-input"
+                      type="number"
+                      step="1"
+                      min="1"
+                      value={item.quantity}
+                      onChange={e => updateItem(item.id, "quantity", parseFloat(e.target.value) || 1)}
                     />
                     <input
                       className="receipt-unit-input"
