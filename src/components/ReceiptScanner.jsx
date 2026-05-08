@@ -28,7 +28,9 @@ export default function ReceiptScanner({ onConfirm, onClose }) {
             },
             {
               type: "text",
-              text: `Extract all food and grocery items from this receipt. 
+              text: `Extract all food and grocery items from this receipt.
+Normalise each item name to a short clean ingredient (e.g. "Chicken Breast Fillet 500g" -> "Chicken", "Dunnes Free Range Eggs 6pk" -> "Eggs", "Kerrygold Butter 250g" -> "Butter").
+Remove brand names, pack sizes, and descriptors — just the core ingredient.
 Return ONLY a JSON array, no markdown, no explanation.
 Each item: { "name": string, "price": number, "unit": string }
 Unit should be the pack size if visible (e.g. "1kg", "500ml", "6 pack") or "each" if not clear.
