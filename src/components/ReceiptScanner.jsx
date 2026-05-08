@@ -1,10 +1,25 @@
 import { useState } from "react";
-import { callClaude } from "../utils";
 import { categoriseIngredient } from "../utils";
 import { HAIKU_MODEL } from "../constants";
 
+function parseUnit(unitStr) {
+  if (!unitStr || unitStr === "each") return { quantity: 1, unit: "each" };
+  const match = unitStr.match(/^([\d.]+)\s*([a-zA-Z]+)$/);
+  if (match) return { quantity: parseFloat(match[1]), unit: match[2].toLowerCase() };
+  return { quantity: 1, unit: unitStr };
+}
+
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function ReceiptScanner({ onConfirm, onClose }) {
-  const [stage, setStage] = useState("upload"); // upload | scanning | confirm
+  const [stage, setStage] = useState("upload");
   const [items, setItems] = useState([]);
   const [error, setError] = useState(null);
 
@@ -18,17 +33,20 @@ export default function ReceiptScanner({ onConfirm, onClose }) {
       const base64 = await toBase64(file);
       const mediaType = file.type || "image/jpeg";
 
-      const messages = [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image",
-              source: { type: "base64", media_type: mediaType, data: base64 },
-            },
-            {
-              type: "text",
-              text: `Extract all food and grocery items from this receipt.
+      const body = {
+        model: HAIKU_MODEL,
+        max_tokens: 1500,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: { type: "base64", media_type: mediaType, data: base64 },
+              },
+              {
+                type: "text",
+                text: `Extract all food and grocery items from this receipt.
 Normalise each item name to a short clean ingredient (e.g. "Chicken Breast Fillet 500g" -> "Chicken", "Dunnes Free Range Eggs 6pk" -> "Eggs", "Kerrygold Butter 250g" -> "Butter").
 Remove brand names, pack sizes, and descriptors — just the core ingredient.
 Return ONLY a JSON array, no markdown, no explanation.
@@ -36,22 +54,30 @@ Each item: { "name": string, "price": number, "unit": string }
 Unit should be the pack size if visible (e.g. "1kg", "500ml", "6 pack") or "each" if not clear.
 Price should be the total line price as a number.
 Only include food/drink/grocery items — skip loyalty points, bags, totals, subtotals, discounts, non-food items.`,
-            },
-          ],
-        },
-      ];
+              },
+            ],
+          },
+        ],
+      };
 
-      const raw = await callClaude(messages, "", 1500, HAIKU_MODEL);
-      const clean = raw.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(clean);
+      const res = await fetch("/api/claude", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
 
-      // Parse quantity and unit from pack size string e.g. "500g" -> qty=500, unit="g"
-      function parseUnit(unitStr) {
-        if (!unitStr || unitStr === "each") return { quantity: 1, unit: "each" };
-        const match = unitStr.match(/^([\d.]+)\s*([a-zA-Z]+)$/);
-        if (match) return { quantity: parseFloat(match[1]), unit: match[2].toLowerCase() };
-        return { quantity: 1, unit: unitStr };
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error("API error: " + errText);
       }
+
+      const data = await res.json();
+      const raw = data.content?.map(b => b.text || "").join("") || "";
+      const clean = raw.replace(/```json|```/g, "").trim();
+
+      if (!clean) throw new Error("Empty response from Claude");
+
+      const parsed = JSON.parse(clean);
 
       const withMeta = parsed.map((item, i) => {
         const { quantity, unit } = parseUnit(item.unit);
@@ -69,8 +95,8 @@ Only include food/drink/grocery items — skip loyalty points, bags, totals, sub
       setItems(withMeta);
       setStage("confirm");
     } catch (err) {
-      console.error(err);
-      setError("Could not read receipt. Please try a clearer photo.");
+      console.error("Receipt scan error:", err);
+      setError("Could not read receipt: " + err.message);
       setStage("upload");
     }
   }
@@ -105,18 +131,29 @@ Only include food/drink/grocery items — skip loyalty points, bags, totals, sub
         {stage === "upload" && (
           <div className="receipt-upload">
             <div className="receipt-upload-icon">🧾</div>
-            <p className="receipt-hint">Take a photo of your supermarket receipt or upload an image. Larder will extract the items and prices automatically.</p>
+            <p className="receipt-hint">Upload a photo of your supermarket receipt. Larder will extract the items and prices automatically.</p>
             {error && <p className="receipt-error">{error}</p>}
-            <label className="receipt-upload-label">
-              📷 Choose Photo / Upload
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleImage}
-                style={{ display: "none" }}
-              />
-            </label>
+            <div className="receipt-upload-buttons">
+              <label className="receipt-upload-label">
+                📷 Take Photo
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleImage}
+                  style={{ display: "none" }}
+                />
+              </label>
+              <label className="receipt-upload-label receipt-upload-label--secondary">
+                🗂 Upload Image
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImage}
+                  style={{ display: "none" }}
+                />
+              </label>
+            </div>
           </div>
         )}
 
@@ -185,13 +222,4 @@ Only include food/drink/grocery items — skip loyalty points, bags, totals, sub
       </div>
     </div>
   );
-}
-
-function toBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(",")[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }

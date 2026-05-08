@@ -1634,3 +1634,17 @@ textarea.input { resize: none; }
   border-top: 1.5px solid var(--color-border);
   margin-top: 4px;
 }
+
+.receipt-upload-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.receipt-upload-label--secondary {
+  background: var(--color-surface-alt);
+  color: var(--color-text-secondary);
+  box-shadow: none;
+  border: 1.5px solid var(--color-border);
+}
