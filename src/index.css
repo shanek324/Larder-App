@@ -1648,3 +1648,21 @@ textarea.input { resize: none; }
   box-shadow: none;
   border: 1.5px solid var(--color-border);
 }
+
+.receipt-item-name--uncertain {
+  color: var(--color-gold-dark);
+}
+
+.receipt-uncertain-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #b85c00;
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-right: 6px;
+  font-family: var(--font-sans);
+  vertical-align: middle;
+}

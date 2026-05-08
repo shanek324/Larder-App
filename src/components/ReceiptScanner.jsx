@@ -47,13 +47,15 @@ export default function ReceiptScanner({ onConfirm, onClose }) {
               {
                 type: "text",
                 text: `Extract all food and grocery items from this receipt.
-Normalise each item name to a short clean ingredient (e.g. "Chicken Breast Fillet 500g" -> "Chicken", "Dunnes Free Range Eggs 6pk" -> "Eggs", "Kerrygold Butter 250g" -> "Butter").
+Normalise each item name to a short clean ingredient (e.g. "Chicken Breast Fillet 500g" -> "Chicken", "Dunnes Free Range Eggs 6pk" -> "Eggs", "Kerrygold Butter 250g" -> "Butter", "BRENNANS" -> "Bread", "ISHKA 6X2L" -> "Water").
 Remove brand names, pack sizes, and descriptors — just the core ingredient.
 Return ONLY a JSON array, no markdown, no explanation.
-Each item: { "name": string, "price": number, "unit": string }
+Each item: { "name": string, "price": number, "unit": string, "confident": boolean }
+Set confident: false if the item name is an abbreviation, brand name, or unclear (e.g. "KNORR", "DS SFRIED FILLET", "SB DICED", "MAGNUM") — anything you had to guess at.
+Set confident: true only if the ingredient is clearly identifiable.
 Unit should be the pack size if visible (e.g. "1kg", "500ml", "6 pack") or "each" if not clear.
 Price should be the total line price as a number.
-Only include food/drink/grocery items — skip loyalty points, bags, totals, subtotals, discounts, non-food items.`,
+Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, non-food items, bottle return fees.`,
               },
             ],
           },
@@ -89,6 +91,7 @@ Only include food/drink/grocery items — skip loyalty points, bags, totals, sub
           unit,
           aisle: categoriseIngredient(item.name),
           selected: true,
+          confident: item.confident !== false,
         };
       });
 
@@ -178,11 +181,14 @@ Only include food/drink/grocery items — skip loyalty points, bags, totals, sub
                   />
                   <div className="receipt-item-details">
                     <input
-                      className="receipt-item-name"
+                      className={"receipt-item-name" + (!item.confident ? " receipt-item-name--uncertain" : "")}
                       value={item.name}
                       onChange={e => updateItem(item.id, "name", e.target.value)}
                     />
-                    <span className="receipt-item-aisle">{item.aisle}</span>
+                    <span className="receipt-item-aisle">
+                      {!item.confident && <span className="receipt-uncertain-badge">⚠ check</span>}
+                      {item.aisle}
+                    </span>
                   </div>
                   <div className="receipt-item-price">
                     <span className="receipt-currency">€</span>
