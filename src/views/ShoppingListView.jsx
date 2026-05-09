@@ -14,6 +14,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
   const [search, setSearch] = useState("");
   const [filterTag, setFilterTag] = useState(null);
   const [totalCost, setTotalCost] = useState(null);
+  const [editedAmounts, setEditedAmounts] = useState({});
 
   useEffect(() => {
     if (selectedRecipes.length === 0) { setTotalCost(null); return; }
@@ -73,6 +74,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
       const parsed = JSON.parse(cleaned);
       const filtered = parsed.filter(item => !matchesPantry(item.name, pantryItems));
       setConsolidated(filtered);
+      setEditedAmounts({});
       // Save immediately so navigating away and back restores the list
       await onSaveList(filtered, false);
     } catch(e) {
@@ -228,9 +230,14 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
                           className="shopping-item-check"
                         />
                         <span className="shopping-item-name">{item.name}</span>
-                        {item.amounts && item.amounts.length > 0 && (
-                          <span className="shopping-item-amount">{item.amounts.join(" + ")}</span>
-                        )}
+                        <input
+                          type="text"
+                          value={editedAmounts[item.key] !== undefined ? editedAmounts[item.key] : (item.amounts || []).join(" + ")}
+                          onChange={e => setEditedAmounts(a => ({ ...a, [item.key]: e.target.value }))}
+                          onClick={e => e.stopPropagation()}
+                          className="shopping-item-amount-input"
+                          placeholder="amount"
+                        />
                         {item.sources && item.sources.length > 1 && (
                           <button
                             onClick={e => { e.preventDefault(); e.stopPropagation(); toggleSources(item.key); }}

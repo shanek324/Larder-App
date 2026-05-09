@@ -1680,3 +1680,20 @@ textarea.input { resize: none; }
 .pantry-stock-high { background: #e8f5e9; color: #2e7d32; }
 .pantry-stock-medium { background: #fff8e1; color: #f57f17; }
 .pantry-stock-low { background: #fce4ec; color: #c62828; }
+
+/* Shopping list editable amount */
+.shopping-item-amount-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  width: 80px;
+  text-align: right;
+  padding: 0 2px;
+  outline: none;
+}
+.shopping-item-amount-input:focus {
+  border-bottom-color: var(--color-gold);
+  color: var(--color-text);
+}
