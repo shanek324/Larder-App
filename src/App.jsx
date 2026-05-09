@@ -280,10 +280,17 @@ export default function App() {
               <span className="app-logo-text">Larder</span>
             </div>
             <div className="header-actions">
-              <button onClick={() => setShowGenerate(true)} className="btn btn-gold">✦ Generate</button>
+              <div style={{ position: "relative" }}>
+                <button onClick={() => setShowAddMenu(v => !v)} className="btn btn-primary">+ Add Recipe</button>
+                {showAddMenu && (
+                  <div className="add-recipe-menu">
+                    <button onClick={() => { setShowAdd(true); setShowAddMenu(false); }} className="add-recipe-menu-item">✏️ Add manually</button>
+                    <button onClick={() => { setShowGenerate(true); setShowAddMenu(false); }} className="add-recipe-menu-item">✦ AI Generate</button>
+                    <button onClick={() => { setShowImport(true); setShowAddMenu(false); }} className="add-recipe-menu-item">🔗 Import from URL</button>
+                  </div>
+                )}
+              </div>
               <button onClick={() => supabase.auth.signOut()} className="btn btn-outline">Sign Out</button>
-              <button onClick={() => setShowImport(true)} className="btn btn-secondary">🔗 Import</button>
-              <button onClick={() => setShowAdd(true)} className="btn btn-primary">+ Add</button>
             </div>
           </header>
 
