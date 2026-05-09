@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { DUNNES_AISLES } from "../constants";
+import ReceiptScanner from "../components/ReceiptScanner";
 
-export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry }) {
+export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices }) {
   const [checked, setChecked] = useState({});
   const [showConfirm, setShowConfirm] = useState(false);
   const [showStartOver, setShowStartOver] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
 
   const items = savedList?.items || [];
   const tickedCount = items.filter(i => checked[i.key]).length;
@@ -12,6 +14,23 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
 
   function toggleItem(key) {
     setChecked(c => ({ ...c, [key]: !c[key] }));
+  }
+
+  async function handleReceiptConfirm(scannedItems) {
+    const priceEntries = scannedItems.map(i => ({
+      ingredient_name: i.name,
+      total_price: i.total_price,
+      quantity: i.quantity,
+      unit: i.unit,
+    }));
+    await onSavePrices(priceEntries);
+    const existing = pantryItems.map(p => p.name.toLowerCase());
+    const newItems = scannedItems
+      .filter(i => !existing.includes(i.name.toLowerCase()))
+      .map(i => ({ id: "pantry-" + Date.now() + Math.random(), name: i.name, aisle: i.aisle, addedAt: Date.now() }));
+    if (newItems.length > 0) await onUpdatePantry([...pantryItems, ...newItems]);
+    setShowScanner(false);
+    await handleFinished();
   }
 
   async function handleFinished() {
@@ -110,12 +129,19 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
             <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
               This will add your bought items to the pantry and clear your shopping list.
             </p>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={handleFinished} className="btn btn-primary btn-lg" style={{ flex: 1 }}>Yes, finish up</button>
+            <div style={{ display: "flex", gap: 10, flexDirection: "column" }}>
+              <button onClick={handleFinished} className="btn btn-primary btn-lg">Yes, finish up</button>
+              <button onClick={() => { setShowConfirm(false); setShowScanner(true); }} className="btn btn-gold btn-lg">🧾 Scan Receipt First</button>
               <button onClick={() => setShowConfirm(false)} className="btn btn-secondary btn-lg">Cancel</button>
             </div>
           </div>
         </div>
+      )}
+      {showScanner && (
+        <ReceiptScanner
+          onConfirm={handleReceiptConfirm}
+          onClose={() => setShowScanner(false)}
+        />
       )}
     </div>
   );

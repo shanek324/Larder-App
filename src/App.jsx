@@ -358,6 +358,7 @@ export default function App() {
               pantryItems={pantryItems}
               onClearList={clearShoppingList}
               onUpdatePantry={updatePantry}
+              onSavePrices={savePrices}
             />
           ) : (
             <ShoppingListView
