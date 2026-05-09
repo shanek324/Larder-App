@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { supabase } from "../supabase";
 import { callClaude } from "../utils";
 
@@ -15,6 +15,8 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const [removedPantryIds, setRemovedPantryIds] = useState([]);
   const [cookLogs, setCookLogs] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [stepFontSize, setStepFontSize] = useState(22);
+  const stepTextRef = useRef(null);
   const [recipeNotes, setRecipeNotes] = useState(recipe.notes || "");
 
   const ingredients = recipe.ingredients || [];
@@ -37,6 +39,21 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     }
     loadLogs();
   }, [recipe.id]);
+
+  useLayoutEffect(() => {
+    setStepFontSize(22);
+  }, [currentStep]);
+
+  useLayoutEffect(() => {
+    const el = stepTextRef.current;
+    if (!el) return;
+    let size = 22;
+    while (el.scrollHeight > el.clientHeight && size > 12) {
+      size -= 1;
+      el.style.fontSize = size + "px";
+    }
+    setStepFontSize(size);
+  });
 
   function goNext() {
     if (isLastStep) setPhase("review");
@@ -144,7 +161,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
             ) : (
               <>
                 <div className="cooking-step-num">{currentStep - (lastTips ? 1 : 0)}</div>
-                <p className="cooking-step-text">{step}</p>
+                <p className="cooking-step-text" ref={stepTextRef} style={{ fontSize: stepFontSize }}>{step}</p>
               </>
             )}
 
