@@ -123,6 +123,19 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
         </div>
       </div>
 
+      {!consolidated && pantryItems.filter(i => i.stockLevel === "low").length > 0 && (
+        <div className="card-note" style={{ marginBottom: 16, borderLeft: "3px solid #c62828" }}>
+          <p className="label-uppercase" style={{ marginBottom: 8, color: "#c62828" }}>⚠️ Low Stock</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {pantryItems.filter(i => i.stockLevel === "low").map(item => (
+              <span key={item.id} className="shopping-recipe-tag" style={{ background: "#fce4ec", color: "#c62828" }}>
+                {item.name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {!consolidated && (
         <>
           {selectedRecipes.length > 0 && (

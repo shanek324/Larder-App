@@ -173,6 +173,16 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
                         onBlur={() => onUpdatePantry([...pantryItems])}
                       />
                     </div>
+                    <select
+                        value={item.stockLevel || "high"}
+                        onChange={e => updateItemField(item.id, "stockLevel", e.target.value)}
+                        onBlur={() => onUpdatePantry([...pantryItems])}
+                        className={"pantry-stock-select pantry-stock-" + (item.stockLevel || "high")}
+                      >
+                        <option value="high">🟢 High</option>
+                        <option value="medium">🟡 Medium</option>
+                        <option value="low">🔴 Low</option>
+                      </select>
                     <span onClick={() => removeItem(item.id)} className="pantry-item-remove">×</span>
                   </div>
                 ))}
