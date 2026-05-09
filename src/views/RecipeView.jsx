@@ -275,7 +275,15 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
         </>
       ) : (
         <div className="recipe-ai-tab">
+          {isOwner ? (
           <AIChat recipe={recipe} onUpdate={handleAIUpdate} />
+        ) : (
+          <div className="empty-state">
+            <p className="empty-state-emoji">🔒</p>
+            <p className="empty-state-title">AI Assistant unavailable</p>
+            <p className="empty-state-text">Duplicate this recipe to your library to use the AI assistant.</p>
+          </div>
+        )}
         </div>
       )}
     </div>
