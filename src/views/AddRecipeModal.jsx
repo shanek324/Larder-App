@@ -3,16 +3,16 @@ import { slugify } from "../utils";
 
 const TAGS = ["Baking","Dessert","Dinner","Quick","Vegetarian","Fish","Chicken","Pasta","Breakfast","Soup","Italian","Portuguese"];
 
-export default function AddRecipeModal({ onClose, onAdd }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [prepTime, setPrepTime] = useState("");
-  const [cookTime, setCookTime] = useState("");
-  const [servings, setServings] = useState(4);
-  const [tags, setTags] = useState([]);
-  const [ingredients, setIngredients] = useState([{ name: "", amount: "" }]);
-  const [method, setMethod] = useState([""]);
-  const [notes, setNotes] = useState("");
+export default function AddRecipeModal({ onClose, onAdd, onOverwrite, initialData }) {
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [description, setDescription] = useState(initialData?.description || "");
+  const [prepTime, setPrepTime] = useState(initialData?.prepTime || "");
+  const [cookTime, setCookTime] = useState(initialData?.cookTime || "");
+  const [servings, setServings] = useState(initialData?.servings || 4);
+  const [tags, setTags] = useState(initialData?.tags || []);
+  const [ingredients, setIngredients] = useState(initialData?.ingredients?.length ? initialData.ingredients : [{ name: "", amount: "" }]);
+  const [method, setMethod] = useState(initialData?.method?.length ? initialData.method : [""]);
+  const [notes, setNotes] = useState(initialData?.notes || "");
 
   function toggleTag(t) {
     setTags(ts => ts.includes(t) ? ts.filter(x => x !== t) : [...ts, t]);
@@ -64,7 +64,7 @@ export default function AddRecipeModal({ onClose, onAdd }) {
     <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
-          <h2 className="modal-title">Add Recipe</h2>
+          <h2 className="modal-title">{initialData ? "Edit Duplicate" : "Add Recipe"}</h2>
           <span onClick={onClose} className="modal-close">×</span>
         </div>
 
@@ -114,8 +114,26 @@ export default function AddRecipeModal({ onClose, onAdd }) {
           <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes (optional)" rows={2} className="input add-recipe-input" />
 
           <button onClick={handleAdd} disabled={!title.trim()} className="btn btn-primary btn-full add-recipe-submit">
-            Add to Larder →
+            Save as New Recipe →
           </button>
+          {onOverwrite && (
+            <button onClick={() => {
+              onOverwrite({
+                title: title.trim(),
+                description: description.trim(),
+                prepTime: prepTime.trim(),
+                cookTime: cookTime.trim(),
+                servings: Number(servings),
+                tags,
+                ingredients: ingredients.filter(i => i.name.trim()),
+                method: method.filter(s => s.trim()),
+                notes: notes.trim(),
+              });
+              onClose();
+            }} disabled={!title.trim()} className="btn btn-secondary btn-full" style={{ marginTop: 8 }}>
+              Overwrite Original
+            </button>
+          )}
         </div>
       </div>
     </div>

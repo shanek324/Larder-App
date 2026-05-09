@@ -122,6 +122,7 @@ export default function App() {
   const [showAdd, setShowAdd] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [duplicateData, setDuplicateData] = useState(null);
   const addMenuRef = useRef(null);
 
   useEffect(() => {
@@ -189,17 +190,20 @@ export default function App() {
   }
 
 
-  async function duplicateRecipe(recipe) {
-    const copy = {
+  function duplicateRecipe(recipe) {
+    setDuplicateData({
       ...recipe,
-      id: recipe.id + "-copy-" + Date.now(),
       title: recipe.title + " (copy)",
       cook_count: 0,
       step_notes: {},
       lastCooked: null,
       createdAt: Date.now(),
-    };
-    await addRecipe(copy);
+    });
+    setShowAdd(true);
+  }
+
+  async function overwriteRecipe(original, updates) {
+    await updateRecipe({ ...original, ...updates });
   }
 
   async function updateCollections(updated) {
@@ -392,7 +396,7 @@ export default function App() {
       </div>
 
       {showGenerate && <GenerateModal onClose={() => setShowGenerate(false)} onAdd={addRecipe} />}
-      {showAdd && <AddRecipeModal onClose={() => setShowAdd(false)} onAdd={addRecipe} />}
+      {showAdd && <AddRecipeModal onClose={() => { setShowAdd(false); setDuplicateData(null); }} onAdd={addRecipe} initialData={duplicateData} onOverwrite={duplicateData ? (updates) => overwriteRecipe(recipes.find(r => r.title === duplicateData.title.replace(" (copy)", "")), updates) : null} />}
       {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} onAdd={addRecipe} />}
     </div>
   );
