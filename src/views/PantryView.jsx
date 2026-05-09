@@ -8,6 +8,7 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
   const [search, setSearch] = useState("");
   const [cleaning, setCleaning] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
   const aisleOrder = DUNNES_AISLES.map(a => a.name).concat(["Other"]);
   const aisleNames = DUNNES_AISLES.map(a => a.name).join(", ");
@@ -88,6 +89,13 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
     setCleaning(false);
   }
 
+  const UNITS = ["g", "kg", "ml", "l", "tsp", "tbsp", "cup", "each", "pack", "bunch", "loaf", "tin", "bottle", "bag"];
+
+  function saveEdit() {
+    onUpdatePantry(pantryItems.map(i => i.id === editingItem.id ? editingItem : i));
+    setEditingItem(null);
+  }
+
   const filtered = pantryItems.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
 
   const grouped = {};
@@ -151,39 +159,12 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
               </div>
               <div className="pantry-items">
                 {grouped[aisle].map(item => (
-                  <div key={item.id} className="pantry-item">
+                  <div key={item.id} className="pantry-item" onClick={() => setEditingItem({ ...item })}>
                     <span className="pantry-item-name">{item.name}</span>
                     <div className="pantry-item-qty">
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        className="receipt-price-input"
-                        value={item.quantity || ""}
-                        placeholder="qty"
-                        onChange={e => updateItemField(item.id, "quantity", parseFloat(e.target.value) || null)}
-                        onBlur={() => onUpdatePantry([...pantryItems])}
-                      />
-                      <input
-                        type="text"
-                        className="receipt-unit-input"
-                        value={item.unit || ""}
-                        placeholder="unit"
-                        onChange={e => updateItemField(item.id, "unit", e.target.value)}
-                        onBlur={() => onUpdatePantry([...pantryItems])}
-                      />
+                      <span className="pantry-item-qty-display">{item.quantity ? item.quantity + " " + (item.unit || "") : "tap to edit"}</span>
                     </div>
-                    <select
-                        value={item.stockLevel || "high"}
-                        onChange={e => updateItemField(item.id, "stockLevel", e.target.value)}
-                        onBlur={() => onUpdatePantry([...pantryItems])}
-                        className={"pantry-stock-select pantry-stock-" + (item.stockLevel || "high")}
-                      >
-                        <option value="high">🟢 High</option>
-                        <option value="medium">🟡 Medium</option>
-                        <option value="low">🔴 Low</option>
-                      </select>
-                    <span onClick={() => removeItem(item.id)} className="pantry-item-remove">×</span>
+                    <span className={"pantry-stock-badge pantry-stock-" + (item.stockLevel || "high")}>{item.stockLevel === "low" ? "🔴" : item.stockLevel === "medium" ? "🟡" : "🟢"}</span>
                   </div>
                 ))}
               </div>
@@ -191,6 +172,47 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
           );
         })
       )}
+      {editingItem && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h2 className="modal-title">Edit Item</h2>
+              <span className="modal-close" onClick={() => setEditingItem(null)}>×</span>
+            </div>
+            <div className="add-recipe-form">
+              <label className="add-recipe-label">Name</label>
+              <input className="input add-recipe-input" value={editingItem.name} onChange={e => setEditingItem(i => ({ ...i, name: e.target.value }))} />
+              <div className="add-recipe-row">
+                <div style={{ flex: 1 }}>
+                  <label className="add-recipe-label">Quantity</label>
+                  <input className="input" type="number" min="0" step="0.1" value={editingItem.quantity || ""} onChange={e => setEditingItem(i => ({ ...i, quantity: parseFloat(e.target.value) || null }))} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label className="add-recipe-label">Unit</label>
+                  <select className="input" value={editingItem.unit || ""} onChange={e => setEditingItem(i => ({ ...i, unit: e.target.value }))}>
+                    <option value="">—</option>
+                    {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                  </select>
+                </div>
+              </div>
+              <label className="add-recipe-label">Aisle</label>
+              <select className="input add-recipe-input" value={editingItem.aisle || "Other"} onChange={e => setEditingItem(i => ({ ...i, aisle: e.target.value }))}>
+                {DUNNES_AISLES.map(a => <option key={a.name} value={a.name}>{a.icon} {a.name}</option>)}
+                <option value="Other">🛒 Other</option>
+              </select>
+              <label className="add-recipe-label">Stock Level</label>
+              <select className="input add-recipe-input" value={editingItem.stockLevel || "high"} onChange={e => setEditingItem(i => ({ ...i, stockLevel: e.target.value }))}>
+                <option value="high">🟢 High</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="low">🔴 Low</option>
+              </select>
+              <button className="btn btn-primary btn-full" onClick={saveEdit}>Save</button>
+              <button className="btn btn-danger btn-full" style={{ marginTop: 8 }} onClick={() => { removeItem(editingItem.id); setEditingItem(null); }}>Delete Item</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showScanner && (
         <ReceiptScanner
           onConfirm={handleReceiptConfirm}

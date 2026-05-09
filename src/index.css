@@ -1883,3 +1883,20 @@ textarea.input { resize: none; }
   color: var(--color-text-muted);
   font-style: italic;
 }
+
+/* Pantry item tap-to-edit */
+.pantry-item {
+  cursor: pointer;
+}
+.pantry-item:hover {
+  background: var(--color-bg);
+}
+.pantry-item-qty-display {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+}
+.pantry-stock-badge {
+  font-size: 14px;
+  flex-shrink: 0;
+}
