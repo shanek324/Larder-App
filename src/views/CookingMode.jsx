@@ -15,6 +15,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const [removedPantryIds, setRemovedPantryIds] = useState([]);
   const [cookLogs, setCookLogs] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [recipeNotes, setRecipeNotes] = useState(recipe.notes || "");
 
   const ingredients = recipe.ingredients || [];
   const steps = ["__ingredients__", ...(recipe.method || [])];
@@ -75,7 +76,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
         ai_tips: aiTips,
       });
       const newCount = (recipe.cook_count || 0) + 1;
-      await onUpdateRecipe({ ...recipe, cook_count: newCount, lastCooked: Date.now() });
+      await onUpdateRecipe({ ...recipe, cook_count: newCount, lastCooked: Date.now(), notes: recipeNotes });
     } catch(e) {
       console.error("Review error:", e);
     }
@@ -246,6 +247,15 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
             value={feedback}
             onChange={e => setFeedback(e.target.value)}
             placeholder="e.g. Needed more seasoning, sauce was too thick..."
+            rows={3}
+            className="input cooking-feedback-input"
+          />
+
+          <p className="cooking-review-label" style={{ marginTop: 16 }}>Recipe notes</p>
+          <textarea
+            value={recipeNotes}
+            onChange={e => setRecipeNotes(e.target.value)}
+            placeholder="e.g. Add more garlic next time, serve with crusty bread..."
             rows={3}
             className="input cooking-feedback-input"
           />
