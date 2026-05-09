@@ -1862,3 +1862,24 @@ textarea.input { resize: none; }
   padding: 2px 4px;
   cursor: pointer;
 }
+
+/* Shopping item sources breakdown */
+.shopping-item-source {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  gap: 8px;
+}
+.shopping-item-source-recipe {
+  font-size: 12px;
+  font-family: var(--font-sans);
+  color: var(--color-text-muted-dark);
+  font-weight: 600;
+}
+.shopping-item-source-original {
+  font-size: 12px;
+  font-family: var(--font-sans);
+  color: var(--color-text-muted);
+  font-style: italic;
+}

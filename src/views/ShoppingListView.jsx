@@ -248,7 +248,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
                           className="shopping-item-amount-input"
                           placeholder="amount"
                         />
-                        {item.sources && item.sources.length > 1 && (
+                        {item.sources && item.sources.length > 0 && (
                           <button
                             onClick={e => { e.preventDefault(); e.stopPropagation(); toggleSources(item.key); }}
                             style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "var(--color-text-muted)", padding: "0 4px", flexShrink: 0 }}
@@ -260,7 +260,12 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
                       {item.sources && item.sources.length > 0 && expandedSources[item.key] && (
                         <div className="shopping-item-sources">
                           {item.sources.map((src, i) => (
-                            <span key={i} className="shopping-item-source">{src}</span>
+                            <div key={i} className="shopping-item-source">
+                              <span className="shopping-item-source-recipe">{typeof src === "object" ? src.recipe : src}</span>
+                              {typeof src === "object" && src.original && (
+                                <span className="shopping-item-source-original">{src.original}</span>
+                              )}
+                            </div>
                           ))}
                         </div>
                       )}
