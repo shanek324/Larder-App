@@ -1818,3 +1818,35 @@ textarea.input { resize: none; }
 .add-recipe-menu-item:hover {
   background: var(--color-bg);
 }
+
+/* Login mode toggle */
+.login-mode-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.login-mode-btn {
+  flex: 1;
+  padding: 8px;
+  background: none;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.login-mode-btn.active {
+  background: var(--color-gold);
+  color: white;
+  font-weight: 600;
+}
+.login-success {
+  color: #2e7d32;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  text-align: center;
+  margin: 0 0 8px;
+}

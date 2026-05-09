@@ -6,8 +6,10 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState("signin");
+  const [success, setSuccess] = useState(null);
 
-  async function handleLogin() {
+  async function handleSignIn() {
     setLoading(true);
     setError(null);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -15,8 +17,22 @@ export default function Login() {
     setLoading(false);
   }
 
+  async function handleSignUp() {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      setError(error.message);
+    } else {
+      setSuccess("Account created! Check your email to confirm, then sign in.");
+      setMode("signin");
+    }
+    setLoading(false);
+  }
+
   function handleKeyDown(e) {
-    if (e.key === "Enter") handleLogin();
+    if (e.key === "Enter") mode === "signin" ? handleSignIn() : handleSignUp();
   }
 
   return (
@@ -25,6 +41,18 @@ export default function Login() {
         <p className="login-emoji">🫙</p>
         <h1 className="login-title">Larder</h1>
         <p className="login-subtitle">Your kitchen, organised</p>
+
+        <div className="login-mode-toggle">
+          <button
+            onClick={() => { setMode("signin"); setError(null); setSuccess(null); }}
+            className={"login-mode-btn" + (mode === "signin" ? " active" : "")}
+          >Sign In</button>
+          <button
+            onClick={() => { setMode("signup"); setError(null); setSuccess(null); }}
+            className={"login-mode-btn" + (mode === "signup" ? " active" : "")}
+          >Create Account</button>
+        </div>
+
         <input
           type="email"
           placeholder="Email"
@@ -42,12 +70,13 @@ export default function Login() {
           className="input login-input"
         />
         {error && <p className="login-error">{error}</p>}
+        {success && <p className="login-success">{success}</p>}
         <button
-          onClick={handleLogin}
+          onClick={mode === "signin" ? handleSignIn : handleSignUp}
           disabled={loading}
           className="btn btn-primary btn-full login-btn"
         >
-          {loading ? "Signing in…" : "Sign In"}
+          {loading ? (mode === "signin" ? "Signing in…" : "Creating account…") : (mode === "signin" ? "Sign In" : "Create Account")}
         </button>
       </div>
     </div>
