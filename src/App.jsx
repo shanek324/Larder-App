@@ -12,6 +12,7 @@ import ImportRecipeModal from "./views/ImportRecipeModal";
 import Login from "./Login";
 import CookingMode from "./views/CookingMode";
 import CookHistoryView from "./views/CookHistoryView";
+import BrowseView from "./views/BrowseView";
 
 const NAV = [
   { key: "home", label: "Recipes", icon: "🍳" },
@@ -19,6 +20,7 @@ const NAV = [
   { key: "shopping", label: "Shopping", icon: "🛒" },
   { key: "collections", label: "Collections", icon: "📁" },
   { key: "history", label: "History", icon: "📋" },
+  { key: "browse", label: "Browse", icon: "🌍" },
 ];
 
 function recipeToDb(r) {
@@ -193,6 +195,7 @@ export default function App() {
   function duplicateRecipe(recipe) {
     setDuplicateData({
       ...recipe,
+      _originalId: recipe.id,
       title: recipe.title + " (copy)",
       cook_count: 0,
       step_notes: {},
@@ -347,6 +350,7 @@ export default function App() {
             onUpdateCollections={updateCollections}
             onStartCooking={() => setView("cooking")}
             onDuplicate={() => duplicateRecipe(activeRecipe)}
+            session={session}
           />
         ) : view === "collections" ? (
           <CollectionsView
@@ -375,6 +379,8 @@ export default function App() {
           )
         ) : view === "history" ? (
           <CookHistoryView recipes={recipes} />
+        ) : view === "browse" ? (
+          <BrowseView session={session} onAdd={addRecipe} ownRecipeIds={recipes.map(r => r.id)} />
         ) : view === "pantry" ? (
           <PantryView
             pantryItems={pantryItems}
@@ -396,7 +402,7 @@ export default function App() {
       </div>
 
       {showGenerate && <GenerateModal onClose={() => setShowGenerate(false)} onAdd={addRecipe} />}
-      {showAdd && <AddRecipeModal onClose={() => { setShowAdd(false); setDuplicateData(null); }} onAdd={addRecipe} initialData={duplicateData} onOverwrite={duplicateData ? (updates) => overwriteRecipe(recipes.find(r => r.title === duplicateData.title.replace(" (copy)", "")), updates) : null} />}
+      {showAdd && <AddRecipeModal onClose={() => { setShowAdd(false); setDuplicateData(null); }} onAdd={addRecipe} initialData={duplicateData} onOverwrite={duplicateData && duplicateData._originalId && (() => { const orig = recipes.find(r => r.id === duplicateData._originalId); return orig && orig.user_id === session?.user?.id && !orig.is_public; })() ? (updates) => overwriteRecipe(recipes.find(r => r.id === duplicateData._originalId), updates) : null} />}
       {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} onAdd={addRecipe} />}
     </div>
   );

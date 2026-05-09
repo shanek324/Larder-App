@@ -4,7 +4,7 @@ import ServingScaler from "../components/ServingScaler";
 import AIChat from "../components/AIChat";
 import { scaleAmount, estimateRecipeCost } from "../utils";
 
-export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onCookedIt, onStartCooking, onDuplicate }) {
+export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onCookedIt, onStartCooking, onDuplicate, session }) {
   const [editMode, setEditMode] = useState(false);
   const [draft, setDraft] = useState(recipe);
   const [tab, setTab] = useState("recipe");
@@ -25,6 +25,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
   }, [recipe.id]);
 
   const ratio = scaledServings / recipe.servings;
+  const isOwner = recipe.user_id === session?.user?.id;
 
   function save() { onUpdate(draft); setEditMode(false); }
 
@@ -104,10 +105,19 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
             </>
           ) : (
             <>
+              {isOwner && (
+                <button
+                  onClick={() => onUpdate({ ...recipe, is_public: !recipe.is_public })}
+                  className={"btn " + (recipe.is_public ? "btn-gold" : "btn-secondary")}
+                  title={recipe.is_public ? "Make private" : "Make public"}
+                >
+                  {recipe.is_public ? "🌍 Public" : "🔒 Private"}
+                </button>
+              )}
               <button onClick={onStartCooking} className="btn btn-primary">👨‍🍳 Cook</button>
-              <button onClick={() => setEditMode(true)} className="btn btn-secondary">Edit</button>
+              {isOwner && <button onClick={() => setEditMode(true)} className="btn btn-secondary">Edit</button>}
               <button onClick={onDuplicate} className="btn btn-secondary">⧉ Duplicate</button>
-              <button onClick={onDelete} className="btn btn-danger">Delete</button>
+              {isOwner && <button onClick={onDelete} className="btn btn-danger">Delete</button>}
             </>
           )}
         </div>
