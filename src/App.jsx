@@ -112,6 +112,9 @@ export default function App() {
   const [collections, setCollections] = useState([]);
   const [pantryItems, setPantryItems] = useState([]);
   const [savedShoppingList, setSavedShoppingList] = useState(null);
+  const [selectedRecipes, setSelectedRecipes] = useState([]);
+  const [consolidatedList, setConsolidatedList] = useState(null);
+  const [crossedOff, setCrossedOff] = useState({});
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -374,7 +377,13 @@ export default function App() {
               pantryItems={pantryItems}
               onSaveList={saveShoppingList}
               savedList={savedShoppingList}
-              onClearList={clearShoppingList}
+              onClearList={() => { clearShoppingList(); setConsolidatedList(null); setCrossedOff({}); setSelectedRecipes([]); }}
+              selectedRecipes={selectedRecipes}
+              setSelectedRecipes={setSelectedRecipes}
+              consolidated={consolidatedList}
+              setConsolidated={setConsolidatedList}
+              crossedOff={crossedOff}
+              setCrossedOff={setCrossedOff}
             />
           )
         ) : view === "history" ? (

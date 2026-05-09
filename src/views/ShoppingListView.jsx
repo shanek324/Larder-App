@@ -2,12 +2,10 @@ import { useState, useEffect } from "react";
 import { DUNNES_AISLES } from "../constants";
 import { callClaude, matchesPantry, estimateRecipeCost } from "../utils";
 
-export default function ShoppingListView({ recipes, pantryItems, onSaveList, savedList, onClearList }) {
-  const [selectedRecipes, setSelectedRecipes] = useState(() => {
-    try { return []; } catch { return []; }
-  });
-  const [consolidated, setConsolidated] = useState(savedList ? savedList.items : null);
-  const [crossedOff, setCrossedOff] = useState({});
+export default function ShoppingListView({ recipes, pantryItems, onSaveList, savedList, onClearList, selectedRecipes, setSelectedRecipes, consolidated, setConsolidated, crossedOff, setCrossedOff }) {
+
+
+
   const [expandedSources, setExpandedSources] = useState({});
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
