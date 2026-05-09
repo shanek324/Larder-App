@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import HomeView from "./views/HomeView";
 import RecipeView from "./views/RecipeView";
@@ -122,6 +122,21 @@ export default function App() {
   const [showAdd, setShowAdd] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const addMenuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (addMenuRef.current && !addMenuRef.current.contains(e.target)) {
+        setShowAddMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
 
   // Auth state
   useEffect(() => {
@@ -280,7 +295,7 @@ export default function App() {
               <span className="app-logo-text">Larder</span>
             </div>
             <div className="header-actions">
-              <div style={{ position: "relative" }}>
+              <div style={{ position: "relative" }} ref={addMenuRef}>
                 <button onClick={() => setShowAddMenu(v => !v)} className="btn btn-primary">+ Add Recipe</button>
                 {showAddMenu && (
                   <div className="add-recipe-menu">
