@@ -177,7 +177,7 @@ export default function App() {
   async function duplicateRecipe(recipe) {
     const copy = {
       ...recipe,
-      id: undefined,
+      id: recipe.id + "-copy-" + Date.now(),
       title: recipe.title + " (copy)",
       cook_count: 0,
       step_notes: {},
