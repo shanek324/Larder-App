@@ -15,9 +15,9 @@ import CookHistoryView from "./views/CookHistoryView";
 
 const NAV = [
   { key: "home", label: "Recipes", icon: "🍳" },
-  { key: "collections", label: "Collections", icon: "📁" },
-  { key: "shopping", label: "Shopping", icon: "🛒" },
   { key: "pantry", label: "Pantry", icon: "🥫" },
+  { key: "shopping", label: "Shopping", icon: "🛒" },
+  { key: "collections", label: "Collections", icon: "📁" },
   { key: "history", label: "History", icon: "📋" },
 ];
 
