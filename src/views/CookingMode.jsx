@@ -18,10 +18,12 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const [recipeNotes, setRecipeNotes] = useState(recipe.notes || "");
 
   const ingredients = recipe.ingredients || [];
-  const steps = ["__ingredients__", ...(recipe.method || [])];
+  const lastTips = cookLogs.length > 0 ? cookLogs[0].ai_tips : null;
+  const steps = ["__ingredients__", ...(lastTips ? ["__tips__"] : []), ...(recipe.method || [])];
   const totalSteps = steps.length;
   const isLastStep = currentStep === totalSteps - 1;
   const isIngredientCard = currentStep === 0;
+  const isTipsCard = steps[currentStep] === "__tips__";
 
   useEffect(() => {
     async function loadLogs() {
@@ -109,9 +111,9 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
         <div className="cooking-header">
           <button onClick={onExit} className="cooking-exit-btn">← Exit</button>
           <span className="cooking-progress-label">
-            {isIngredientCard ? "Ingredients" : "Step " + currentStep + " of " + (totalSteps - 1)}
+            {isIngredientCard ? "Ingredients" : isTipsCard ? "Tips" : "Step " + (currentStep - (lastTips ? 1 : 0)) + " of " + (recipe.method || []).length}
           </span>
-          {!isIngredientCard ? (
+          {!isIngredientCard && !isTipsCard ? (
             <button onClick={openNote} className="cooking-note-btn">
               {note ? "✎ Edit note" : "+ Note"}
             </button>
@@ -134,9 +136,14 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
                   ))}
                 </div>
               </>
+            ) : isTipsCard ? (
+              <>
+                <p className="cooking-card-ingredients-title">💡 Tips from last time</p>
+                <p className="cooking-step-text" style={{ fontSize: 16, opacity: 0.85 }}>{lastTips}</p>
+              </>
             ) : (
               <>
-                <div className="cooking-step-num">{currentStep}</div>
+                <div className="cooking-step-num">{currentStep - (lastTips ? 1 : 0)}</div>
                 <p className="cooking-step-text">{step}</p>
               </>
             )}
