@@ -166,6 +166,20 @@ export default function App() {
     setActiveRecipeId(null);
   }
 
+
+  async function duplicateRecipe(recipe) {
+    const copy = {
+      ...recipe,
+      id: undefined,
+      title: recipe.title + " (copy)",
+      cook_count: 0,
+      step_notes: {},
+      lastCooked: null,
+      createdAt: Date.now(),
+    };
+    await addRecipe(copy);
+  }
+
   async function updateCollections(updated) {
     await supabase.from("collections").upsert(updated.map(c => ({ ...collectionToDb(c), user_id: session?.user?.id })));
     const updatedIds = updated.map(c => c.id);
@@ -299,6 +313,7 @@ export default function App() {
             onUpdateCollections={updateCollections}
             onCookedIt={() => updateRecipe({ ...activeRecipe, lastCooked: Date.now() })}
             onStartCooking={() => setView("cooking")}
+            onDuplicate={() => duplicateRecipe(activeRecipe)}
           />
         ) : view === "collections" ? (
           <CollectionsView
