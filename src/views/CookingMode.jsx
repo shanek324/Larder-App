@@ -15,6 +15,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const [removedPantryIds, setRemovedPantryIds] = useState([]);
   const [cookLogs, setCookLogs] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(null);
   const [stepFontSize, setStepFontSize] = useState(22);
   const stepTextRef = useRef(null);
   const [recipeNotes, setRecipeNotes] = useState(recipe.notes || "");
@@ -39,6 +40,19 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     }
     loadLogs();
   }, [recipe.id]);
+
+  function handleTouchStart(e) {
+    setTouchStartX(e.touches[0].clientX);
+  }
+
+  function handleTouchEnd(e) {
+    if (touchStartX === null) return;
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) < 50) return;
+    if (diff > 0) goNext();
+    else goPrev();
+    setTouchStartX(null);
+  }
 
   useLayoutEffect(() => {
     setStepFontSize(22);
@@ -139,7 +153,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
 
         <div className="cooking-recipe-title">{recipe.title}</div>
 
-        <div className="cooking-card-wrapper">
+        <div className="cooking-card-wrapper" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
           <div className="cooking-card">
             {isIngredientCard ? (
               <>
