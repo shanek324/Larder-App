@@ -35,6 +35,7 @@ function recipeToDb(r) {
     last_cooked: r.lastCooked || null,
     cook_count: r.cook_count || 0,
     step_notes: r.step_notes || {},
+    image_url: r.image_url || null,
   };
 }
 
@@ -54,6 +55,7 @@ function recipeFromDb(r) {
     lastCooked: r.last_cooked,
     cook_count: r.cook_count || 0,
     step_notes: r.step_notes || {},
+    image_url: r.image_url || null,
   };
 }
 
