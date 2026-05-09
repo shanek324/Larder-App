@@ -26,6 +26,11 @@ export default function CookHistoryView({ recipes }) {
     return r ? r.title : "Unknown recipe";
   }
 
+  async function deleteLog(id) {
+    await supabase.from("cook_logs").delete().eq("id", id);
+    setLogs(logs => logs.filter(l => l.id !== id));
+  }
+
   if (loading) return <div className="view"><p style={{ padding: 24 }}>Loading...</p></div>;
 
   return (
@@ -50,6 +55,7 @@ export default function CookHistoryView({ recipes }) {
               <div className="cook-history-entry-header">
                 <span className="cook-history-recipe">{getRecipeTitle(log.recipe_id)}</span>
                 <span className="cook-history-date">{formatDate(log.cooked_at)}</span>
+                <span onClick={() => deleteLog(log.id)} style={{ cursor: "pointer", color: "var(--color-danger)", fontSize: 18, lineHeight: 1 }}>×</span>
               </div>
               <div className="cook-history-rating">{"⭐".repeat(log.rating)}</div>
               {log.feedback && (

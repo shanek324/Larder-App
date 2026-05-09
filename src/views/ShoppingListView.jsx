@@ -125,6 +125,16 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
         </div>
       </div>
 
+      {!consolidated && savedList && savedList.items && (
+        <div className="card-note" style={{ marginBottom: 16, borderLeft: "3px solid var(--color-gold)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <p className="label-uppercase" style={{ marginBottom: 2 }}>📋 Saved list</p>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--color-text-muted-dark)", margin: 0 }}>{savedList.items.length} items ready</p>
+          </div>
+          <button onClick={() => setConsolidated(savedList.items)} className="btn btn-gold">Resume →</button>
+        </div>
+      )}
+
       {!consolidated && pantryItems.filter(i => i.stockLevel === "low").length > 0 && (
         <div className="card-note" style={{ marginBottom: 16, borderLeft: "3px solid #c62828" }}>
           <p className="label-uppercase" style={{ marginBottom: 8, color: "#c62828" }}>⚠️ Low Stock</p>

@@ -121,6 +121,7 @@ export default function App() {
   const [showGenerate, setShowGenerate] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
 
   // Auth state
   useEffect(() => {
@@ -318,7 +319,6 @@ export default function App() {
             onDelete={() => deleteRecipe(activeRecipeId)}
             collections={collections}
             onUpdateCollections={updateCollections}
-            onCookedIt={() => updateRecipe({ ...activeRecipe, lastCooked: Date.now() })}
             onStartCooking={() => setView("cooking")}
             onDuplicate={() => duplicateRecipe(activeRecipe)}
           />

@@ -105,7 +105,6 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
           ) : (
             <>
               <button onClick={onStartCooking} className="btn btn-primary">👨‍🍳 Cook</button>
-              <button onClick={onCookedIt} className="btn btn-success">🍳 Cooked it!</button>
               <button onClick={() => setEditMode(true)} className="btn btn-secondary">Edit</button>
               <button onClick={onDuplicate} className="btn btn-secondary">⧉ Duplicate</button>
               <button onClick={onDelete} className="btn btn-danger">Delete</button>
