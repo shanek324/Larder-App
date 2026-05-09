@@ -91,6 +91,35 @@
 
 ---
 
+## 💰 Business Model (If Productised)
+
+### Monetisation Strategy
+- **Free tier** — all manual features unlimited (add recipes, pantry, shopping list manual mode)
+- AI actions on free tier gated behind a 30 second rewarded ad (YouTube-style)
+- Ad revenue per AI action (~€0.04) covers API cost (~€0.02) on free tier
+- Paid tiers remove ads and include AI action allowances:
+  - **Starter €2.99/month** — 10 AI actions
+  - **Regular €4.99/month** — 30 AI actions
+  - **Power €9.99/month** — 100 AI actions
+
+### What counts as an AI action
+- Receipt scan, recipe generation, shopping list consolidation
+- AI recipe chat message, cooking tips, pantry cleanup
+
+### To productise
+- Wrap in Capacitor for iOS/Android native app (~4-6 weeks)
+- Or ship as PWA first (~2-3 days, easier but limited on iOS)
+- Apple Developer account (€99/year) + Google Play (€25 one time)
+- Implement action counter per user in Supabase
+- Integrate rewarded ad SDK (e.g. AdMob) for free tier
+- Privacy policy + terms of service required for App Store
+- Stripe or RevenueCat for subscription billing
+
+### Market differentiation
+- Claude AI integration is unique vs Paprika, Mealime, Whisk
+- Receipt scanning → price tracking → recipe cost estimation — nobody else has this
+- Irish/Dunnes store awareness as local market advantage
+
 ## 💡 Future Ideas
 
 ### Features
