@@ -61,6 +61,8 @@ function recipeFromDb(r) {
     cook_count: r.cook_count || 0,
     step_notes: r.step_notes || {},
     image_url: r.image_url || null,
+    is_public: r.is_public || false,
+    user_id: r.user_id || null,
   };
 }
 
