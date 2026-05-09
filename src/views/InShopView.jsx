@@ -4,6 +4,7 @@ import { DUNNES_AISLES } from "../constants";
 export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry }) {
   const [checked, setChecked] = useState({});
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showStartOver, setShowStartOver] = useState(false);
 
   const items = savedList?.items || [];
   const tickedCount = items.filter(i => checked[i.key]).length;
@@ -42,7 +43,7 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
           <h1 className="page-title">Shopping</h1>
           <p className="page-subtitle">{tickedCount} of {items.length} items ticked</p>
         </div>
-        <button onClick={() => { if(window.confirm("Clear your shopping list and start over?")) onClearList(); }} className="btn btn-secondary" style={{ fontSize: 12 }}>
+        <button onClick={() => setShowStartOver(true)} className="btn btn-secondary" style={{ fontSize: 12 }}>
           Start over
         </button>
         {allChecked && (
@@ -84,6 +85,22 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
           </div>
         );
       })}
+
+      {showStartOver && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+            <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
+            <h2 className="section-title" style={{ textAlign: "center" }}>Start over?</h2>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
+              This will clear your shopping list completely.
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => { onClearList(); setShowStartOver(false); }} className="btn btn-danger btn-lg" style={{ flex: 1 }}>Yes, clear it</button>
+              <button onClick={() => setShowStartOver(false)} className="btn btn-secondary btn-lg">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showConfirm && (
         <div className="modal-overlay">
