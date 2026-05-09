@@ -11,12 +11,14 @@ import AddRecipeModal from "./views/AddRecipeModal";
 import ImportRecipeModal from "./views/ImportRecipeModal";
 import Login from "./Login";
 import CookingMode from "./views/CookingMode";
+import CookHistoryView from "./views/CookHistoryView";
 
 const NAV = [
   { key: "home", label: "Recipes", icon: "🍳" },
   { key: "collections", label: "Collections", icon: "📁" },
   { key: "shopping", label: "Shopping", icon: "🛒" },
   { key: "pantry", label: "Pantry", icon: "🥫" },
+  { key: "history", label: "History", icon: "📋" },
 ];
 
 function recipeToDb(r) {
@@ -344,6 +346,8 @@ export default function App() {
               onClearList={clearShoppingList}
             />
           )
+        ) : view === "history" ? (
+          <CookHistoryView recipes={recipes} />
         ) : view === "pantry" ? (
           <PantryView
             pantryItems={pantryItems}

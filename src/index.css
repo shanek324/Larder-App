@@ -1740,3 +1740,50 @@ textarea.input { resize: none; }
   border-color: var(--color-gold);
   color: var(--color-gold);
 }
+
+/* Cook History View */
+.cook-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cook-history-entry {
+  background: var(--color-surface);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+}
+.cook-history-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  gap: 8px;
+}
+.cook-history-recipe {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.cook-history-date {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.cook-history-rating {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.cook-history-feedback {
+  font-size: 14px;
+  color: var(--color-text-muted-dark);
+  font-style: italic;
+  margin: 0 0 8px;
+}
+.cook-history-tips-text {
+  font-size: 13px;
+  color: var(--color-text-muted-dark);
+  margin: 0;
+  line-height: 1.5;
+}
