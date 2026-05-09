@@ -42,6 +42,7 @@
 - "Go to Shop" saves final list and switches to in-shop mode
 - Sub-breakdown under consolidated items (shows which recipes need each ingredient)
 - In-shop mode — tick off items aisle by aisle, proper start-over modal
+- Resume saved shopping list banner — persists between sessions via Supabase
 - Add bought items to pantry on shop completion
 - Cooking mode — fullscreen dark UI, card-based step carousel with progress dots
 - Tips from last cook shown as a card after ingredients, before step 1
@@ -51,11 +52,11 @@
 - Swipe gestures for cooking mode step navigation
 - Post-cook review — 5 star rating + feedback text + recipe notes editing
 - Cook log history — collapsible panel in review screen showing previous cooks (date, rating, feedback, AI tips)
-- Cook history view — dedicated screen listing all past cooks across all recipes
+- Cook history view — dedicated screen listing all past cooks across all recipes, with delete per entry
 - Claude Haiku generates tips from feedback, saved to cook_logs table
 - Cook count tracked per recipe (shown on recipe detail)
 - Pantry cleanup prompt after cooking (tick off what you used)
-- Cooked it! button (tracks last cooked date without going through cooking mode)
+
 - Responsive UI — all views adapt to mobile, nav icons-only on very small screens
 - Receipt scanner — photograph supermarket receipt, Haiku extracts + normalises ingredient names
 - Confirm screen — toggle off non-food items, edit names/prices/quantities/units
@@ -76,12 +77,19 @@
 
 ## 📋 Next Up
 
+### Recipe Visibility & Sharing
+- Public/private toggle per recipe (is_public boolean on recipes table)
+- RLS updated to allow SELECT on public recipes for all authenticated users
+- Browse public recipes — search/filter across all users' public recipes
+- Add a public recipe to your own library (forks it as your own copy)
+- Users can only edit recipes they own — forking required to customise
+- Recipe detail shows original author if forked
+
 ### Bigger Features
 - Nutritional info — AI-generated approximate macros per recipe
-- Share a recipe via link (public read-only view)
-- Multi-user / household sharing (Eve + Shane see same library)
 - Meal planner — drag recipes onto a weekly calendar, auto-generate shopping list for the week
 - AI-generated recipe hero images (e.g. via Replicate or DALL-E)
+- Multi-user / household sharing (Eve + Shane see same library)
 
 ---
 
