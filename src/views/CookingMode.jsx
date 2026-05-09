@@ -239,6 +239,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     return (
       <div className="cooking-screen cooking-screen-centered">
         <div className="cooking-review-card">
+          <button onClick={onExit} className="cooking-exit-btn" style={{ alignSelf: "flex-start", marginBottom: 8 }}>← Back</button>
           <p className="cooking-review-emoji">🍽</p>
           <h2 className="cooking-review-title">How did it go?</h2>
           <p className="cooking-review-subtitle">{recipe.title}</p>
