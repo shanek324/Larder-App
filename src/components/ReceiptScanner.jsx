@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { categoriseIngredient } from "../utils";
+import { DUNNES_AISLES } from "../constants";
 import { API_MODEL } from "../constants";
 
 function parseUnit(unitStr) {
@@ -187,7 +188,16 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
                     />
                     <span className="receipt-item-aisle">
                       {!item.confident && <span className="receipt-uncertain-badge">⚠ check</span>}
-                      {item.aisle}
+                      <select
+                        value={item.aisle}
+                        onChange={e => updateItem(item.id, "aisle", e.target.value)}
+                        className="receipt-aisle-select"
+                      >
+                        {DUNNES_AISLES.map(a => (
+                          <option key={a.name} value={a.name}>{a.icon} {a.name}</option>
+                        ))}
+                        <option value="Other">🛒 Other</option>
+                      </select>
                     </span>
                   </div>
                   <div className="receipt-item-price">
