@@ -3,7 +3,9 @@ import { DUNNES_AISLES } from "../constants";
 import { callClaude, matchesPantry, estimateRecipeCost } from "../utils";
 
 export default function ShoppingListView({ recipes, pantryItems, onSaveList, savedList, onClearList }) {
-  const [selectedRecipes, setSelectedRecipes] = useState([]);
+  const [selectedRecipes, setSelectedRecipes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("lastSelectedRecipes") || "[]"); } catch { return []; }
+  });
   const [consolidated, setConsolidated] = useState(savedList ? savedList.items : null);
   const [crossedOff, setCrossedOff] = useState({});
   const [expandedSources, setExpandedSources] = useState({});
@@ -53,6 +55,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
   const rawIngredients = selectedRecipeObjects.flatMap(r => r.ingredients);
 
   async function handleGenerate() {
+    localStorage.setItem("lastSelectedRecipes", JSON.stringify(selectedRecipes));
     setGenerating(true);
 
     const ingredientLines = selectedRecipeObjects.flatMap(r =>
