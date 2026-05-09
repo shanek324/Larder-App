@@ -8,6 +8,7 @@ import InShopView from "./views/InShopView";
 import PantryView from "./views/PantryView";
 import GenerateModal from "./views/GenerateModal";
 import AddRecipeModal from "./views/AddRecipeModal";
+import ImportRecipeModal from "./views/ImportRecipeModal";
 import Login from "./Login";
 import CookingMode from "./views/CookingMode";
 
@@ -115,6 +116,7 @@ export default function App() {
   const [filterTag, setFilterTag] = useState(null);
   const [showGenerate, setShowGenerate] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   // Auth state
   useEffect(() => {
@@ -275,6 +277,7 @@ export default function App() {
             <div className="header-actions">
               <button onClick={() => setShowGenerate(true)} className="btn btn-gold">✦ Generate</button>
               <button onClick={() => supabase.auth.signOut()} className="btn btn-outline">Sign Out</button>
+              <button onClick={() => setShowImport(true)} className="btn btn-secondary">🔗 Import</button>
               <button onClick={() => setShowAdd(true)} className="btn btn-primary">+ Add</button>
             </div>
           </header>
@@ -361,6 +364,7 @@ export default function App() {
 
       {showGenerate && <GenerateModal onClose={() => setShowGenerate(false)} onAdd={addRecipe} />}
       {showAdd && <AddRecipeModal onClose={() => setShowAdd(false)} onAdd={addRecipe} />}
+      {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} onAdd={addRecipe} />}
     </div>
   );
 }

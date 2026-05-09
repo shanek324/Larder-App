@@ -7,7 +7,6 @@ export default async function handler(req, res) {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; LarderBot/1.0)" }
     });
     const html = await response.text();
-    // Strip tags, return plain text (max 15000 chars to fit context)
     const text = html
       .replace(/<script[\s\S]*?<\/script>/gi, "")
       .replace(/<style[\s\S]*?<\/style>/gi, "")
