@@ -146,6 +146,7 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
                 <input
                   type="file"
                   accept="image/*"
+                  capture="environment"
                   onChange={handleImage}
                   style={{ display: "none" }}
                 />
