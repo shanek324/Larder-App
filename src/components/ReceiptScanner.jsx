@@ -25,8 +25,11 @@ export default function ReceiptScanner({ onConfirm, onClose }) {
   const [error, setError] = useState(null);
 
   async function handleImage(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const file = e.target.files && e.target.files[0];
+    if (!file) {
+      console.warn("No file selected");
+      return;
+    }
     setStage("scanning");
     setError(null);
 
