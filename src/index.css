@@ -1922,20 +1922,22 @@ textarea.input { resize: none; }
 }
 .camera-video {
   width: 100%;
-  flex: 1;
+  height: calc(100vh - 140px);
   object-fit: cover;
 }
 .camera-preview {
   width: 100%;
-  flex: 1;
+  height: calc(100vh - 140px);
   object-fit: contain;
 }
 .camera-actions {
   padding: 24px;
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 16px;
   background: #000;
+  min-height: 100px;
 }
 .camera-shutter {
   width: 72px;
