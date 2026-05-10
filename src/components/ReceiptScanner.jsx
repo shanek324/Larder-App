@@ -20,13 +20,14 @@ function toBase64(file) {
   });
 }
 
-export default function ReceiptScanner({ onConfirm, onClose }) {
+export default function ReceiptScanner({ onConfirm, onClose, checkCredits }) {
   const [stage, setStage] = useState("upload");
   const [showCamera, setShowCamera] = useState(false);
   const [items, setItems] = useState([]);
   const [error, setError] = useState(null);
 
   async function handleCameraCapture({ base64, mediaType }) {
+    if (checkCredits && !(await checkCredits())) { setShowCamera(false); return; }
     setShowCamera(false);
     setStage("scanning");
     setError(null);
@@ -74,6 +75,7 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
       console.warn("No file selected");
       return;
     }
+    if (checkCredits && !(await checkCredits())) return;
     setStage("scanning");
     setError(null);
 

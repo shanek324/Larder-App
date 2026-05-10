@@ -1951,3 +1951,31 @@ textarea.input { resize: none; }
   align-items: center;
   justify-content: center;
 }
+
+/* AI error toast */
+.ai-error-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 16px;
+  right: 16px;
+  background: #c62828;
+  color: white;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 500;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.ai-error-toast p {
+  margin: 0;
+  flex: 1;
+}
+.ai-error-toast span {
+  font-size: 20px;
+  cursor: pointer;
+  padding-left: 12px;
+}

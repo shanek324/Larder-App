@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DUNNES_AISLES } from "../constants";
 import ReceiptScanner from "../components/ReceiptScanner";
 
-export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices }) {
+export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices, checkCredits }) {
   const [checked, setChecked] = useState({});
   const [showConfirm, setShowConfirm] = useState(false);
   const [showStartOver, setShowStartOver] = useState(false);
@@ -141,6 +141,7 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
         <ReceiptScanner
           onConfirm={handleReceiptConfirm}
           onClose={() => setShowScanner(false)}
+          checkCredits={checkCredits}
         />
       )}
     </div>

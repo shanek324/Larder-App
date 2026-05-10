@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
+import { checkAiCredit } from "./utils";
 import HomeView from "./views/HomeView";
 import RecipeView from "./views/RecipeView";
 import CollectionsView from "./views/CollectionsView";
@@ -121,6 +122,18 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [aiError, setAiError] = useState(null);
+
+  async function checkCredits() {
+    if (!session?.user?.id) return false;
+    try {
+      await checkAiCredit(supabase, session.user.id);
+      return true;
+    } catch(e) {
+      setAiError(e.message);
+      return false;
+    }
+  }
 
   const [view, setView] = useState("home");
   const [activeRecipeId, setActiveRecipeId] = useState(null);
@@ -345,6 +358,7 @@ export default function App() {
             onUpdateRecipe={updateRecipe}
             onUpdatePantry={updatePantry}
             session={session}
+            checkCredits={checkCredits}
           />
         ) : view === "recipe" && activeRecipe ? (
           <RecipeView
@@ -357,6 +371,7 @@ export default function App() {
             onStartCooking={() => setView("cooking")}
             onDuplicate={() => duplicateRecipe(activeRecipe)}
             session={session}
+            checkCredits={checkCredits}
           />
         ) : view === "collections" ? (
           <CollectionsView
@@ -373,6 +388,7 @@ export default function App() {
               onClearList={clearShoppingList}
               onUpdatePantry={updatePantry}
               onSavePrices={savePrices}
+              checkCredits={checkCredits}
             />
           ) : (
             <ShoppingListView
@@ -387,6 +403,7 @@ export default function App() {
               setConsolidated={setConsolidatedList}
               crossedOff={crossedOff}
               setCrossedOff={setCrossedOff}
+              checkCredits={checkCredits}
             />
           )
         ) : view === "history" ? (
@@ -399,6 +416,7 @@ export default function App() {
             onUpdatePantry={updatePantry}
             onSavePrices={savePrices}
             session={session}
+            checkCredits={checkCredits}
           />
         ) : (
           <HomeView
@@ -413,9 +431,15 @@ export default function App() {
         )}
       </div>
 
-      {showGenerate && <GenerateModal onClose={() => setShowGenerate(false)} onAdd={addRecipe} />}
+      {aiError && (
+        <div className="ai-error-toast" onClick={() => setAiError(null)}>
+          <p>⚠️ {aiError}</p>
+          <span>×</span>
+        </div>
+      )}
+      {showGenerate && <GenerateModal onClose={() => setShowGenerate(false)} onAdd={addRecipe} checkCredits={checkCredits} />}
       {showAdd && <AddRecipeModal onClose={() => { setShowAdd(false); setDuplicateData(null); }} onAdd={addRecipe} initialData={duplicateData} onOverwrite={duplicateData && duplicateData._originalId && (() => { const orig = recipes.find(r => r.id === duplicateData._originalId); return orig && orig.user_id === session?.user?.id && !orig.is_public; })() ? (updates) => overwriteRecipe(recipes.find(r => r.id === duplicateData._originalId), updates) : null} />}
-      {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} onAdd={addRecipe} />}
+      {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} onAdd={addRecipe} checkCredits={checkCredits} />}
     </div>
   );
 }

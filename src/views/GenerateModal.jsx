@@ -2,7 +2,7 @@ import { useState } from "react";
 import { callClaude, slugify } from "../utils";
 import Tag from "../components/Tag";
 
-export default function GenerateModal({ onClose, onAdd }) {
+export default function GenerateModal({ onClose, onAdd, checkCredits }) {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);

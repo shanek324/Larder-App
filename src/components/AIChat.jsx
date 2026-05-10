@@ -8,7 +8,7 @@ const SUGGESTIONS = [
   "What can I substitute for the main protein?",
 ];
 
-export default function AIChat({ recipe, onUpdate }) {
+export default function AIChat({ recipe, onUpdate, checkCredits }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,6 +19,7 @@ export default function AIChat({ recipe, onUpdate }) {
   async function send(text) {
     const userMsg = (text || input).trim();
     if (!userMsg || loading) return;
+    if (checkCredits && !(await checkCredits())) return;
     setInput("");
     const newMessages = [...messages, { role: "user", content: userMsg }];
     setMessages(newMessages);

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { callClaude, slugify } from "../utils";
 import { API_MODEL } from "../constants";
 
-export default function ImportRecipeModal({ onClose, onAdd }) {
+export default function ImportRecipeModal({ onClose, onAdd, checkCredits }) {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -10,6 +10,7 @@ export default function ImportRecipeModal({ onClose, onAdd }) {
 
   async function handleImport() {
     if (!url.trim()) return;
+    if (checkCredits && !(await checkCredits())) return;
     setLoading(true);
     setError("");
     setPreview(null);

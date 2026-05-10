@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { supabase } from "../supabase";
 import { callClaude } from "../utils";
 
-export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecipe, onUpdatePantry, session }) {
+export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecipe, onUpdatePantry, session, checkCredits }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [stepNotes, setStepNotes] = useState(recipe.step_notes || {});
   const [showNoteInput, setShowNoteInput] = useState(false);
@@ -92,6 +92,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   }
 
   async function handleFinishReview() {
+    if (checkCredits && !(await checkCredits())) { setPhase("pantry"); return; }
     setGeneratingTips(true);
     try {
       const messages = [{

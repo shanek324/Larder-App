@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { DUNNES_AISLES } from "../constants";
 import { callClaude, matchesPantry, estimateRecipeCost } from "../utils";
 
-export default function ShoppingListView({ recipes, pantryItems, onSaveList, savedList, onClearList, selectedRecipes, setSelectedRecipes, consolidated, setConsolidated, crossedOff, setCrossedOff }) {
+export default function ShoppingListView({ recipes, pantryItems, onSaveList, savedList, onClearList, selectedRecipes, setSelectedRecipes, consolidated, setConsolidated, crossedOff, setCrossedOff, checkCredits }) {
 
 
 

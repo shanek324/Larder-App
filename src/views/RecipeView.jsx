@@ -4,7 +4,7 @@ import ServingScaler from "../components/ServingScaler";
 import AIChat from "../components/AIChat";
 import { scaleAmount, estimateRecipeCost } from "../utils";
 
-export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onCookedIt, onStartCooking, onDuplicate, session }) {
+export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onCookedIt, onStartCooking, onDuplicate, session, checkCredits }) {
   const [editMode, setEditMode] = useState(false);
   const [draft, setDraft] = useState(recipe);
   const [tab, setTab] = useState("recipe");
@@ -276,7 +276,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
       ) : (
         <div className="recipe-ai-tab">
           {isOwner ? (
-          <AIChat recipe={recipe} onUpdate={handleAIUpdate} />
+          <AIChat recipe={recipe} onUpdate={handleAIUpdate} checkCredits={checkCredits} />
         ) : (
           <div className="empty-state">
             <p className="empty-state-emoji">🔒</p>
