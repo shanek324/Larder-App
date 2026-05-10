@@ -35,7 +35,7 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
       <div className="profile-card">
         <p className="profile-card-label">Account</p>
         <div className="profile-tier-row">
-          <span className="profile-tier-badge profile-tier-{tier}">{tier === "power" ? "⚡ Power" : tier === "starter" ? "🌱 Starter" : "🆓 Free"}</span>
+          <span className={"profile-tier-badge profile-tier-" + tier}>{tier === "power" ? "⚡ Power" : tier === "starter" ? "🌱 Starter" : "🆓 Free"}</span>
           <span className="profile-credits">{used} / {limit} AI actions today</span>
         </div>
       </div>

@@ -346,7 +346,7 @@ export default function App() {
               <button
                 key={n.key}
                 onClick={() => { setView(n.key); setActiveRecipeId(null); }}
-                className={"nav-btn" + (view === n.key || (n.key === "home" && view === "recipe") ? " active" : "")}
+                className={"nav-btn" + (view === n.key || (n.key === "home" && view === "recipe") || (n.key === "profile" && ["collections", "history", "browse"].includes(view)) ? " active" : "")}
               >
                 <span>{n.icon}</span><span>{n.label}</span>
               </button>

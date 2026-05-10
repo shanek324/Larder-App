@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import RecipeCard from "../components/RecipeCard";
 
 export default function HomeView({ recipes, collections, onViewRecipe, search, setSearch, filterTag, setFilterTag, onBrowse }) {
-  const allTags = [...new Set(recipes.flatMap(r => r.tags))].sort();
+  const allTags = [...new Set(recipes.flatMap(r => r.tags).map(t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()))].sort();
 
   const filtered = recipes.filter(r => {
     const q = search.toLowerCase();

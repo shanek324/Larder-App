@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import RecipeCard from "../components/RecipeCard";
+import RecipeView from "./RecipeView";
 import { slugify } from "../utils";
 
 export default function BrowseView({ session, onAdd, ownRecipeIds }) {
@@ -8,6 +9,7 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [adding, setAdding] = useState({});
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
 
   useEffect(() => {
     async function loadPublic() {
@@ -62,6 +64,23 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
 
   if (loading) return <div className="view"><p style={{ padding: 24 }}>Loading...</p></div>;
 
+  if (selectedRecipe) {
+    return (
+      <RecipeView
+        recipe={selectedRecipe}
+        onBack={() => setSelectedRecipe(null)}
+        onUpdate={() => {}}
+        onDelete={() => {}}
+        collections={[]}
+        onUpdateCollections={() => {}}
+        onStartCooking={() => {}}
+        onDuplicate={() => handleAdd(selectedRecipe)}
+        session={session}
+        checkCredits={() => false}
+      />
+    );
+  }
+
   return (
     <div className="view">
       <div className="view-header">
@@ -92,7 +111,7 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
             const alreadyAdded = ownRecipeIds.includes(r.id);
             return (
               <div key={r.id} style={{ position: "relative" }}>
-                <RecipeCard recipe={r} onClick={() => {}} collections={[]} compact />
+                <RecipeCard recipe={r} onClick={() => setSelectedRecipe(r)} collections={[]} compact />
                 <div style={{ padding: "0 0 12px", display: "flex", justifyContent: "flex-end" }}>
                   {isOwn ? (
                     <span style={{ fontSize: 12, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>Your recipe</span>
