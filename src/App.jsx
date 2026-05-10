@@ -14,6 +14,7 @@ import Login from "./Login";
 import CookingMode from "./views/CookingMode";
 import CookHistoryView from "./views/CookHistoryView";
 import BrowseView from "./views/BrowseView";
+import ProfileView from "./views/ProfileView";
 
 const NAV = [
   { key: "home", label: "Recipes", icon: "🍳" },
@@ -415,6 +416,14 @@ export default function App() {
           <CookHistoryView recipes={recipes} />
         ) : view === "browse" ? (
           <BrowseView session={session} onAdd={addRecipe} ownRecipeIds={recipes.map(r => r.id)} />
+        ) : view === "profile" ? (
+          <ProfileView
+            session={session}
+            onSignOut={() => supabase.auth.signOut()}
+            onNavigate={setView}
+            recipes={recipes}
+            collections={collections}
+          />
         ) : view === "pantry" ? (
           <PantryView
             pantryItems={pantryItems}
