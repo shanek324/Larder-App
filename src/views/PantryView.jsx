@@ -67,10 +67,10 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
     if (checkCredits && !(await checkCredits())) return;
     setCleaning(true);
     try {
-      const itemList = pantryItems.map(i => i.name).join("\n");
+      const itemList = pantryItems.map(i => i.name + (i.quantity ? " [" + i.quantity + (i.unit ? " " + i.unit : "") + "]" : "")).join("\n");
       const messages = [{
         role: "user",
-        content: "Deduplicate and clean this pantry list. Combine similar items (e.g. Garlic, Garlic cloves, Garlic minced = Garlic). Use short clean names only. Aisles: " + aisleNames + ", Other.\n\n" + itemList + "\n\nReply ONLY with a JSON array. Each item: name (short clean string), aisle (string), key (con- prefixed slug)."
+        content: "Deduplicate and clean this pantry list. Combine similar items (e.g. Garlic, Garlic cloves, Garlic minced = Garlic). Use short clean names only. When combining items with quantities, sum the quantities if units match. Preserve quantity and unit from the original items. Aisles: " + aisleNames + ", Other.\n\n" + itemList + "\n\nReply ONLY with a JSON array. Each item: name (short clean string), aisle (string), key (con- prefixed slug), quantity (number or null), unit (string or null)."
       }];
       const res = await callClaude(messages, "", 2000, "claude-haiku-4-5-20251001");
       const cleaned = res.replace(/```json/g, "").replace(/```/g, "").trim();
@@ -81,6 +81,8 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
         aisle: i.aisle || "Other",
         addedAt: Date.now(),
         stockLevel: "high",
+        quantity: i.quantity || null,
+        unit: i.unit || null,
       }));
       await onUpdatePantry(newItems);
     } catch(e) {
