@@ -427,6 +427,7 @@ export default function App() {
             setSearch={setSearch}
             filterTag={filterTag}
             setFilterTag={setFilterTag}
+            onBrowse={() => setView("browse")}
           />
         )}
       </div>

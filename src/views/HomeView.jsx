@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import RecipeCard from "../components/RecipeCard";
 
-export default function HomeView({ recipes, collections, onViewRecipe, search, setSearch, filterTag, setFilterTag }) {
+export default function HomeView({ recipes, collections, onViewRecipe, search, setSearch, filterTag, setFilterTag, onBrowse }) {
   const allTags = [...new Set(recipes.flatMap(r => r.tags))].sort();
 
   const filtered = recipes.filter(r => {
@@ -23,6 +23,7 @@ export default function HomeView({ recipes, collections, onViewRecipe, search, s
           <p className="home-hero-eyebrow">Your Kitchen</p>
           <h1 className="home-hero-title">Welcome to<br />your Larder</h1>
           <p className="home-hero-stats">{recipes.length} recipe{recipes.length !== 1 ? "s" : ""} catalogued · {collections.length} collection{collections.length !== 1 ? "s" : ""}</p>
+          <button onClick={onBrowse} className="btn btn-secondary" style={{ marginTop: 8 }}>🌍 Discover Recipes</button>
           {featured && (
             <div className="home-hero-featured" onClick={() => onViewRecipe(featured.id)}>
               <div>

@@ -1979,3 +1979,80 @@ textarea.input { resize: none; }
   cursor: pointer;
   padding-left: 12px;
 }
+
+/* Profile View */
+.profile-card {
+  background: var(--color-surface);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+}
+.profile-card-label {
+  font-size: 11px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0 0 12px;
+}
+.profile-tier-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.profile-tier-badge {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.profile-credits {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+.profile-stats {
+  display: flex;
+  gap: 0;
+  justify-content: space-around;
+}
+.profile-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.profile-stat-value {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+.profile-stat-label {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.profile-nav-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--color-border);
+  padding: 14px 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+}
+.profile-nav-item:first-of-type {
+  border-top: none;
+}
+.profile-nav-chevron {
+  font-size: 20px;
+  color: var(--color-text-muted);
+}
