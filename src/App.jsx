@@ -96,6 +96,7 @@ function pantryToDb(p) {
     quantity: p.quantity || null,
     unit: p.unit || null,
     price: p.price || null,
+    stock_level: p.stockLevel || "high",
   };
 }
 
@@ -108,6 +109,7 @@ function pantryFromDb(p) {
     quantity: p.quantity || null,
     unit: p.unit || null,
     price: p.price || null,
+    stockLevel: p.stock_level || "high",
   };
 }
 
@@ -239,8 +241,13 @@ export default function App() {
   async function updatePantry(updated) {
     const newItems = updated.filter(i => !pantryItems.find(p => p.id === i.id));
     const removedIds = pantryItems.filter(p => !updated.find(i => i.id === p.id)).map(p => p.id);
+    const changedItems = updated.filter(i => {
+      const existing = pantryItems.find(p => p.id === i.id);
+      return existing && JSON.stringify(pantryToDb(i)) !== JSON.stringify(pantryToDb(existing));
+    });
     if (newItems.length > 0) await supabase.from("pantry").insert(newItems.map(p => ({ ...pantryToDb(p), user_id: session?.user?.id })));
     if (removedIds.length > 0) await supabase.from("pantry").delete().in("id", removedIds);
+    if (changedItems.length > 0) await Promise.all(changedItems.map(p => supabase.from("pantry").update(pantryToDb(p)).eq("id", p.id)));
     setPantryItems(updated);
   }
 
