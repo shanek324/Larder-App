@@ -126,6 +126,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   }
 
   async function generatePantrySuggestions() {
+    if (checkCredits && !(await checkCredits())) { setLoadingSuggestions(false); return; }
     setLoadingSuggestions(true);
     try {
       const ingredientList = recipe.ingredients.map(i => i.amount + " " + i.name).join(", ");
