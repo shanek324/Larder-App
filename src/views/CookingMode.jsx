@@ -13,6 +13,8 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const [generatingTips, setGeneratingTips] = useState(false);
   const [tips, setTips] = useState(null);
   const [removedPantryIds, setRemovedPantryIds] = useState([]);
+  const [pantryUpdates, setPantryUpdates] = useState(null);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [cookLogs, setCookLogs] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [touchStartX, setTouchStartX] = useState(null);
@@ -122,8 +124,47 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     setRemovedPantryIds(ids => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id]);
   }
 
+  async function generatePantrySuggestions() {
+    setLoadingSuggestions(true);
+    try {
+      const ingredientList = recipe.ingredients.map(i => i.amount + " " + i.name).join(", ");
+      const pantryList = pantryItems.map(i => i.name + (i.quantity ? " (" + i.quantity + " " + (i.unit || "") + ")" : "")).join(", ");
+      const messages = [{
+        role: "user",
+        content: "I just cooked " + recipe.title + " for " + recipe.servings + " servings. Ingredients used: " + ingredientList + ". My pantry contains: " + pantryList + ". Which pantry items were likely used and how much? Reply ONLY with a JSON array. Each item: { pantryName (string matching pantry item name exactly), usedAmount (number or null), usedUnit (string or null), fullyUsed (boolean) }"
+      }];
+      const res = await callClaude(messages, "", 1000, "claude-haiku-4-5-20251001");
+      const clean = res.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      // Match to actual pantry items
+      const matched = parsed.map(s => {
+        const pantryItem = pantryItems.find(p => p.name.toLowerCase() === s.pantryName.toLowerCase());
+        if (!pantryItem) return null;
+        return { ...pantryItem, usedAmount: s.usedAmount, usedUnit: s.usedUnit, fullyUsed: s.fullyUsed, included: true };
+      }).filter(Boolean);
+      setPantryUpdates(matched);
+    } catch(e) {
+      console.error("Pantry suggestion error:", e);
+      setPantryUpdates([]);
+    }
+    setLoadingSuggestions(false);
+  }
+
   async function handleFinishPantry() {
-    if (removedPantryIds.length > 0) {
+    if (pantryUpdates && pantryUpdates.length > 0) {
+      const updatedPantry = pantryItems.map(item => {
+        const update = pantryUpdates.find(u => u.id === item.id && u.included);
+        if (!update) return item;
+        if (update.fullyUsed || (update.usedAmount && item.quantity && update.usedAmount >= item.quantity)) {
+          return null; // remove
+        }
+        if (update.usedAmount && item.quantity) {
+          return { ...item, quantity: Math.max(0, item.quantity - update.usedAmount) };
+        }
+        return null; // remove if no quantity tracking
+      }).filter(Boolean);
+      await onUpdatePantry(updatedPantry);
+    } else if (removedPantryIds.length > 0) {
       await onUpdatePantry(pantryItems.filter(i => !removedPantryIds.includes(i.id)));
     }
     onExit();
@@ -312,6 +353,10 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   }
 
   // PANTRY PHASE
+  if (pantryUpdates === null && !loadingSuggestions) {
+    generatePantrySuggestions();
+  }
+
   return (
     <div className="cooking-screen cooking-screen-centered">
       <div className="cooking-review-card">
@@ -323,19 +368,47 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
         )}
 
         <h2 className="cooking-review-title" style={{ textAlign: "left", fontSize: 22 }}>Update Pantry?</h2>
-        <p className="cooking-review-subtitle" style={{ textAlign: "left", marginBottom: 20 }}>Tick anything you used up while cooking</p>
+        <p className="cooking-review-subtitle" style={{ textAlign: "left", marginBottom: 20 }}>
+          {loadingSuggestions ? "Figuring out what you used…" : "Edit amounts used and confirm"}
+        </p>
 
-        <div className="cooking-pantry-list">
-          {pantryItems.map(item => (
-            <label key={item.id} className={"cooking-pantry-item" + (removedPantryIds.includes(item.id) ? " removed" : "")}>
-              <input type="checkbox" checked={removedPantryIds.includes(item.id)} onChange={() => togglePantryRemove(item.id)} style={{ accentColor: "var(--color-danger)", width: 16, height: 16 }} />
-              <span className="cooking-pantry-item-name">{item.name}</span>
-            </label>
-          ))}
-        </div>
+        {loadingSuggestions ? (
+          <p style={{ textAlign: "center", padding: 24, opacity: 0.5 }}>✦ Analysing recipe…</p>
+        ) : pantryUpdates && pantryUpdates.length > 0 ? (
+          <div className="cooking-pantry-list">
+            {pantryUpdates.map((item, i) => (
+              <div key={item.id} className={"cooking-pantry-item" + (!item.included ? " removed" : "")}>
+                <input type="checkbox" checked={item.included} onChange={() => setPantryUpdates(u => u.map((x, idx) => idx === i ? { ...x, included: !x.included } : x))} style={{ accentColor: "var(--color-gold)", width: 16, height: 16 }} />
+                <span className="cooking-pantry-item-name">{item.name}</span>
+                <div style={{ display: "flex", gap: 4, alignItems: "center", marginLeft: "auto" }}>
+                  {item.fullyUsed ? (
+                    <span style={{ fontSize: 12, color: "var(--color-danger)", fontFamily: "var(--font-sans)" }}>fully used</span>
+                  ) : (
+                    <>
+                      <input
+                        type="number"
+                        value={item.usedAmount || ""}
+                        onChange={e => setPantryUpdates(u => u.map((x, idx) => idx === i ? { ...x, usedAmount: parseFloat(e.target.value) || null } : x))}
+                        className="receipt-price-input"
+                        placeholder="amt"
+                        style={{ width: 60 }}
+                      />
+                      <span style={{ fontSize: 12, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>{item.usedUnit || item.unit || ""}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ textAlign: "center", padding: 16, opacity: 0.5, fontFamily: "var(--font-sans)", fontSize: 14 }}>No pantry items matched this recipe</p>
+        )}
 
-        <button onClick={handleFinishPantry} className="btn btn-primary btn-full btn-lg">
-          {removedPantryIds.length > 0 ? "Update & Finish" : "Finish"}
+        <button onClick={handleFinishPantry} className="btn btn-primary btn-full btn-lg" style={{ marginTop: 16 }}>
+          Update & Finish
+        </button>
+        <button onClick={onExit} className="btn btn-secondary btn-full" style={{ marginTop: 8 }}>
+          Skip
         </button>
       </div>
     </div>
