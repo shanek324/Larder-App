@@ -15,6 +15,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const [removedPantryIds, setRemovedPantryIds] = useState([]);
   const [pantryUpdates, setPantryUpdates] = useState(null);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [showAddMore, setShowAddMore] = useState(false);
   const [cookLogs, setCookLogs] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [touchStartX, setTouchStartX] = useState(null);
@@ -405,6 +406,36 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
           </div>
         ) : (
           <p style={{ textAlign: "center", padding: 16, opacity: 0.5, fontFamily: "var(--font-sans)", fontSize: 14 }}>No pantry items matched this recipe</p>
+        )}
+
+        {!loadingSuggestions && (
+          <div style={{ marginTop: 12 }}>
+            <button onClick={() => setShowAddMore(v => !v)} className="btn btn-secondary btn-full">
+              {showAddMore ? "▲ Hide" : "+ Add other items used"}
+            </button>
+            {showAddMore && (
+              <div className="cooking-pantry-list" style={{ marginTop: 8 }}>
+                {pantryItems
+                  .filter(p => !pantryUpdates?.find(u => u.id === p.id))
+                  .map(item => (
+                    <div key={item.id} className="cooking-pantry-item">
+                      <input
+                        type="checkbox"
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setPantryUpdates(u => [...(u || []), { ...item, included: true, fullyUsed: false, usedAmount: null, usedUnit: item.unit || null }]);
+                          }
+                        }}
+                        style={{ accentColor: "var(--color-gold)", width: 16, height: 16 }}
+                      />
+                      <span className="cooking-pantry-item-name">{item.name}</span>
+                      {item.quantity && <span style={{ fontSize: 12, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)", marginLeft: "auto" }}>{item.quantity} {item.unit || ""}</span>}
+                    </div>
+                  ))
+                }
+              </div>
+            )}
+          </div>
         )}
 
         <button onClick={handleFinishPantry} className="btn btn-primary btn-full btn-lg" style={{ marginTop: 16 }}>
