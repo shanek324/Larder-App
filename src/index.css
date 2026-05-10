@@ -2056,3 +2056,27 @@ textarea.input { resize: none; }
   font-size: 20px;
   color: var(--color-text-muted);
 }
+
+/* Browse banner */
+.browse-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text);
+  transition: border-color 0.2s;
+}
+.browse-banner:hover {
+  border-color: var(--color-gold);
+}
+.browse-banner-arrow {
+  font-size: 20px;
+  color: var(--color-text-muted);
+}

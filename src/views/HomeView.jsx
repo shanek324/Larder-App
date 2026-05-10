@@ -23,7 +23,6 @@ export default function HomeView({ recipes, collections, onViewRecipe, search, s
           <p className="home-hero-eyebrow">Your Kitchen</p>
           <h1 className="home-hero-title">Welcome to<br />your Larder</h1>
           <p className="home-hero-stats">{recipes.length} recipe{recipes.length !== 1 ? "s" : ""} catalogued · {collections.length} collection{collections.length !== 1 ? "s" : ""}</p>
-          <button onClick={onBrowse} className="btn btn-secondary" style={{ marginTop: 8 }}>🌍 Discover Recipes</button>
           {featured && (
             <div className="home-hero-featured" onClick={() => onViewRecipe(featured.id)}>
               <div>
@@ -38,7 +37,12 @@ export default function HomeView({ recipes, collections, onViewRecipe, search, s
       )}
 
       <div className="home-search-bar">
-        <input
+        <div onClick={onBrowse} className="browse-banner">
+        <span>🌍 Discover public recipes</span>
+        <span className="browse-banner-arrow">›</span>
+      </div>
+
+      <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search recipes…"
