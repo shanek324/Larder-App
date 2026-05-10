@@ -155,13 +155,16 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
       const updatedPantry = pantryItems.map(item => {
         const update = pantryUpdates.find(u => u.id === item.id && u.included);
         if (!update) return item;
-        if (update.fullyUsed || (update.usedAmount && item.quantity && update.usedAmount >= item.quantity)) {
-          return null; // remove
-        }
+        // Only fully remove if explicitly marked as fully used
+        if (update.fullyUsed) return null;
+        // Subtract quantity if both have quantities
         if (update.usedAmount && item.quantity) {
-          return { ...item, quantity: Math.max(0, item.quantity - update.usedAmount) };
+          const remaining = item.quantity - update.usedAmount;
+          if (remaining <= 0) return null;
+          return { ...item, quantity: Math.round(remaining * 100) / 100 };
         }
-        return null; // remove if no quantity tracking
+        // No quantity tracking — leave item in pantry unchanged
+        return item;
       }).filter(Boolean);
       await onUpdatePantry(updatedPantry);
     } else if (removedPantryIds.length > 0) {
