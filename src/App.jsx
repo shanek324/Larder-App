@@ -268,6 +268,12 @@ export default function App() {
     }
   }
 
+  async function updateShoppingListItems(items) {
+    if (!savedShoppingList) return;
+    await supabase.from("shopping_list").update({ items }).eq("id", savedShoppingList.id);
+    setSavedShoppingList(s => ({ ...s, items }));
+  }
+
   async function savePrices(priceEntries) {
     // priceEntries: [{ ingredient_name, total_price, quantity, unit }]
     const rows = priceEntries.map(e => {
@@ -402,6 +408,7 @@ export default function App() {
               onUpdatePantry={updatePantry}
               onSavePrices={savePrices}
               onSaveTicked={saveTicked}
+              onUpdateItems={updateShoppingListItems}
               checkCredits={checkCredits}
             />
           ) : (

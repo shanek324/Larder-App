@@ -4,7 +4,7 @@ import { DUNNES_AISLES } from "../constants";
 import { categoriseIngredient } from "../utils";
 import ReceiptScanner from "../components/ReceiptScanner";
 
-export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices, onSaveTicked, checkCredits }) {
+export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices, onSaveTicked, onUpdateItems, checkCredits }) {
   const [checked, setChecked] = useState(savedList?.ticked || {});
   const debounceRef = useRef(null);
 
@@ -42,11 +42,7 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
     const name = manualItem.trim();
     const key = "manual-" + name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
     const newItem = { key, name, amounts: [], aisle: categoriseIngredient(name) };
-    const updatedItems = [...items, newItem];
-    await onSaveTicked(checked);
-    if (savedList) {
-      await supabase.from("shopping_list").update({ items: updatedItems }).eq("id", savedList.id);
-    }
+    await onUpdateItems([...items, newItem]);
     setManualItem("");
     setShowAddItem(false);
   }
