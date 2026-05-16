@@ -4,7 +4,7 @@ import ServingScaler from "../components/ServingScaler";
 import AIChat from "../components/AIChat";
 import { scaleAmount, estimateRecipeCost } from "../utils";
 
-export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onCookedIt, onStartCooking, onDuplicate, onAddToLibrary, session, checkCredits, authorName }) {
+export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onStartCooking, onDuplicate, onAddToLibrary, session, checkCredits, authorName }) {
   const [editMode, setEditMode] = useState(false);
   const [draft, setDraft] = useState(recipe);
   const [tab, setTab] = useState("recipe");
