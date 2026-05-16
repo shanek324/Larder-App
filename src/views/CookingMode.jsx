@@ -76,6 +76,13 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     setStepFontSize(size);
   }, [currentStep]);
 
+  // Trigger AI pantry suggestions when entering pantry phase
+  useEffect(() => {
+    if (phase === "pantry" && pantryUpdates === null && !loadingSuggestions) {
+      generatePantrySuggestions();
+    }
+  }, [phase]);
+
   function goNext() {
     if (isLastStep) setPhase("review");
     else setCurrentStep(s => s + 1);
@@ -361,13 +368,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     );
   }
 
-  // PANTRY PHASE — trigger AI suggestions via effect, not during render
-  useEffect(() => {
-    if (phase === "pantry" && pantryUpdates === null && !loadingSuggestions) {
-      generatePantrySuggestions();
-    }
-  }, [phase]);
-
+  // PANTRY PHASE
   return (
     <div className="cooking-screen cooking-screen-centered">
       <div className="cooking-review-card">
