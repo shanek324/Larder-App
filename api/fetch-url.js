@@ -1,5 +1,20 @@
 import { createClient } from "@supabase/supabase-js";
 
+function isPrivateHost(hostname) {
+  if (hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1") return true;
+  if (hostname.startsWith("192.168.") || hostname.startsWith("10.")) return true;
+  if (hostname === "169.254.169.254" || hostname === "metadata.google.internal") return true;
+  // 172.16.0.0 – 172.31.255.255 (private)
+  const m = hostname.match(/^172\.(\d+)\./);
+  if (m) {
+    const oct = parseInt(m[1], 10);
+    if (oct >= 16 && oct <= 31) return true;
+  }
+  // IPv6 unique-local (fc00::/7) and link-local (fe80::/10)
+  if (hostname.startsWith("fc") || hostname.startsWith("fd") || hostname.startsWith("fe80")) return true;
+  return false;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
@@ -29,15 +44,8 @@ export default async function handler(req, res) {
   if (!["http:", "https:"].includes(parsed.protocol)) {
     return res.status(400).json({ error: "Only http/https URLs allowed" });
   }
-  const hostname = parsed.hostname;
-  if (
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname.startsWith("192.168.") ||
-    hostname.startsWith("10.") ||
-    hostname.startsWith("172.") ||
-    hostname === "169.254.169.254"
-  ) {
+  const hostname = parsed.hostname.toLowerCase();
+  if (isPrivateHost(hostname)) {
     return res.status(400).json({ error: "URL not allowed" });
   }
 
