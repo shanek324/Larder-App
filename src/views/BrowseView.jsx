@@ -6,19 +6,27 @@ import { slugify } from "../utils";
 
 export default function BrowseView({ session, onAdd, ownRecipeIds }) {
   const [recipes, setRecipes] = useState([]);
+  const [profiles, setProfiles] = useState({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [filterTag, setFilterTag] = useState(null);
   const [adding, setAdding] = useState({});
   const [selectedRecipe, setSelectedRecipe] = useState(null);
 
   useEffect(() => {
     async function loadPublic() {
-      const { data } = await supabase
-        .from("recipes")
-        .select("*")
-        .eq("is_public", true)
-        .order("created_at", { ascending: false });
-      if (data) setRecipes(data.map(r => ({
+      const [{ data: recipeData }, { data: profileData }] = await Promise.all([
+        supabase.from("recipes").select("*").eq("is_public", true).order("created_at", { ascending: false }),
+        supabase.from("profiles").select("id, username"),
+      ]);
+
+      if (profileData) {
+        const profileMap = {};
+        profileData.forEach(p => { profileMap[p.id] = p.username; });
+        setProfiles(profileMap);
+      }
+
+      if (recipeData) setRecipes(recipeData.map(r => ({
         id: r.id,
         title: r.title,
         description: r.description,
@@ -35,7 +43,6 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
         image_url: r.image_url || null,
         user_id: r.user_id,
         is_public: r.is_public,
-        // _author: r.username || null, // TODO: join with profiles table for display name
       })));
       setLoading(false);
     }
@@ -52,15 +59,19 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
       step_notes: {},
       lastCooked: null,
       is_public: false,
-      // _forked_from: recipe.id, // TODO: track original for attribution
     };
     await onAdd(forked);
     setAdding(a => ({ ...a, [recipe.id]: false }));
   }
 
-  const filtered = recipes.filter(r =>
-    !search || r.title.toLowerCase().includes(search.toLowerCase()) || r.tags.some(t => t.toLowerCase().includes(search.toLowerCase()))
-  );
+  const allTags = [...new Set(recipes.flatMap(r => r.tags))].sort();
+
+  const filtered = recipes.filter(r => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || r.title.toLowerCase().includes(q) || r.tags.some(t => t.toLowerCase().includes(q));
+    const matchTag = !filterTag || r.tags.includes(filterTag);
+    return matchSearch && matchTag;
+  });
 
   if (loading) return <div className="view"><p style={{ padding: 24 }}>Loading...</p></div>;
 
@@ -75,8 +86,10 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
         onUpdateCollections={() => {}}
         onStartCooking={() => {}}
         onDuplicate={() => handleAdd(selectedRecipe)}
+        onAddToLibrary={ownRecipeIds.includes(selectedRecipe.id) ? null : () => handleAdd(selectedRecipe)}
         session={session}
         checkCredits={() => false}
+        authorName={profiles[selectedRecipe.user_id] || null}
       />
     );
   }
@@ -95,8 +108,15 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
         onChange={e => setSearch(e.target.value)}
         placeholder="Search public recipes…"
         className="input"
-        style={{ marginBottom: 16 }}
+        style={{ marginBottom: 12 }}
       />
+
+      <div className="home-tags" style={{ marginBottom: 16 }}>
+        <span onClick={() => setFilterTag(null)} className={"pill" + (!filterTag ? " active" : "")}>All</span>
+        {allTags.map(t => (
+          <span key={t} onClick={() => setFilterTag(filterTag === t ? null : t)} className={"pill" + (filterTag === t ? " active" : "")}>{t}</span>
+        ))}
+      </div>
 
       {filtered.length === 0 ? (
         <div className="empty-state">
@@ -109,20 +129,22 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
           {filtered.map(r => {
             const isOwn = r.user_id === session?.user?.id;
             const alreadyAdded = ownRecipeIds.includes(r.id);
+            const author = profiles[r.user_id];
             return (
-              <div key={r.id} style={{ position: "relative" }}>
-                <RecipeCard recipe={r} onClick={() => setSelectedRecipe(r)} collections={[]} compact />
-                <div style={{ padding: "0 0 12px", display: "flex", justifyContent: "flex-end" }}>
+              <div key={r.id}>
+                <div style={{ position: "relative" }}>
+                  <RecipeCard recipe={r} onClick={() => setSelectedRecipe(r)} collections={[]} compact />
+                </div>
+                <div style={{ padding: "0 0 4px 4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 12, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>
+                    {author ? "by " + author : ""}
+                  </span>
                   {isOwn ? (
                     <span style={{ fontSize: 12, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>Your recipe</span>
                   ) : alreadyAdded ? (
                     <span style={{ fontSize: 12, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>✓ In your library</span>
                   ) : (
-                    <button
-                      onClick={() => handleAdd(r)}
-                      disabled={adding[r.id]}
-                      className="btn btn-gold"
-                    >
+                    <button onClick={() => handleAdd(r)} disabled={adding[r.id]} className="btn btn-gold">
                       {adding[r.id] ? "Adding…" : "+ Add to my library"}
                     </button>
                   )}

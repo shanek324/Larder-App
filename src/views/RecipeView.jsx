@@ -4,7 +4,7 @@ import ServingScaler from "../components/ServingScaler";
 import AIChat from "../components/AIChat";
 import { scaleAmount, estimateRecipeCost } from "../utils";
 
-export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onCookedIt, onStartCooking, onDuplicate, session, checkCredits }) {
+export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onCookedIt, onStartCooking, onDuplicate, onAddToLibrary, session, checkCredits, authorName }) {
   const [editMode, setEditMode] = useState(false);
   const [draft, setDraft] = useState(recipe);
   const [tab, setTab] = useState("recipe");
@@ -75,7 +75,10 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
             className="recipe-title-input"
           />
         ) : (
-          <h1 className="page-title recipe-title">{recipe.title}</h1>
+          <div>
+            <h1 className="page-title recipe-title">{recipe.title}</h1>
+            {authorName && <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--color-text-muted)", marginTop: 2 }}>by {authorName}</p>}
+          </div>
         )}
 
         <div className="recipe-actions">
@@ -113,6 +116,9 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
                 >
                   {recipe.is_public ? "🌍 Public" : "🔒 Private"}
                 </button>
+              )}
+              {onAddToLibrary && (
+                <button onClick={onAddToLibrary} className="btn btn-gold">+ Add to my library</button>
               )}
               <button onClick={onStartCooking} className="btn btn-primary">👨‍🍳 Cook</button>
               {isOwner && <button onClick={() => setEditMode(true)} className="btn btn-secondary">Edit</button>}

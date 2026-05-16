@@ -18,6 +18,7 @@ import ProfileView from "./views/ProfileView";
 
 const NAV = [
   { key: "home", label: "Recipes", icon: "🍳" },
+  { key: "browse", label: "Browse", icon: "🌍" },
   { key: "pantry", label: "Pantry", icon: "🥫" },
   { key: "shopping", label: "Shopping", icon: "🛒" },
   { key: "profile", label: "Profile", icon: "👤" },
@@ -353,7 +354,7 @@ export default function App() {
               <button
                 key={n.key}
                 onClick={() => { setView(n.key); setActiveRecipeId(null); }}
-                className={"nav-btn" + (view === n.key || (n.key === "home" && view === "recipe") || (n.key === "profile" && ["collections", "history", "browse"].includes(view)) ? " active" : "")}
+                className={"nav-btn" + (view === n.key || (n.key === "home" && view === "recipe") || (n.key === "profile" && ["collections", "history"].includes(view)) ? " active" : "")}
               >
                 <span>{n.icon}</span><span>{n.label}</span>
               </button>
