@@ -311,10 +311,7 @@ export default function App() {
   const activeRecipe = recipes.find(r => r.id === activeRecipeId);
   const isCooking = view === "cooking" && activeRecipe;
 
-  if (authLoading) return null;
-  if (!session) return <Login />;
-
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="loading-screen">
         <div className="loading-inner">
@@ -324,6 +321,8 @@ export default function App() {
       </div>
     );
   }
+
+  if (!session) return <Login />;
 
   return (
     <div className="app-wrapper">
