@@ -1611,20 +1611,22 @@ textarea.input { resize: none; }
   border-bottom-color: var(--color-gold);
 }
 
-.receipt-unit-input {
-  width: 44px;
+.receipt-unit-btn {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--color-gold-dark);
   background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--color-border);
-  padding: 0 2px;
-  outline: none;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 4px 8px;
   font-family: var(--font-sans);
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 48px;
+  text-align: center;
 }
 
-.receipt-unit-input:focus {
-  border-bottom-color: var(--color-gold);
+.receipt-unit-btn:active {
+  background: var(--color-surface-alt);
 }
 
 .receipt-actions {

@@ -51,25 +51,55 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
       unit: i.unit,
     }));
     await onSavePrices(priceEntries);
-    const existing = pantryItems.map(p => p.name.toLowerCase());
-    const newFromReceipt = scannedItems
-      .filter(i => !existing.includes(i.name.toLowerCase()))
-      .map(i => ({ id: "pantry-" + Date.now() + Math.random(), name: i.name, aisle: i.aisle, addedAt: Date.now() }));
-    const updatedPantry = newFromReceipt.length > 0 ? [...pantryItems, ...newFromReceipt] : pantryItems;
-    if (newFromReceipt.length > 0) await onUpdatePantry(updatedPantry);
+
+    // Update existing items or add new ones, always set stock to high
+    const updatedPantry = [...pantryItems];
+    scannedItems.forEach(scanned => {
+      const existingIdx = updatedPantry.findIndex(p => p.name.toLowerCase() === scanned.name.toLowerCase());
+      if (existingIdx >= 0) {
+        updatedPantry[existingIdx] = {
+          ...updatedPantry[existingIdx],
+          quantity: scanned.quantity || null,
+          unit: scanned.unit || null,
+          price: scanned.total_price || null,
+          stockLevel: "high",
+        };
+      } else {
+        updatedPantry.push({
+          id: "pantry-" + Date.now() + Math.random(),
+          name: scanned.name,
+          aisle: scanned.aisle,
+          addedAt: Date.now(),
+          quantity: scanned.quantity || null,
+          unit: scanned.unit || null,
+          price: scanned.total_price || null,
+          stockLevel: "high",
+        });
+      }
+    });
+    await onUpdatePantry(updatedPantry);
     setShowScanner(false);
     await handleFinished(updatedPantry);
   }
 
   async function handleFinished(currentPantry = pantryItems) {
     const boughtItems = items.filter(i => checked[i.key]);
-    const existing = currentPantry.map(p => p.name.toLowerCase());
-    const newPantryItems = boughtItems
-      .filter(i => !existing.includes(i.name.toLowerCase()))
-      .map(i => ({ id: "pantry-" + Date.now() + Math.random(), name: i.name, aisle: i.aisle, addedAt: Date.now() }));
-    if (newPantryItems.length > 0) {
-      await onUpdatePantry([...currentPantry, ...newPantryItems]);
-    }
+    const updatedPantry = [...currentPantry];
+    boughtItems.forEach(bought => {
+      const existingIdx = updatedPantry.findIndex(p => p.name.toLowerCase() === bought.name.toLowerCase());
+      if (existingIdx >= 0) {
+        updatedPantry[existingIdx] = { ...updatedPantry[existingIdx], stockLevel: "high" };
+      } else {
+        updatedPantry.push({
+          id: "pantry-" + Date.now() + Math.random(),
+          name: bought.name,
+          aisle: bought.aisle,
+          addedAt: Date.now(),
+          stockLevel: "high",
+        });
+      }
+    });
+    await onUpdatePantry(updatedPantry);
     await onClearList();
     setShowConfirm(false);
   }

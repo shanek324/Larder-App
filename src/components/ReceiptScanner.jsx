@@ -1,8 +1,58 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { categoriseIngredient } from "../utils";
 import CameraCapture from "./CameraCapture";
 import { DUNNES_AISLES } from "../constants";
 import { API_MODEL } from "../constants";
+
+const COMMON_UNITS = ["each", "g", "kg", "ml", "l", "pack", "6 pack", "dozen", "bunch", "bag", "loaf", "tin", "jar", "box", "bottle"];
+
+function UnitPickerModal({ currentUnit, onSelect, onClose }) {
+  const [custom, setCustom] = useState("");
+  const [showCustom, setShowCustom] = useState(false);
+
+  return (
+    <div className="modal-overlay" style={{ zIndex: 1100 }}>
+      <div className="modal" style={{ maxWidth: 360 }}>
+        <div className="modal-header">
+          <h2 className="modal-title">Select Unit</h2>
+          <span className="modal-close" onClick={onClose}>×</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, padding: "12px 0" }}>
+          {COMMON_UNITS.map(u => (
+            <button
+              key={u}
+              onClick={() => onSelect(u)}
+              className={"btn " + (currentUnit === u ? "btn-gold" : "btn-secondary")}
+              style={{ fontSize: 14, padding: "10px 4px" }}
+            >
+              {u}
+            </button>
+          ))}
+          <button
+            onClick={() => setShowCustom(true)}
+            className="btn btn-secondary"
+            style={{ fontSize: 14, padding: "10px 4px" }}
+          >
+            other…
+          </button>
+        </div>
+        {showCustom && (
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <input
+              className="input"
+              value={custom}
+              onChange={e => setCustom(e.target.value)}
+              placeholder="Type unit…"
+              autoFocus
+              style={{ flex: 1 }}
+            />
+            <button onClick={() => custom.trim() && onSelect(custom.trim())} className="btn btn-gold">OK</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function parseUnit(unitStr) {
   if (!unitStr || unitStr === "each") return { quantity: 1, unit: "each" };
@@ -25,6 +75,7 @@ export default function ReceiptScanner({ onConfirm, onClose, checkCredits, shopp
     ? "\nThe user was shopping for these items: " + shoppingItems.map(i => i.name).join(", ") + ". Use this as context to help identify ambiguous receipt items."
     : "";
   const [stage, setStage] = useState("upload");
+  const [unitPicker, setUnitPicker] = useState(null); // { id, currentUnit }
   const [showCamera, setShowCamera] = useState(false);
   const [items, setItems] = useState([]);
   const [error, setError] = useState(null);
@@ -262,29 +313,12 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
                       onChange={e => updateItem(item.id, "quantity", parseFloat(e.target.value) || 1)}
                       onFocus={e => e.target.select()}
                     />
-                    <input
-                      className="receipt-unit-input"
-                      value={item.unit}
-                      onChange={e => updateItem(item.id, "unit", e.target.value)}
-                      list="unit-options"
-                    />
-                    <datalist id="unit-options">
-                      <option value="each" />
-                      <option value="g" />
-                      <option value="kg" />
-                      <option value="ml" />
-                      <option value="l" />
-                      <option value="pack" />
-                      <option value="6 pack" />
-                      <option value="dozen" />
-                      <option value="bunch" />
-                      <option value="bag" />
-                      <option value="loaf" />
-                      <option value="tin" />
-                      <option value="jar" />
-                      <option value="box" />
-                      <option value="bottle" />
-                    </datalist>
+                    <button
+                      className="receipt-unit-btn"
+                      onClick={() => setUnitPicker({ id: item.id, currentUnit: item.unit })}
+                    >
+                      {item.unit || "unit"} ▾
+                    </button>
                   </div>
                 </div>
               ))}
@@ -298,6 +332,13 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
           </div>
         )}
       </div>
+      {unitPicker && (
+        <UnitPickerModal
+          currentUnit={unitPicker.currentUnit}
+          onSelect={unit => { updateItem(unitPicker.id, "unit", unit); setUnitPicker(null); }}
+          onClose={() => setUnitPicker(null)}
+        />
+      )}
       {showCamera && (
         <CameraCapture
           onCapture={handleCameraCapture}

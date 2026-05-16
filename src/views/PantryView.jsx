@@ -14,7 +14,6 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
   const aisleNames = DUNNES_AISLES.map(a => a.name).join(", ");
 
   async function handleReceiptConfirm(scannedItems) {
-    // Save prices to prices table
     const priceEntries = scannedItems.map(i => ({
       ingredient_name: i.name,
       total_price: i.total_price,
@@ -23,22 +22,32 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
     }));
     await onSavePrices(priceEntries);
 
-    // Add to pantry if not already there
-    const existing = pantryItems.map(p => p.name.toLowerCase());
-    const newItems = scannedItems
-      .filter(i => !existing.includes(i.name.toLowerCase()))
-      .map(i => ({
-        id: "pantry-" + Date.now() + Math.random(),
-        name: i.name,
-        aisle: i.aisle,
-        addedAt: Date.now(),
-        quantity: i.quantity,
-        unit: i.unit,
-        price: i.total_price,
-      }));
-    if (newItems.length > 0) {
-      onUpdatePantry([...pantryItems, ...newItems]);
-    }
+    // Update existing items or add new ones, always set stock to high
+    const updatedPantry = [...pantryItems];
+    scannedItems.forEach(scanned => {
+      const existingIdx = updatedPantry.findIndex(p => p.name.toLowerCase() === scanned.name.toLowerCase());
+      if (existingIdx >= 0) {
+        updatedPantry[existingIdx] = {
+          ...updatedPantry[existingIdx],
+          quantity: scanned.quantity || null,
+          unit: scanned.unit || null,
+          price: scanned.total_price || null,
+          stockLevel: "high",
+        };
+      } else {
+        updatedPantry.push({
+          id: "pantry-" + Date.now() + Math.random(),
+          name: scanned.name,
+          aisle: scanned.aisle,
+          addedAt: Date.now(),
+          quantity: scanned.quantity || null,
+          unit: scanned.unit || null,
+          price: scanned.total_price || null,
+          stockLevel: "high",
+        });
+      }
+    });
+    await onUpdatePantry(updatedPantry);
     setShowScanner(false);
   }
 
