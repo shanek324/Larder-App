@@ -58,19 +58,16 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   }
 
   useLayoutEffect(() => {
-    setStepFontSize(22);
-  }, [currentStep]);
-
-  useLayoutEffect(() => {
     const el = stepTextRef.current;
     if (!el) return;
+    el.style.fontSize = "22px";
     let size = 22;
     while (el.scrollHeight > el.clientHeight && size > 12) {
       size -= 1;
       el.style.fontSize = size + "px";
     }
     setStepFontSize(size);
-  });
+  }, [currentStep]);
 
   function goNext() {
     if (isLastStep) setPhase("review");
