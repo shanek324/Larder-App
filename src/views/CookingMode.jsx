@@ -132,6 +132,12 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     setPhase("pantry");
   }
 
+  async function skipReview() {
+    const newCount = (recipe.cook_count || 0) + 1;
+    await onUpdateRecipe({ ...recipe, cook_count: newCount, lastCooked: Date.now(), notes: recipeNotes });
+    setPhase("pantry");
+  }
+
   function togglePantryRemove(id) {
     setRemovedPantryIds(ids => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id]);
   }
@@ -361,7 +367,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
             <button onClick={handleFinishReview} disabled={rating === 0 || generatingTips} className="btn btn-primary btn-lg" style={{ flex: 1 }}>
               {generatingTips ? "Generating tips..." : "Done →"}
             </button>
-            <button onClick={handleFinishPantry} className="btn btn-secondary btn-lg">Skip</button>
+            <button onClick={skipReview} className="btn btn-secondary btn-lg">Skip</button>
           </div>
         </div>
       </div>
