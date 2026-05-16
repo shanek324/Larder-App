@@ -123,7 +123,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
               {onAddToLibrary && (
                 <button onClick={onAddToLibrary} className="btn btn-gold">+ Add to my library</button>
               )}
-              <button onClick={onStartCooking} className="btn btn-primary">👨‍🍳 Cook</button>
+              {onStartCooking && <button onClick={onStartCooking} className="btn btn-primary">👨‍🍳 Cook</button>}
               {isOwner && <button onClick={() => setEditMode(true)} className="btn btn-secondary">Edit</button>}
               <button onClick={onDuplicate} className="btn btn-secondary">⧉ Duplicate</button>
               {isOwner && <button onClick={onDelete} className="btn btn-danger">Delete</button>}

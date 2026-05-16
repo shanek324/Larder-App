@@ -94,7 +94,7 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
         onDelete={() => {}}
         collections={[]}
         onUpdateCollections={() => {}}
-        onStartCooking={() => {}}
+        onStartCooking={null}
         onDuplicate={() => handleAdd(selectedRecipe)}
         onAddToLibrary={ownRecipeIds.includes(selectedRecipe.id) ? null : () => handleAdd(selectedRecipe)}
         session={session}
