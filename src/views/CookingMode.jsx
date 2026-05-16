@@ -19,6 +19,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const [cookLogs, setCookLogs] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [touchStartX, setTouchStartX] = useState(null);
+  const [touchStartY, setTouchStartY] = useState(null);
   const [stepFontSize, setStepFontSize] = useState(22);
   const stepTextRef = useRef(null);
   const [recipeNotes, setRecipeNotes] = useState(recipe.notes || "");
@@ -48,15 +49,19 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
 
   function handleTouchStart(e) {
     setTouchStartX(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
   }
 
   function handleTouchEnd(e) {
     if (touchStartX === null) return;
-    const diff = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) < 50) return;
-    if (diff > 0) goNext();
+    const diffX = touchStartX - e.changedTouches[0].clientX;
+    const diffY = touchStartY - e.changedTouches[0].clientY;
+    // Ignore if swipe is more vertical than horizontal
+    if (Math.abs(diffX) < 50 || Math.abs(diffX) < Math.abs(diffY)) return;
+    if (diffX > 0) goNext();
     else goPrev();
     setTouchStartX(null);
+    setTouchStartY(null);
   }
 
   useLayoutEffect(() => {
