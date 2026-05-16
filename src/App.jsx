@@ -168,7 +168,8 @@ export default function App() {
       setSession(session);
       setAuthLoading(false);
     });
-    supabase.auth.onAuthStateChange((_event, session) => setSession(session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   // Load all data from Supabase on mount
