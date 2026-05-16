@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { DUNNES_AISLES } from "../constants";
-import { callClaude, matchesPantry, estimateRecipeCost } from "../utils";
+import { callClaude, matchesPantry, estimateRecipeCost, categoriseIngredient } from "../utils";
 
 export default function ShoppingListView({ recipes, pantryItems, onSaveList, savedList, onClearList, selectedRecipes, setSelectedRecipes, consolidated, setConsolidated, crossedOff, setCrossedOff, checkCredits }) {
 
@@ -93,7 +93,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
     if (!manualItem.trim()) return;
     const name = manualItem.trim();
     const key = "manual-" + name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
-    const newItem = { key, name, amounts: [], aisle: "Other", sources: [] };
+    const newItem = { key, name, amounts: [], aisle: categoriseIngredient(name), sources: [] };
     const updated = [...consolidated, newItem];
     setConsolidated(updated);
     onSaveList(updated, false, {}, selectedRecipes);

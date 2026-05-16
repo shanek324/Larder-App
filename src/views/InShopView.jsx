@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../supabase";
 import { DUNNES_AISLES } from "../constants";
+import { categoriseIngredient } from "../utils";
 import ReceiptScanner from "../components/ReceiptScanner";
 
 export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices, onSaveTicked, checkCredits }) {
@@ -40,7 +41,7 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
     if (!manualItem.trim()) return;
     const name = manualItem.trim();
     const key = "manual-" + name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
-    const newItem = { key, name, amounts: [], aisle: "Other" };
+    const newItem = { key, name, amounts: [], aisle: categoriseIngredient(name) };
     const updatedItems = [...items, newItem];
     await onSaveTicked(checked);
     if (savedList) {
