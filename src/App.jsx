@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "./supabase";
 import { checkAiCredit } from "./utils";
 import HomeView from "./views/HomeView";
@@ -317,6 +317,16 @@ export default function App() {
   const activeRecipe = recipes.find(r => r.id === activeRecipeId);
   const isCooking = view === "cooking" && activeRecipe;
 
+  const canOverwrite = useMemo(() => {
+    if (!duplicateData?._originalId) return false;
+    const orig = recipes.find(r => r.id === duplicateData._originalId);
+    return !!(orig && orig.user_id === session?.user?.id && !orig.is_public);
+  }, [duplicateData, recipes, session?.user?.id]);
+
+  const handleOverwrite = canOverwrite
+    ? (updates) => overwriteRecipe(recipes.find(r => r.id === duplicateData._originalId), updates)
+    : null;
+
   if (authLoading || loading) {
     return (
       <div className="loading-screen">
@@ -468,7 +478,7 @@ export default function App() {
         </div>
       )}
       {showGenerate && <GenerateModal onClose={() => setShowGenerate(false)} onAdd={addRecipe} checkCredits={checkCredits} />}
-      {showAdd && <AddRecipeModal onClose={() => { setShowAdd(false); setDuplicateData(null); }} onAdd={addRecipe} initialData={duplicateData} onOverwrite={duplicateData && duplicateData._originalId && (() => { const orig = recipes.find(r => r.id === duplicateData._originalId); return orig && orig.user_id === session?.user?.id && !orig.is_public; })() ? (updates) => overwriteRecipe(recipes.find(r => r.id === duplicateData._originalId), updates) : null} />}
+      {showAdd && <AddRecipeModal onClose={() => { setShowAdd(false); setDuplicateData(null); }} onAdd={addRecipe} initialData={duplicateData} onOverwrite={handleOverwrite} />}
       {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} onAdd={addRecipe} checkCredits={checkCredits} />}
     </div>
   );
