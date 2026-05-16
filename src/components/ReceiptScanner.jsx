@@ -20,7 +20,10 @@ function toBase64(file) {
   });
 }
 
-export default function ReceiptScanner({ onConfirm, onClose, checkCredits }) {
+export default function ReceiptScanner({ onConfirm, onClose, checkCredits, shoppingItems = [] }) {
+  const shoppingContext = shoppingItems.length > 0
+    ? "\nThe user was shopping for these items: " + shoppingItems.map(i => i.name).join(", ") + ". Use this as context to help identify ambiguous receipt items."
+    : "";
   const [stage, setStage] = useState("upload");
   const [showCamera, setShowCamera] = useState(false);
   const [items, setItems] = useState([]);
@@ -40,15 +43,14 @@ export default function ReceiptScanner({ onConfirm, onClose, checkCredits }) {
           content: [
             { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
             { type: "text", text: `Extract all food and grocery items from this receipt.
-Normalise each item name to a short clean ingredient (e.g. "Chicken Breast Fillet 500g" -> "Chicken", "Dunnes Free Range Eggs 6pk" -> "Eggs", "Kerrygold Butter 250g" -> "Butter", "BRENNANS" -> "Bread", "ISHKA 6X2L" -> "Water").
-Remove brand names, pack sizes, and descriptors — just the core ingredient.
+For each item: remove brand names and descriptors, keep the core ingredient name and move the pack size into the unit field.
+Examples: "Chicken Breast Fillet 500g" -> name: "Chicken", unit: "500g". "Dunnes Free Range Eggs 6pk" -> name: "Eggs", unit: "6 pack". "Kerrygold Butter 250g" -> name: "Butter", unit: "250g". "BRENNANS 800g" -> name: "Bread", unit: "800g". "ISHKA 6X2L" -> name: "Water", unit: "6x2L".
 Return ONLY a JSON array, no markdown, no explanation.
 Each item: { "name": string, "price": number, "unit": string, "confident": boolean }
 Set confident: false if the item name is an abbreviation, brand name, or unclear.
 Set confident: true only if the ingredient is clearly identifiable.
-Unit should be the pack size if visible (e.g. "1kg", "500ml", "6 pack") or "each" if not clear.
 Price should be the total line price as a number.
-Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, non-food items.` }
+Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, non-food items.` + shoppingContext }
           ]
         }]
       };
@@ -97,13 +99,12 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
               {
                 type: "text",
                 text: `Extract all food and grocery items from this receipt.
-Normalise each item name to a short clean ingredient (e.g. "Chicken Breast Fillet 500g" -> "Chicken", "Dunnes Free Range Eggs 6pk" -> "Eggs", "Kerrygold Butter 250g" -> "Butter", "BRENNANS" -> "Bread", "ISHKA 6X2L" -> "Water").
-Remove brand names, pack sizes, and descriptors — just the core ingredient.
+For each item: remove brand names and descriptors, keep the core ingredient name and move the pack size into the unit field.
+Examples: "Chicken Breast Fillet 500g" -> name: "Chicken", unit: "500g". "Dunnes Free Range Eggs 6pk" -> name: "Eggs", unit: "6 pack". "Kerrygold Butter 250g" -> name: "Butter", unit: "250g". "BRENNANS 800g" -> name: "Bread", unit: "800g". "ISHKA 6X2L" -> name: "Water", unit: "6x2L".
 Return ONLY a JSON array, no markdown, no explanation.
 Each item: { "name": string, "price": number, "unit": string, "confident": boolean }
 Set confident: false if the item name is an abbreviation, brand name, or unclear (e.g. "KNORR", "DS SFRIED FILLET", "SB DICED", "MAGNUM") — anything you had to guess at.
 Set confident: true only if the ingredient is clearly identifiable.
-Unit should be the pack size if visible (e.g. "1kg", "500ml", "6 pack") or "each" if not clear.
 Price should be the total line price as a number.
 Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, non-food items, bottle return fees.`,
               },

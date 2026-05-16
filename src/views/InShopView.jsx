@@ -158,6 +158,7 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
           onConfirm={handleReceiptConfirm}
           onClose={() => setShowScanner(false)}
           checkCredits={checkCredits}
+          shoppingItems={items}
         />
       )}
     </div>
