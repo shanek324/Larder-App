@@ -91,18 +91,23 @@ push notifications, and camera access. Moving to a native app is the next major 
 - Apple Developer account (€99/year) + Google Play (€25 one time) needed for store distribution
 - Privacy policy + terms of service required for App Store
 
-### Recipe Visibility & Sharing
-- Browse public recipes — search/filter across all users' public recipes
-- Add a public recipe to your own library (forks it as your own copy)
-- Users can only edit recipes they own — forking required to customise
-- Recipe detail shows original author if forked
-- Public/private toggle per recipe in edit mode
+### Recipe Visibility & Sharing ✅
+- Browse public recipes — search/filter across all users' public recipes ✅
+- Add a public recipe to your own library (forks it as your own copy) ✅
+- Users can only edit recipes they own — forking required to customise ✅
+- Author name shown on public recipes in Browse and recipe detail ✅
+- Public/private toggle per recipe in edit mode ✅
+- Browse moved to main nav for discoverability ✅
+- Username/display name editable in Profile ✅
+- Tag filtering in Browse view ✅
 
-### Shopping List Overhaul
-- Recipes tab stays accessible while a list exists
-- Tick state persists in Supabase between sessions
-- Add more recipes to an existing list + regenerate with AI
-- Receipt scanner at end of shop has context of what was on the list
+### Shopping List Overhaul ✅
+- Recipes tab stays accessible while a list exists ✅
+- Tick state persists in Supabase between sessions (debounced 2s) ✅
+- Add more recipes to an existing list + regenerate with AI ✅
+- Receipt scanner at end of shop has context of what was on the list ✅
+- Clear list confirmation modal replaces confusing back button ✅
+- Receipt scanner preserves pack sizes in unit field ✅
 
 ### Bigger Features
 - Nutritional info — AI-generated approximate macros per recipe
