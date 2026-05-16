@@ -12,6 +12,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
   const [totalCost, setTotalCost] = useState(null);
   const [editedAmounts, setEditedAmounts] = useState({});
   const [addingMore, setAddingMore] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   useEffect(() => {
     if (selectedRecipes.length === 0) { setTotalCost(null); return; }
@@ -235,8 +236,24 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
         <>
           <div className="shopping-list-header">
             <p className="shopping-list-subtitle">Cross off anything you already have</p>
-            <button onClick={async () => { if (onClearList) await onClearList(); setConsolidated(null); setCrossedOff({}); setExpandedSources({}); }} className="btn btn-secondary">← Back to recipes</button>
+            <button onClick={() => setShowClearConfirm(true)} className="btn btn-danger" style={{ fontSize: 12 }}>🗑 Clear list</button>
           </div>
+
+          {showClearConfirm && (
+            <div className="modal-overlay">
+              <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+                <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
+                <h2 className="section-title" style={{ textAlign: "center" }}>Clear your list?</h2>
+                <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
+                  This will permanently delete your shopping list.
+                </p>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={async () => { if (onClearList) await onClearList(); setConsolidated(null); setCrossedOff({}); setExpandedSources({}); setShowClearConfirm(false); }} className="btn btn-danger btn-lg" style={{ flex: 1 }}>Yes, clear it</button>
+                  <button onClick={() => setShowClearConfirm(false)} className="btn btn-secondary btn-lg">Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
           {sortedAisles.map(aisle => {
             const aisleInfo = DUNNES_AISLES.find(a => a.name === aisle) || { icon: "🛒" };
             return (
