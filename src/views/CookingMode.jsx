@@ -30,6 +30,8 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const isLastStep = currentStep === totalSteps - 1;
   const isIngredientCard = currentStep === 0;
   const isTipsCard = steps[currentStep] === "__tips__";
+  // Key notes by method step index so they don't shift when tips card is present/absent
+  const noteKey = isIngredientCard || isTipsCard ? null : currentStep - (lastTips ? 2 : 1);
 
   useEffect(() => {
     async function loadLogs() {
@@ -79,7 +81,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   }
 
   function saveNote() {
-    const updated = { ...stepNotes, [currentStep]: noteText };
+    const updated = { ...stepNotes, [noteKey]: noteText };
     setStepNotes(updated);
     onUpdateRecipe({ ...recipe, step_notes: updated });
     setShowNoteInput(false);
@@ -87,7 +89,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   }
 
   function openNote() {
-    setNoteText(stepNotes[currentStep] || "");
+    setNoteText(stepNotes[noteKey] || "");
     setShowNoteInput(true);
   }
 
@@ -179,7 +181,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   // COOKING PHASE
   if (phase === "cooking") {
     const step = steps[currentStep];
-    const note = stepNotes[currentStep];
+    const note = noteKey !== null ? stepNotes[noteKey] : null;
 
     return (
       <div className="cooking-screen">
