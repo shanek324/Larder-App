@@ -123,6 +123,14 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
         feedback,
         ai_tips: aiTips,
       });
+      // Refresh local logs so the Tips card uses the most recent cook on next entry
+      const { data: refreshedLogs } = await supabase
+        .from("cook_logs")
+        .select("*")
+        .eq("recipe_id", recipe.id)
+        .order("cooked_at", { ascending: false })
+        .limit(5);
+      if (refreshedLogs) setCookLogs(refreshedLogs);
       const newCount = (recipe.cook_count || 0) + 1;
       await onUpdateRecipe({ ...recipe, cook_count: newCount, lastCooked: Date.now(), notes: recipeNotes });
     } catch(e) {
