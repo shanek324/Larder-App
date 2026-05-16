@@ -354,10 +354,12 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     );
   }
 
-  // PANTRY PHASE
-  if (pantryUpdates === null && !loadingSuggestions) {
-    generatePantrySuggestions();
-  }
+  // PANTRY PHASE — trigger AI suggestions via effect, not during render
+  useEffect(() => {
+    if (phase === "pantry" && pantryUpdates === null && !loadingSuggestions) {
+      generatePantrySuggestions();
+    }
+  }, [phase]);
 
   return (
     <div className="cooking-screen cooking-screen-centered">
