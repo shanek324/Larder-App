@@ -10,6 +10,7 @@ export default function GenerateModal({ onClose, onAdd, checkCredits }) {
 
   async function generate() {
     if (!prompt.trim() || loading) return;
+    if (checkCredits && !(await checkCredits())) return;
     setLoading(true);
     setError("");
     setResult(null);
