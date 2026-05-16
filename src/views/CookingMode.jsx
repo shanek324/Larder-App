@@ -76,13 +76,6 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     setStepFontSize(size);
   }, [currentStep]);
 
-  // Trigger AI pantry suggestions when entering pantry phase
-  useEffect(() => {
-    if (phase === "pantry" && pantryUpdates === null && !loadingSuggestions) {
-      generatePantrySuggestions();
-    }
-  }, [phase]);
-
   function goNext() {
     if (isLastStep) setPhase("review");
     else setCurrentStep(s => s + 1);
@@ -400,6 +393,15 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
 
         {loadingSuggestions ? (
           <p style={{ textAlign: "center", padding: 24, opacity: 0.5 }}>✦ Analysing recipe…</p>
+        ) : pantryUpdates === null ? (
+          <div style={{ textAlign: "center", padding: 16 }}>
+            <button onClick={generatePantrySuggestions} className="btn btn-gold btn-lg">
+              ✦ Suggest what I used
+            </button>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--color-text-muted)", marginTop: 8 }}>
+              Or just add items manually below.
+            </p>
+          </div>
         ) : pantryUpdates && pantryUpdates.length > 0 ? (
           <div className="cooking-pantry-list">
             {pantryUpdates.map((item, i) => (
