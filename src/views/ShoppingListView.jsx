@@ -14,16 +14,6 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [manualItem, setManualItem] = useState("");
 
-  useEffect(() => {
-    if (selectedRecipes.length === 0) { setTotalCost(null); return; }
-    async function calcCost() {
-      const allIngredients = selectedRecipeObjects.flatMap(r => r.ingredients);
-      const result = await estimateRecipeCost(allIngredients);
-      setTotalCost(result.hasData ? result.total : null);
-    }
-    calcCost();
-  }, [selectedRecipes]);
-
   const aisleOrder = DUNNES_AISLES.map(a => a.name).concat(["Other"]);
   const aisleNames = DUNNES_AISLES.map(a => a.name).join(", ");
   const allTags = [...new Set(recipes.flatMap(r => r.tags))].sort();
@@ -54,6 +44,18 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
 
   const selectedRecipeObjects = recipes.filter(r => selectedRecipes.includes(r.id));
   const rawIngredients = selectedRecipeObjects.flatMap(r => r.ingredients);
+
+  useEffect(() => {
+    if (selectedRecipes.length === 0) { setTotalCost(null); return; }
+    let cancelled = false;
+    async function calcCost() {
+      const result = await estimateRecipeCost(rawIngredients);
+      if (!cancelled) setTotalCost(result.hasData ? result.total : null);
+    }
+    calcCost();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRecipes, recipes]);
 
   async function handleGenerate() {
     setGenerating(true);
