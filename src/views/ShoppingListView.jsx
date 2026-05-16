@@ -56,7 +56,6 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
   const rawIngredients = selectedRecipeObjects.flatMap(r => r.ingredients);
 
   async function handleGenerate() {
-    localStorage.setItem("lastSelectedRecipes", JSON.stringify(selectedRecipes));
     setGenerating(true);
 
     // When adding more, include existing consolidated items as context
