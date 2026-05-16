@@ -81,7 +81,7 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
         };
       } else {
         updatedPantry.push({
-          id: "pantry-" + Date.now() + Math.random(),
+          id: crypto.randomUUID(),
           name: scanned.name,
           aisle: scanned.aisle,
           addedAt: Date.now(),
@@ -106,7 +106,7 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
         updatedPantry[existingIdx] = { ...updatedPantry[existingIdx], stockLevel: "high" };
       } else {
         updatedPantry.push({
-          id: "pantry-" + Date.now() + Math.random(),
+          id: crypto.randomUUID(),
           name: bought.name,
           aisle: bought.aisle,
           addedAt: Date.now(),

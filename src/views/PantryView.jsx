@@ -36,7 +36,7 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
         };
       } else {
         updatedPantry.push({
-          id: "pantry-" + Date.now() + Math.random(),
+          id: crypto.randomUUID(),
           name: scanned.name,
           aisle: scanned.aisle,
           addedAt: Date.now(),
@@ -54,7 +54,7 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
   function addItem() {
     if (!newItem.trim()) return;
     const item = {
-      id: "pantry-" + Date.now(),
+      id: crypto.randomUUID(),
       name: newItem.trim(),
       aisle: categoriseIngredient(newItem.trim()),
       addedAt: Date.now(),
@@ -95,7 +95,7 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
           ? stockLevels.find(level => matches.some(m => (m.stockLevel || "high") === level)) || "high"
           : "high";
         return {
-          id: "pantry-" + Date.now() + idx,
+          id: crypto.randomUUID(),
           name: i.name,
           aisle: i.aisle || "Other",
           addedAt: Date.now(),

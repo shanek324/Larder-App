@@ -297,7 +297,7 @@ export default function App() {
       const existing = pantryItems.map(i => i.name.toLowerCase());
       const newItems = addToPantry
         .filter(i => !existing.includes(i.name.toLowerCase()))
-        .map(i => ({ id: "pantry-" + Date.now() + Math.random(), name: i.name, aisle: i.aisle, addedAt: Date.now() }));
+        .map(i => ({ id: crypto.randomUUID(), name: i.name, aisle: i.aisle, addedAt: Date.now() }));
       if (newItems.length > 0) {
         await supabase.from("pantry").insert(newItems.map(p => ({ ...pantryToDb(p), user_id: session?.user?.id })));
         setPantryItems(p => [...p, ...newItems]);
