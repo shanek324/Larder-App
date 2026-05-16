@@ -48,7 +48,9 @@ If just a question, reply normally. Be concise. Use metric/Irish measurements.`;
           const updated = JSON.parse(updateMatch[1].trim());
           onUpdate(updated);
           displayReply += "\n\n✅ Recipe updated!";
-        } catch (e) {}
+        } catch (e) {
+          displayReply += "\n\n⚠️ Recipe update failed (couldn't parse changes).";
+        }
       }
       setMessages([...newMessages, { role: "assistant", content: displayReply }]);
     } catch (e) {
