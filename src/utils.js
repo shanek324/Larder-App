@@ -78,11 +78,20 @@ export async function checkAiCredit(supabase, userId) {
 export async function callClaude(messages, system = "", maxTokens = 1000, model = API_MODEL) {
   const body = { model: model, max_tokens: maxTokens, messages };
   if (system) body.system = system;
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token || "";
   const res = await fetch("/api/claude", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token,
+    },
     body: JSON.stringify(body),
   });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || "Claude API error");
+  }
   const data = await res.json();
   return data.content?.map(b => b.text || "").join("") || "";
 }

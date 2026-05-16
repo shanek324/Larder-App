@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { supabase } from "../supabase";
 import { callClaude, slugify } from "../utils";
 import { API_MODEL } from "../constants";
 
@@ -15,9 +16,14 @@ export default function ImportRecipeModal({ onClose, onAdd, checkCredits }) {
     setError("");
     setPreview(null);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token || "";
       const res = await fetch("/api/fetch-url", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token,
+        },
         body: JSON.stringify({ url: url.trim() }),
       });
       const { text, error: fetchErr } = await res.json();
