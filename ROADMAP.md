@@ -60,6 +60,23 @@
 - Cook count tracked per recipe (shown on recipe detail)
 - Pantry cleanup prompt after cooking (tick off what you used)
 - Responsive UI — all views adapt to mobile, nav icons-only on very small screens
+- Security: auth-gate on /api/claude and /api/fetch-url — requires valid Supabase JWT, credits checked server-side
+- Security: /api/fetch-url blocks private/internal IP ranges (SSRF prevention)
+- Security: Browse view only fetches profiles for users with public recipes
+- Fix: edited shopping list amounts now saved immediately to Supabase
+- Fix: cost estimate resets when navigating between recipes, race condition guarded
+- Fix: all pantry IDs use crypto.randomUUID() — no collision risk
+- Fix: step notes keyed by method index not absolute step index — no misalignment with tips card
+- Fix: cooking mode font resize runs only on step change, not every render
+- Fix: pantry suggestions triggered in useEffect not during render
+- Fix: GenerateModal now checks AI credits before generating
+- Fix: swipe in cooking mode ignores vertical scroll gestures
+- Fix: camera retake has proper error handling
+- Fix: Resume shopping list restores selected recipes
+- Fix: manual shopping list items get proper aisle categorisation
+- Fix: combined auth and data loading states — no blank screen flash
+- Cleanup: removed dead onCookedIt prop from RecipeView
+- Cleanup: removed dead localStorage write for lastSelectedRecipes
 - Receipt scanner — photograph supermarket receipt, Haiku extracts + normalises ingredient names
 - Confirm screen — toggle off non-food items, edit names/prices/quantities, aisle editable
 - Confirmed items saved to prices table (price per unit calculated) and added to pantry
@@ -158,9 +175,16 @@ push notifications, and camera access. Moving to a native app is the next major 
 
 ## 🔧 Known Issues / Technical Debt
 - Background persistence — JS stops when switching apps on mobile (native app will fix this)
-- No error handling UI — API failures are mostly silent (just console.error)
+- No error handling UI — API failures are mostly silent (just console.error) — partial fix done, full sweep still needed
 - Shopping list generation can be slow with many recipes selected
 - No loading skeleton UI — blank gaps while data loads
 - Collections layout switches to horizontal scroll on mobile which could feel odd with many collections
 - Camera capture (take photo) unreliable on some mobile browsers — upload works fine
 - Supabase default email sender unreliable — need Resend for production auth emails
+- Price estimate ilike query can match unrelated ingredients (e.g. "Egg" matches "Eggplant")
+- Skip cook review does not increment cook_count or set lastCooked
+- Browse view Cook button is a no-op — should prompt to add to library first
+- ReceiptScanner makes direct fetch calls to /api/claude instead of using callClaude util
+- App.jsx line 465 inline ternary for onOverwrite prop is hard to read — needs extracting
+- Browse "Add to library" always shows button even after adding (fork gets new ID so original ID never matches)
+- RLS policies should be audited in Supabase to confirm all tables are properly locked per user
