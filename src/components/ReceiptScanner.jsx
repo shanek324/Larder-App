@@ -1,8 +1,7 @@
 import { useState, useRef } from "react";
-import { categoriseIngredient } from "../utils";
+import { categoriseIngredient, callClaude } from "../utils";
 import CameraCapture from "./CameraCapture";
-import { DUNNES_AISLES } from "../constants";
-import { API_MODEL } from "../constants";
+import { DUNNES_AISLES, API_MODEL } from "../constants";
 
 const COMMON_UNITS = ["each", "g", "kg", "ml", "l", "pack", "6 pack", "dozen", "bunch", "bag", "loaf", "tin", "jar", "box", "bottle"];
 
@@ -86,14 +85,11 @@ export default function ReceiptScanner({ onConfirm, onClose, checkCredits, shopp
     setStage("scanning");
     setError(null);
     try {
-      const body = {
-        model: API_MODEL,
-        max_tokens: 1500,
-        messages: [{
-          role: "user",
-          content: [
-            { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
-            { type: "text", text: `Extract all food and grocery items from this receipt.
+      const messages = [{
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
+          { type: "text", text: `Extract all food and grocery items from this receipt.
 For each item: remove brand names and descriptors, keep the core ingredient name and move the pack size into the unit field.
 Examples: "Chicken Breast Fillet 500g" -> name: "Chicken", unit: "500g". "Dunnes Free Range Eggs 6pk" -> name: "Eggs", unit: "6 pack". "Kerrygold Butter 250g" -> name: "Butter", unit: "250g". "BRENNANS 800g" -> name: "Bread", unit: "800g". "ISHKA 6X2L" -> name: "Water", unit: "6x2L".
 Return ONLY a JSON array, no markdown, no explanation.
@@ -102,12 +98,9 @@ Set confident: false if the item name is an abbreviation, brand name, or unclear
 Set confident: true only if the ingredient is clearly identifiable.
 Price should be the total line price as a number.
 Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, non-food items.` + shoppingContext }
-          ]
-        }]
-      };
-      const res = await fetch("/api/claude", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      const data = await res.json();
-      const raw = data.content?.map(b => b.text || "").join("") || "";
+        ]
+      }];
+      const raw = await callClaude(messages, "", 1500, API_MODEL);
       const clean = raw.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean);
       const withMeta = parsed.map((item, i) => {
@@ -136,20 +129,17 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
       const base64 = await toBase64(file);
       const mediaType = file.type || "image/jpeg";
 
-      const body = {
-        model: API_MODEL,
-        max_tokens: 1500,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "image",
-                source: { type: "base64", media_type: mediaType, data: base64 },
-              },
-              {
-                type: "text",
-                text: `Extract all food and grocery items from this receipt.
+      const messages = [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: { type: "base64", media_type: mediaType, data: base64 },
+            },
+            {
+              type: "text",
+              text: `Extract all food and grocery items from this receipt.
 For each item: remove brand names and descriptors, keep the core ingredient name and move the pack size into the unit field.
 Examples: "Chicken Breast Fillet 500g" -> name: "Chicken", unit: "500g". "Dunnes Free Range Eggs 6pk" -> name: "Eggs", unit: "6 pack". "Kerrygold Butter 250g" -> name: "Butter", unit: "250g". "BRENNANS 800g" -> name: "Bread", unit: "800g". "ISHKA 6X2L" -> name: "Water", unit: "6x2L".
 Return ONLY a JSON array, no markdown, no explanation.
@@ -158,25 +148,12 @@ Set confident: false if the item name is an abbreviation, brand name, or unclear
 Set confident: true only if the ingredient is clearly identifiable.
 Price should be the total line price as a number.
 Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, non-food items, bottle return fees.`,
-              },
-            ],
-          },
-        ],
-      };
+            },
+          ],
+        },
+      ];
 
-      const res = await fetch("/api/claude", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error("API error: " + errText);
-      }
-
-      const data = await res.json();
-      const raw = data.content?.map(b => b.text || "").join("") || "";
+      const raw = await callClaude(messages, "", 1500, API_MODEL);
       const clean = raw.replace(/```json|```/g, "").trim();
 
       if (!clean) throw new Error("Empty response from Claude");
