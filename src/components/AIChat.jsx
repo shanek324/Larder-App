@@ -40,7 +40,7 @@ When the user asks to modify the recipe, respond with explanation AND:
 If just a question, reply normally. Be concise. Use metric/Irish measurements.`;
 
     try {
-      const reply = await callClaude(newMessages, system);
+      const reply = await callClaude(newMessages.slice(-10), system);
       const updateMatch = reply.match(/<recipe_update>([\s\S]*?)<\/recipe_update>/);
       let displayReply = reply.replace(/<recipe_update>[\s\S]*?<\/recipe_update>/, "").trim();
       if (updateMatch) {

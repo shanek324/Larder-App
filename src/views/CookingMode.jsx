@@ -48,6 +48,8 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   }, [recipe.id]);
 
   function handleTouchStart(e) {
+    const tag = e.target.tagName;
+    if (tag === "TEXTAREA" || tag === "INPUT") return;
     setTouchStartX(e.touches[0].clientX);
     setTouchStartY(e.touches[0].clientY);
   }
@@ -56,12 +58,12 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     if (touchStartX === null) return;
     const diffX = touchStartX - e.changedTouches[0].clientX;
     const diffY = touchStartY - e.changedTouches[0].clientY;
+    setTouchStartX(null);
+    setTouchStartY(null);
     // Ignore if swipe is more vertical than horizontal
     if (Math.abs(diffX) < 50 || Math.abs(diffX) < Math.abs(diffY)) return;
     if (diffX > 0) goNext();
     else goPrev();
-    setTouchStartX(null);
-    setTouchStartY(null);
   }
 
   useLayoutEffect(() => {
@@ -70,7 +72,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     el.style.fontSize = "22px";
     let size = 22;
     while (el.scrollHeight > el.clientHeight && size > 12) {
-      size -= 1;
+      size -= 2;
       el.style.fontSize = size + "px";
     }
     setStepFontSize(size);
