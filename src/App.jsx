@@ -15,10 +15,12 @@ import CookingMode from "./views/CookingMode";
 import CookHistoryView from "./views/CookHistoryView";
 import BrowseView from "./views/BrowseView";
 import ProfileView from "./views/ProfileView";
+import MealPlanView from "./views/MealPlanView";
 
 const NAV = [
   { key: "home", label: "Recipes", icon: "🍳" },
   { key: "browse", label: "Browse", icon: "🌍" },
+  { key: "plan", label: "Plan", icon: "📅" },
   { key: "pantry", label: "Pantry", icon: "🥫" },
   { key: "shopping", label: "Shopping", icon: "🛒" },
   { key: "profile", label: "Profile", icon: "👤" },
@@ -117,6 +119,7 @@ export default function App() {
   const [recipes, setRecipes] = useState([]);
   const [collections, setCollections] = useState([]);
   const [pantryItems, setPantryItems] = useState([]);
+  const [mealPlans, setMealPlans] = useState([]);
   const [savedShoppingList, setSavedShoppingList] = useState(null);
   const [selectedRecipes, setSelectedRecipes] = useState([]);
   const [consolidatedList, setConsolidatedList] = useState(null);
@@ -179,16 +182,23 @@ export default function App() {
     async function loadData() {
       setLoading(true);
       try {
-        const [{ data: recipeData }, { data: colData }, { data: pantryData }, { data: shopData }] = await Promise.all([
+        // Compute date range: today to today + 21 days, in YYYY-MM-DD
+        const today = new Date(); today.setHours(0,0,0,0);
+        const future = new Date(today); future.setDate(future.getDate() + 21);
+        const toIso = (d) => d.toISOString().slice(0, 10);
+
+        const [{ data: recipeData }, { data: colData }, { data: pantryData }, { data: shopData }, { data: planData }] = await Promise.all([
           supabase.from("recipes").select("*").order("created_at", { ascending: false }),
           supabase.from("collections").select("*").order("created_at", { ascending: true }),
           supabase.from("pantry").select("*").order("added_at", { ascending: true }),
           supabase.from("shopping_list").select("*").order("created_at", { ascending: false }).limit(1),
+          supabase.from("meal_plans").select("*").gte("date", toIso(today)).lte("date", toIso(future)).order("date", { ascending: true }),
         ]);
         setRecipes(recipeData ? recipeData.map(recipeFromDb) : []);
         setCollections(colData ? colData.map(collectionFromDb) : []);
         setPantryItems(pantryData ? pantryData.map(pantryFromDb) : []);
         setSavedShoppingList(shopData?.[0] || null);
+        setMealPlans(planData || []);
       } catch(e) {
         console.error("loadData error", e);
       }
@@ -311,6 +321,29 @@ export default function App() {
         setPantryItems(p => [...p, ...newItems]);
       }
     }
+  }
+
+  async function addMealPlan(date, recipeId, slot = "dinner") {
+    const { data } = await supabase
+      .from("meal_plans")
+      .insert({ user_id: session?.user?.id, date, recipe_id: recipeId, slot })
+      .select()
+      .single();
+    if (data) setMealPlans(p => [...p, data]);
+  }
+
+  async function removeMealPlan(planId) {
+    await supabase.from("meal_plans").delete().eq("id", planId);
+    setMealPlans(p => p.filter(x => x.id !== planId));
+  }
+
+  async function clearWeekPlans(startDate, endDate) {
+    await supabase
+      .from("meal_plans")
+      .delete()
+      .gte("date", startDate)
+      .lte("date", endDate);
+    setMealPlans(p => p.filter(x => x.date < startDate || x.date > endDate));
   }
 
   function viewRecipe(id) { setActiveRecipeId(id); setView("recipe"); }
@@ -443,6 +476,16 @@ export default function App() {
           <CookHistoryView recipes={recipes} />
         ) : view === "browse" ? (
           <BrowseView session={session} onAdd={addRecipe} ownRecipeIds={recipes.map(r => r.id)} />
+        ) : view === "plan" ? (
+          <MealPlanView
+            mealPlans={mealPlans}
+            recipes={recipes}
+            onAddPlan={addMealPlan}
+            onRemovePlan={removeMealPlan}
+            onClearWeek={clearWeekPlans}
+            onViewRecipe={viewRecipe}
+            onPlanToShopping={(recipeIds) => { setSelectedRecipes(recipeIds); setView("shopping"); }}
+          />
         ) : view === "profile" ? (
           <ProfileView
             session={session}
