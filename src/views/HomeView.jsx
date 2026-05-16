@@ -12,7 +12,13 @@ export default function HomeView({ recipes, collections, onViewRecipe, search, s
   });
 
   const recent = useMemo(() => [...recipes].sort((a, b) => b.createdAt - a.createdAt).slice(0, 3), [recipes]);
-  const featured = useMemo(() => recipes.length ? recipes[Math.floor(Math.random() * recipes.length)] : null, [recipes.length]);
+  const featured = useMemo(() => {
+    if (recipes.length === 0) return null;
+    const today = new Date().toDateString();
+    let hash = 0;
+    for (let i = 0; i < today.length; i++) hash = ((hash << 5) - hash) + today.charCodeAt(i);
+    return recipes[Math.abs(hash) % recipes.length];
+  }, [recipes.length]);
   const showingAll = !search && !filterTag;
 
   return (
