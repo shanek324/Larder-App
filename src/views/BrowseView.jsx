@@ -15,15 +15,25 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
 
   useEffect(() => {
     async function loadPublic() {
-      const [{ data: recipeData }, { data: profileData }] = await Promise.all([
-        supabase.from("recipes").select("*").eq("is_public", true).order("created_at", { ascending: false }),
-        supabase.from("profiles").select("id, username"),
-      ]);
+      const { data: recipeData } = await supabase
+        .from("recipes")
+        .select("*")
+        .eq("is_public", true)
+        .order("created_at", { ascending: false });
 
-      if (profileData) {
-        const profileMap = {};
-        profileData.forEach(p => { profileMap[p.id] = p.username; });
-        setProfiles(profileMap);
+      if (recipeData) {
+        const userIds = [...new Set(recipeData.map(r => r.user_id).filter(Boolean))];
+        if (userIds.length > 0) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("id, username")
+            .in("id", userIds);
+          if (profileData) {
+            const profileMap = {};
+            profileData.forEach(p => { profileMap[p.id] = p.username; });
+            setProfiles(profileMap);
+          }
+        }
       }
 
       if (recipeData) setRecipes(recipeData.map(r => ({
