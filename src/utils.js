@@ -96,32 +96,32 @@ export async function callClaude(messages, system = "", maxTokens = 1000, model 
   return data.content?.map(b => b.text || "").join("") || "";
 }
 
-export async function getPriceEstimate(ingredientName) {
-  // Fetch last 5 purchases of this ingredient and return rolling average price_per_unit
+export async function estimateRecipeCost(ingredients) {
+  // Single batched query: pull recent prices once, match against consolidated names in JS.
   const { data } = await supabase
     .from("prices")
-    .select("price_per_unit, unit")
-    .ilike("ingredient_name", "%" + ingredientName + "%")
+    .select("price_per_unit, unit, ingredient_name, purchased_at")
     .order("purchased_at", { ascending: false })
-    .limit(5);
-  if (!data || data.length === 0) return null;
-  const avg = data.reduce((sum, r) => sum + parseFloat(r.price_per_unit), 0) / data.length;
-  return { pricePerUnit: avg, unit: data[0].unit };
-}
+    .limit(500);
 
-export async function estimateRecipeCost(ingredients) {
-  // Returns { total, breakdown: [{ name, estimate }] }
-  const breakdown = await Promise.all(
-    ingredients.map(async ing => {
-      const estimate = await getPriceEstimate(ing.name);
-      if (!estimate) return { name: ing.name, estimate: null };
-      // Try to parse amount from ingredient e.g. "200g" -> 200
-      const amountMatch = ing.amount ? ing.amount.match(/^([\d.]+)/) : null;
-      const qty = amountMatch ? parseFloat(amountMatch[1]) : 1;
-      const cost = estimate.pricePerUnit * qty;
-      return { name: ing.name, estimate: cost };
-    })
-  );
+  const priceMap = {};
+  (data || []).forEach(r => {
+    const key = consolidateName(r.ingredient_name);
+    if (!key) return;
+    if (!priceMap[key]) priceMap[key] = [];
+    if (priceMap[key].length < 5) priceMap[key].push({ price: parseFloat(r.price_per_unit), unit: r.unit });
+  });
+
+  const breakdown = ingredients.map(ing => {
+    const key = consolidateName(ing.name);
+    const prices = priceMap[key];
+    if (!prices || prices.length === 0) return { name: ing.name, estimate: null };
+    const avg = prices.reduce((a, b) => a + b.price, 0) / prices.length;
+    const amountMatch = ing.amount ? ing.amount.match(/^([\d.]+)/) : null;
+    const qty = amountMatch ? parseFloat(amountMatch[1]) : 1;
+    return { name: ing.name, estimate: avg * qty };
+  });
+
   const known = breakdown.filter(b => b.estimate !== null);
   const total = known.reduce((sum, b) => sum + b.estimate, 0);
   return { total, breakdown, hasData: known.length > 0 };
