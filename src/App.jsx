@@ -149,6 +149,7 @@ export default function App() {
   const addMenuRef = useRef(null);
 
   useEffect(() => {
+    if (!showAddMenu) return;
     function handleClickOutside(e) {
       if (addMenuRef.current && !addMenuRef.current.contains(e.target)) {
         setShowAddMenu(false);
@@ -160,7 +161,7 @@ export default function App() {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("touchstart", handleClickOutside);
     };
-  }, []);
+  }, [showAddMenu]);
 
   // Auth state
   useEffect(() => {
