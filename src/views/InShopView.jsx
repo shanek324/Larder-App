@@ -19,6 +19,17 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
   const [showConfirm, setShowConfirm] = useState(false);
   const [showStartOver, setShowStartOver] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [persistedScanItems, setPersistedScanItems] = useState(savedList?.scanned_items || []);
+
+  async function handleScanComplete(scannedItems) {
+    setPersistedScanItems(scannedItems);
+    if (savedList) {
+      await import("../supabase").then(({ supabase }) =>
+        supabase.from("shopping_list").update({ scanned_items: scannedItems }).eq("id", savedList.id)
+      );
+    }
+    await handleReceiptConfirm(scannedItems);
+  }
 
   const items = savedList?.items || [];
   const tickedCount = items.filter(i => checked[i.key]).length;
@@ -41,22 +52,23 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
     }));
     await onSavePrices(priceEntries);
     const existing = pantryItems.map(p => p.name.toLowerCase());
-    const newItems = scannedItems
+    const newFromReceipt = scannedItems
       .filter(i => !existing.includes(i.name.toLowerCase()))
       .map(i => ({ id: "pantry-" + Date.now() + Math.random(), name: i.name, aisle: i.aisle, addedAt: Date.now() }));
-    if (newItems.length > 0) await onUpdatePantry([...pantryItems, ...newItems]);
+    const updatedPantry = newFromReceipt.length > 0 ? [...pantryItems, ...newFromReceipt] : pantryItems;
+    if (newFromReceipt.length > 0) await onUpdatePantry(updatedPantry);
     setShowScanner(false);
-    await handleFinished();
+    await handleFinished(updatedPantry);
   }
 
-  async function handleFinished() {
+  async function handleFinished(currentPantry = pantryItems) {
     const boughtItems = items.filter(i => checked[i.key]);
-    const existing = pantryItems.map(p => p.name.toLowerCase());
+    const existing = currentPantry.map(p => p.name.toLowerCase());
     const newPantryItems = boughtItems
       .filter(i => !existing.includes(i.name.toLowerCase()))
       .map(i => ({ id: "pantry-" + Date.now() + Math.random(), name: i.name, aisle: i.aisle, addedAt: Date.now() }));
     if (newPantryItems.length > 0) {
-      await onUpdatePantry([...pantryItems, ...newPantryItems]);
+      await onUpdatePantry([...currentPantry, ...newPantryItems]);
     }
     await onClearList();
     setShowConfirm(false);
@@ -155,7 +167,7 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
       )}
       {showScanner && (
         <ReceiptScanner
-          onConfirm={handleReceiptConfirm}
+          onConfirm={handleScanComplete}
           onClose={() => setShowScanner(false)}
           checkCredits={checkCredits}
           shoppingItems={items}

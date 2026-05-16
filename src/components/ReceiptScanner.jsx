@@ -260,12 +260,31 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
                       min="1"
                       value={item.quantity}
                       onChange={e => updateItem(item.id, "quantity", parseFloat(e.target.value) || 1)}
+                      onFocus={e => e.target.select()}
                     />
                     <input
                       className="receipt-unit-input"
                       value={item.unit}
                       onChange={e => updateItem(item.id, "unit", e.target.value)}
+                      list="unit-options"
                     />
+                    <datalist id="unit-options">
+                      <option value="each" />
+                      <option value="g" />
+                      <option value="kg" />
+                      <option value="ml" />
+                      <option value="l" />
+                      <option value="pack" />
+                      <option value="6 pack" />
+                      <option value="dozen" />
+                      <option value="bunch" />
+                      <option value="bag" />
+                      <option value="loaf" />
+                      <option value="tin" />
+                      <option value="jar" />
+                      <option value="box" />
+                      <option value="bottle" />
+                    </datalist>
                   </div>
                 </div>
               ))}
