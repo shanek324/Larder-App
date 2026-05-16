@@ -10,7 +10,6 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
   const [search, setSearch] = useState("");
   const [filterTag, setFilterTag] = useState(null);
   const [totalCost, setTotalCost] = useState(null);
-  const [editedAmounts, setEditedAmounts] = useState({});
   const [addingMore, setAddingMore] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [manualItem, setManualItem] = useState("");
@@ -80,7 +79,6 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
       const parsed = JSON.parse(cleaned);
       const filtered = parsed.filter(item => !matchesPantry(item.name, pantryItems));
       setConsolidated(filtered);
-      setEditedAmounts({});
       setAddingMore(false);
       // Save with recipe_ids so we can restore selected recipes
       await onSaveList(filtered, false, {}, selectedRecipes);
@@ -299,8 +297,12 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
                         <span className="shopping-item-name">{item.name}</span>
                         <input
                           type="text"
-                          value={editedAmounts[item.key] !== undefined ? editedAmounts[item.key] : (item.amounts || []).join(" + ")}
-                          onChange={e => setEditedAmounts(a => ({ ...a, [item.key]: e.target.value }))}
+                          value={(item.amounts || []).join(" + ")}
+                          onChange={e => {
+                            const updated = consolidated.map(i => i.key === item.key ? { ...i, amounts: [e.target.value] } : i);
+                            setConsolidated(updated);
+                            onSaveList(updated, false, crossedOff, selectedRecipes);
+                          }}
                           onClick={e => e.stopPropagation()}
                           className="shopping-item-amount-input"
                           placeholder="amount"
