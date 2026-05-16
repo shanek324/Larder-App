@@ -14,7 +14,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
   const [showCollectionPicker, setShowCollectionPicker] = useState(false);
   const [costEstimate, setCostEstimate] = useState(null);
 
-  useEffect(() => { setDraft(recipe); setScaledServings(recipe.servings); }, [recipe]);
+  useEffect(() => { setDraft(recipe); setScaledServings(recipe.servings); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [recipe.id]);
 
   useEffect(() => {
     let cancelled = false;
