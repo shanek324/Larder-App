@@ -152,7 +152,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
             <p className="label-uppercase" style={{ marginBottom: 2 }}>📋 Saved list</p>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--color-text-muted-dark)", margin: 0 }}>{savedList.items.length} items ready</p>
           </div>
-          <button onClick={() => setConsolidated(savedList.items)} className="btn btn-gold">Resume →</button>
+          <button onClick={() => { setConsolidated(savedList.items); setSelectedRecipes(savedList.recipe_ids || []); }} className="btn btn-gold">Resume →</button>
         </div>
       )}
 
