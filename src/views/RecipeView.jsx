@@ -17,11 +17,14 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
   useEffect(() => { setDraft(recipe); setScaledServings(recipe.servings); }, [recipe]);
 
   useEffect(() => {
+    let cancelled = false;
     async function loadCost() {
+      setCostEstimate(null);
       const result = await estimateRecipeCost(recipe.ingredients);
-      if (result.hasData) setCostEstimate(result);
+      if (!cancelled && result.hasData) setCostEstimate(result);
     }
     loadCost();
+    return () => { cancelled = true; };
   }, [recipe.id]);
 
   const ratio = scaledServings / recipe.servings;
