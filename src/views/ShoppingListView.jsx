@@ -13,6 +13,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
   const [editedAmounts, setEditedAmounts] = useState({});
   const [addingMore, setAddingMore] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [manualItem, setManualItem] = useState("");
 
   useEffect(() => {
     if (selectedRecipes.length === 0) { setTotalCost(null); return; }
@@ -88,6 +89,17 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
       alert("Failed to generate list: " + e.message);
     }
     setGenerating(false);
+  }
+
+  function addManualItem() {
+    if (!manualItem.trim()) return;
+    const name = manualItem.trim();
+    const key = "manual-" + name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
+    const newItem = { key, name, amounts: [], aisle: "Other", sources: [] };
+    const updated = [...consolidated, newItem];
+    setConsolidated(updated);
+    onSaveList(updated, false, {}, selectedRecipes);
+    setManualItem("");
   }
 
   async function handleGoToShop() {
@@ -237,6 +249,16 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
           <div className="shopping-list-header">
             <p className="shopping-list-subtitle">Cross off anything you already have</p>
             <button onClick={() => setShowClearConfirm(true)} className="btn btn-danger" style={{ fontSize: 12 }}>🗑 Clear list</button>
+          </div>
+          <div className="pantry-add-row" style={{ marginBottom: 12 }}>
+            <input
+              value={manualItem}
+              onChange={e => setManualItem(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && addManualItem()}
+              placeholder="Add item to list…"
+              className="input"
+            />
+            <button onClick={addManualItem} className="btn btn-gold">Add</button>
           </div>
 
           {showClearConfirm && (

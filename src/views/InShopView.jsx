@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { supabase } from "../supabase";
 import { DUNNES_AISLES } from "../constants";
 import ReceiptScanner from "../components/ReceiptScanner";
 
@@ -19,14 +20,14 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
   const [showConfirm, setShowConfirm] = useState(false);
   const [showStartOver, setShowStartOver] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [manualItem, setManualItem] = useState("");
   const [persistedScanItems, setPersistedScanItems] = useState(savedList?.scanned_items || []);
 
   async function handleScanComplete(scannedItems) {
     setPersistedScanItems(scannedItems);
     if (savedList) {
-      await import("../supabase").then(({ supabase }) =>
-        supabase.from("shopping_list").update({ scanned_items: scannedItems }).eq("id", savedList.id)
-      );
+      await supabase.from("shopping_list").update({ scanned_items: scannedItems }).eq("id", savedList.id);
     }
     await handleReceiptConfirm(scannedItems);
   }
@@ -34,6 +35,20 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
   const items = savedList?.items || [];
   const tickedCount = items.filter(i => checked[i.key]).length;
   const allChecked = items.length > 0 && tickedCount === items.length;
+
+  async function addManualItem() {
+    if (!manualItem.trim()) return;
+    const name = manualItem.trim();
+    const key = "manual-" + name.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
+    const newItem = { key, name, amounts: [], aisle: "Other" };
+    const updatedItems = [...items, newItem];
+    await onSaveTicked(checked);
+    if (savedList) {
+      await supabase.from("shopping_list").update({ items: updatedItems }).eq("id", savedList.id);
+    }
+    setManualItem("");
+    setShowAddItem(false);
+  }
 
   function toggleItem(key) {
     setChecked(c => {
@@ -162,6 +177,34 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
           </div>
         );
       })}
+
+      <button
+        onClick={() => setShowAddItem(true)}
+        style={{ position: "fixed", bottom: 90, right: 20, width: 52, height: 52, borderRadius: "50%", background: "var(--color-gold)", border: "none", fontSize: 28, color: "white", boxShadow: "0 4px 12px rgba(0,0,0,0.2)", cursor: "pointer", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" }}
+      >+</button>
+
+      {showAddItem && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <h2 className="modal-title">Add item</h2>
+              <span className="modal-close" onClick={() => setShowAddItem(false)}>×</span>
+            </div>
+            <div style={{ display: "flex", gap: 8, padding: "8px 0" }}>
+              <input
+                value={manualItem}
+                onChange={e => setManualItem(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && addManualItem()}
+                placeholder="e.g. Milk, Bread…"
+                className="input"
+                style={{ flex: 1 }}
+                autoFocus
+              />
+              <button onClick={addManualItem} className="btn btn-gold">Add</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showStartOver && (
         <div className="modal-overlay">

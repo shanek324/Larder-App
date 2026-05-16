@@ -84,15 +84,26 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
       const res = await callClaude(messages, "", 2000, "claude-haiku-4-5-20251001");
       const cleaned = res.replace(/```json/g, "").replace(/```/g, "").trim();
       const parsed = JSON.parse(cleaned);
-      const newItems = parsed.map((i, idx) => ({
-        id: "pantry-" + Date.now() + idx,
-        name: i.name,
-        aisle: i.aisle || "Other",
-        addedAt: Date.now(),
-        stockLevel: "high",
-        quantity: i.quantity || null,
-        unit: i.unit || null,
-      }));
+      const newItems = parsed.map((i, idx) => {
+        // Find all pantry items that match this cleaned name and keep the highest stock level
+        const matches = pantryItems.filter(p =>
+          p.name.toLowerCase().includes(i.name.toLowerCase()) ||
+          i.name.toLowerCase().includes(p.name.toLowerCase())
+        );
+        const stockLevels = ["high", "medium", "low"];
+        const bestStock = matches.length > 0
+          ? stockLevels.find(level => matches.some(m => (m.stockLevel || "high") === level)) || "high"
+          : "high";
+        return {
+          id: "pantry-" + Date.now() + idx,
+          name: i.name,
+          aisle: i.aisle || "Other",
+          addedAt: Date.now(),
+          stockLevel: bestStock,
+          quantity: i.quantity || null,
+          unit: i.unit || null,
+        };
+      });
       await onUpdatePantry(newItems);
     } catch(e) {
       console.error("Cleanup error:", e);
