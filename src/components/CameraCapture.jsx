@@ -41,17 +41,20 @@ export default function CameraCapture({ onCapture, onClose }) {
     if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
   }
 
-  function retake() {
+  async function retake() {
     setPreview(null);
-    async function restart() {
+    try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" }
       });
       streamRef.current = stream;
-      videoRef.current.srcObject = stream;
-      videoRef.current.play();
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+    } catch (e) {
+      setError("Could not restart camera: " + e.message);
     }
-    restart();
   }
 
   function confirm() {
