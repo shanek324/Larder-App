@@ -11,6 +11,7 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
   const [search, setSearch] = useState("");
   const [filterTag, setFilterTag] = useState(null);
   const [adding, setAdding] = useState({});
+  const [addedOriginals, setAddedOriginals] = useState(new Set());
   const [selectedRecipe, setSelectedRecipe] = useState(null);
 
   useEffect(() => {
@@ -71,6 +72,7 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
       is_public: false,
     };
     await onAdd(forked);
+    setAddedOriginals(s => { const n = new Set(s); n.add(recipe.id); return n; });
     setAdding(a => ({ ...a, [recipe.id]: false }));
   }
 
@@ -96,7 +98,7 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
         onUpdateCollections={() => {}}
         onStartCooking={null}
         onDuplicate={() => handleAdd(selectedRecipe)}
-        onAddToLibrary={ownRecipeIds.includes(selectedRecipe.id) ? null : () => handleAdd(selectedRecipe)}
+        onAddToLibrary={(ownRecipeIds.includes(selectedRecipe.id) || addedOriginals.has(selectedRecipe.id)) ? null : () => handleAdd(selectedRecipe)}
         session={session}
         checkCredits={() => false}
         authorName={profiles[selectedRecipe.user_id] || null}
@@ -138,7 +140,7 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {filtered.map(r => {
             const isOwn = r.user_id === session?.user?.id;
-            const alreadyAdded = ownRecipeIds.includes(r.id);
+            const alreadyAdded = ownRecipeIds.includes(r.id) || addedOriginals.has(r.id);
             const author = profiles[r.user_id];
             return (
               <div key={r.id}>
