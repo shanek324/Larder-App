@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DUNNES_AISLES } from "../constants";
 import { callClaude, matchesPantry, estimateRecipeCost, categoriseIngredient } from "../utils";
 
@@ -56,6 +56,16 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRecipes, recipes]);
+
+  const saveTimerRef = useRef(null);
+  function updateAmount(itemKey, newAmount) {
+    const updated = consolidated.map(i => i.key === itemKey ? { ...i, amounts: [newAmount] } : i);
+    setConsolidated(updated);
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      onSaveList(updated, false, crossedOff, selectedRecipes);
+    }, 800);
+  }
 
   async function handleGenerate() {
     setGenerating(true);
@@ -299,11 +309,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
                         <input
                           type="text"
                           value={(item.amounts || []).join(" + ")}
-                          onChange={e => {
-                            const updated = consolidated.map(i => i.key === item.key ? { ...i, amounts: [e.target.value] } : i);
-                            setConsolidated(updated);
-                            onSaveList(updated, false, crossedOff, selectedRecipes);
-                          }}
+                          onChange={e => updateAmount(item.key, e.target.value)}
                           onClick={e => e.stopPropagation()}
                           className="shopping-item-amount-input"
                           placeholder="amount"
