@@ -9,18 +9,20 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
   const [savingUsername, setSavingUsername] = useState(false);
 
   useEffect(() => {
+    if (!session?.user?.id) return;
     async function loadProfile() {
       const { data } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", session?.user?.id)
+        .eq("id", session.user.id)
         .single();
       setProfile(data);
-      setUsernameInput(data?.username || "");
+      if (!editingUsername) setUsernameInput(data?.username || "");
       setLoading(false);
     }
     loadProfile();
-  }, [session]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id]);
 
   async function saveUsername() {
     setSavingUsername(true);
