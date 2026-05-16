@@ -4,8 +4,6 @@ import { callClaude, matchesPantry, estimateRecipeCost } from "../utils";
 
 export default function ShoppingListView({ recipes, pantryItems, onSaveList, savedList, onClearList, selectedRecipes, setSelectedRecipes, consolidated, setConsolidated, crossedOff, setCrossedOff, checkCredits }) {
 
-
-
   const [expandedSources, setExpandedSources] = useState({});
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -13,6 +11,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
   const [filterTag, setFilterTag] = useState(null);
   const [totalCost, setTotalCost] = useState(null);
   const [editedAmounts, setEditedAmounts] = useState({});
+  const [addingMore, setAddingMore] = useState(false);
 
   useEffect(() => {
     if (selectedRecipes.length === 0) { setTotalCost(null); return; }
@@ -30,9 +29,11 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
 
   function toggleRecipe(id) {
     setSelectedRecipes(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
-    setConsolidated(null);
-    setCrossedOff({});
-    setExpandedSources({});
+    if (!addingMore) {
+      setConsolidated(null);
+      setCrossedOff({});
+      setExpandedSources({});
+    }
   }
 
   function toggleCross(key) {
@@ -57,13 +58,18 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
     localStorage.setItem("lastSelectedRecipes", JSON.stringify(selectedRecipes));
     setGenerating(true);
 
+    // When adding more, include existing consolidated items as context
+    const existingLines = (addingMore && consolidated)
+      ? consolidated.map(i => (i.amounts || []).join(" + ") + " " + i.name + " [existing]").join("\n") + "\n"
+      : "";
+
     const ingredientLines = selectedRecipeObjects.flatMap(r =>
       r.ingredients.map(i => (i.amount ? i.amount + " " : "") + i.name + " [" + r.title + "]")
     ).join("\n");
 
     const messages = [{
       role: "user",
-      content: "Consolidate these shopping ingredients into a clean list. Each line ends with [Recipe Name] showing the source. Rules: 1) Combine duplicates and similar items. 2) Use short clean names only - no descriptors like minced, sliced, grated. 3) Assign aisle from: " + aisleNames + ", Other. 4) Include a sources array listing which recipes need each item.\n\n" + ingredientLines + "\n\nReply ONLY with a JSON array. Each item: name (string), amounts (string array), aisle (string), key (con- prefixed slug), sources (string array of recipe names)."
+      content: "Consolidate these shopping ingredients into a clean list. Each line ends with [Recipe Name] showing the source. Items marked [existing] are already on the list — merge new items into them where appropriate. Rules: 1) Combine duplicates and similar items. 2) Use short clean names only - no descriptors like minced, sliced, grated. 3) Assign aisle from: " + aisleNames + ", Other. 4) Include a sources array listing which recipes need each item.\n\n" + existingLines + ingredientLines + "\n\nReply ONLY with a JSON array. Each item: name (string), amounts (string array), aisle (string), key (con- prefixed slug), sources (string array of recipe names)."
     }];
 
     try {
@@ -73,8 +79,9 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
       const filtered = parsed.filter(item => !matchesPantry(item.name, pantryItems));
       setConsolidated(filtered);
       setEditedAmounts({});
-      // Save immediately so navigating away and back restores the list
-      await onSaveList(filtered, false);
+      setAddingMore(false);
+      // Save with recipe_ids so we can restore selected recipes
+      await onSaveList(filtered, false, {}, selectedRecipes);
     } catch(e) {
       console.error("Generate error:", e);
       alert("Failed to generate list: " + e.message);
@@ -86,7 +93,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
     setSaving(true);
     // Remove crossed-off items and mark as prepared (in-shop phase)
     const finalItems = consolidated.filter(i => !crossedOff[i.key]);
-    await onSaveList(finalItems, true);
+    await onSaveList(finalItems, true, {}, selectedRecipes);
     setSaving(false);
   }
 
@@ -110,12 +117,17 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
           </p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          {selectedRecipes.length > 0 && !consolidated && (
-            <button onClick={handleGenerate} disabled={generating} className="btn btn-gold btn-lg">
-              {generating ? "Generating..." : "✦ Generate List"}
+          {consolidated && !addingMore && (
+            <button onClick={() => setAddingMore(true)} className="btn btn-secondary">
+              + Add recipes
             </button>
           )}
-          {consolidated && consolidated.length > 0 && (
+          {(selectedRecipes.length > 0 && !consolidated) || (addingMore && selectedRecipes.length > 0) ? (
+            <button onClick={handleGenerate} disabled={generating} className="btn btn-gold btn-lg">
+              {generating ? "Generating..." : addingMore ? "✦ Merge into list" : "✦ Generate List"}
+            </button>
+          ) : null}
+          {consolidated && consolidated.length > 0 && !addingMore && (
             <button onClick={handleGoToShop} disabled={saving} className="btn btn-primary btn-lg">
               {saving ? "Saving..." : "Go to Shop →"}
             </button>
@@ -146,8 +158,16 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
         </div>
       )}
 
-      {!consolidated && (
+      {(!consolidated || addingMore) && (
         <>
+          {addingMore && (
+            <div className="card-note" style={{ marginBottom: 16, borderLeft: "3px solid var(--color-gold)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--color-text-muted-dark)", margin: 0 }}>
+                Pick more recipes to merge into your existing list
+              </p>
+              <button onClick={() => { setAddingMore(false); setSelectedRecipes(savedList?.recipe_ids || []); }} className="btn btn-secondary">Cancel</button>
+            </div>
+          )}
           {selectedRecipes.length > 0 && (
             <div className="shopping-selected-bar">
               <p className="shopping-selected-label">Selected:</p>
@@ -204,14 +224,14 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
         </>
       )}
 
-      {consolidated && consolidated.length === 0 && (
+      {consolidated && consolidated.length === 0 && !addingMore && (
         <div className="empty-state">
           <p className="empty-state-emoji">✅</p>
           <p className="empty-state-title">Everything is already in your pantry!</p>
         </div>
       )}
 
-      {consolidated && consolidated.length > 0 && (
+      {consolidated && consolidated.length > 0 && !addingMore && (
         <>
           <div className="shopping-list-header">
             <p className="shopping-list-subtitle">Cross off anything you already have</p>

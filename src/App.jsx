@@ -250,13 +250,20 @@ export default function App() {
     setPantryItems(updated);
   }
 
-  async function saveShoppingList(items, prepared = false) {
+  async function saveShoppingList(items, prepared = false, ticked = {}, recipe_ids = []) {
     if (savedShoppingList) {
-      await supabase.from("shopping_list").update({ items, prepared }).eq("id", savedShoppingList.id);
-      setSavedShoppingList({ ...savedShoppingList, items, prepared });
+      await supabase.from("shopping_list").update({ items, prepared, ticked, recipe_ids }).eq("id", savedShoppingList.id);
+      setSavedShoppingList({ ...savedShoppingList, items, prepared, ticked, recipe_ids });
     } else {
-      const { data } = await supabase.from("shopping_list").insert({ items, prepared, user_id: session?.user?.id, created_at: Date.now() }).select().single();
+      const { data } = await supabase.from("shopping_list").insert({ items, prepared, ticked, recipe_ids, user_id: session?.user?.id, created_at: Date.now() }).select().single();
       setSavedShoppingList(data);
+    }
+  }
+
+  async function saveTicked(ticked) {
+    if (savedShoppingList) {
+      await supabase.from("shopping_list").update({ ticked }).eq("id", savedShoppingList.id);
+      setSavedShoppingList(s => ({ ...s, ticked }));
     }
   }
 
@@ -394,6 +401,7 @@ export default function App() {
               onClearList={clearShoppingList}
               onUpdatePantry={updatePantry}
               onSavePrices={savePrices}
+              onSaveTicked={saveTicked}
               checkCredits={checkCredits}
             />
           ) : (

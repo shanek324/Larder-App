@@ -1,9 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { DUNNES_AISLES } from "../constants";
 import ReceiptScanner from "../components/ReceiptScanner";
 
-export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices, checkCredits }) {
-  const [checked, setChecked] = useState({});
+export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices, onSaveTicked, checkCredits }) {
+  const [checked, setChecked] = useState(savedList?.ticked || {});
+  const debounceRef = useRef(null);
+
+  useEffect(() => {
+    setChecked(savedList?.ticked || {});
+  }, [savedList?.id]);
+
+  const debouncedSave = useCallback((newChecked) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      onSaveTicked(newChecked);
+    }, 2000);
+  }, [onSaveTicked]);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showStartOver, setShowStartOver] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -13,7 +25,11 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
   const allChecked = items.length > 0 && tickedCount === items.length;
 
   function toggleItem(key) {
-    setChecked(c => ({ ...c, [key]: !c[key] }));
+    setChecked(c => {
+      const newChecked = { ...c, [key]: !c[key] };
+      debouncedSave(newChecked);
+      return newChecked;
+    });
   }
 
   async function handleReceiptConfirm(scannedItems) {
