@@ -512,6 +512,9 @@ export default function App() {
             filterTag={filterTag}
             setFilterTag={setFilterTag}
             onBrowse={() => setView("browse")}
+            onOpenAdd={() => setShowAdd(true)}
+            onOpenGenerate={() => setShowGenerate(true)}
+            onOpenImport={() => setShowImport(true)}
           />
         )}
       </div>
