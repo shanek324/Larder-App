@@ -491,7 +491,7 @@ export default function App() {
           <ProfileView
             session={session}
             onSignOut={() => supabase.auth.signOut()}
-            onNavigate={setView}
+            onNavigate={(target, id) => { if (target === "recipe" && id) { setActiveRecipeId(id); setView("recipe"); } else { setView(target); } }}
             recipes={recipes}
             collections={collections}
           />

@@ -1,5 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "../supabase";
+
+function getInitials(profile, email) {
+  const source = (profile?.username || email || "").trim();
+  if (!source) return "?";
+  const parts = source.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return source.slice(0, 2).toUpperCase();
+}
 
 export default function ProfileView({ session, onSignOut, onNavigate, recipes, collections }) {
   const [profile, setProfile] = useState(null);
@@ -35,69 +43,103 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
   const tier = profile?.tier || "starter";
   const used = profile?.ai_credits_used || 0;
   const limit = tier === "power" ? "∞" : tier === "starter" ? 5 : 0;
+  const initials = getInitials(profile, session?.user?.email);
+  const email = session?.user?.email || "";
+
+  // Most cooked recipe
+  const mostCooked = useMemo(() => {
+    const withCounts = recipes.filter(r => (r.cook_count || 0) > 0);
+    if (withCounts.length === 0) return null;
+    return [...withCounts].sort((a, b) => (b.cook_count || 0) - (a.cook_count || 0))[0];
+  }, [recipes]);
+
+  const totalCooks = useMemo(
+    () => recipes.reduce((sum, r) => sum + (r.cook_count || 0), 0),
+    [recipes]
+  );
 
   return (
-    <div className="view">
-      <div className="view-header">
-        <div>
-          <h1 className="page-title">Profile</h1>
-          <p className="page-subtitle">{session?.user?.email}</p>
-        </div>
+    <div className="view profile-view">
+      {/* Avatar header */}
+      <div className="profile-hero">
+        <div className="profile-avatar" aria-hidden="true">{initials}</div>
+        <h1 className="profile-name">{profile?.username || "Set your name"}</h1>
+        <p className="profile-email">{email}</p>
       </div>
 
-      {/* Username */}
+      {/* Display name (editable) */}
       <div className="profile-card">
         <p className="profile-card-label">Display Name</p>
         {editingUsername ? (
-          <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
+          <div className="profile-edit-row">
             <input
               value={usernameInput}
               onChange={e => setUsernameInput(e.target.value)}
               placeholder="Your name"
-              className="input"
-              style={{ flex: 1 }}
+              className="input profile-edit-input"
               autoFocus
             />
             <button onClick={saveUsername} disabled={savingUsername} className="btn btn-gold">
               {savingUsername ? "Saving…" : "Save"}
             </button>
-            <button onClick={() => { setEditingUsername(false); setUsernameInput(profile?.username || ""); }} className="btn btn-secondary">Cancel</button>
+            <button
+              onClick={() => { setEditingUsername(false); setUsernameInput(profile?.username || ""); }}
+              className="btn btn-secondary"
+            >Cancel</button>
           </div>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
-            <span style={{ fontFamily: "var(--font-sans)", fontSize: 15, color: profile?.username ? "var(--color-text)" : "var(--color-text-muted)" }}>
-              {profile?.username || "Not set — add a name to show on public recipes"}
+          <div className="profile-display-row">
+            <span className={"profile-display-value" + (profile?.username ? "" : " profile-display-empty")}>
+              {profile?.username || "Add a name to appear on public recipes"}
             </span>
-            <button onClick={() => setEditingUsername(true)} className="btn btn-secondary" style={{ fontSize: 12 }}>Edit</button>
+            <button onClick={() => setEditingUsername(true)} className="btn btn-secondary profile-edit-btn">Edit</button>
           </div>
         )}
       </div>
+
+      {/* Stats row */}
+      <div className="profile-stats-row">
+        <div className="profile-stat-tile">
+          <span className="profile-stat-tile-value">{recipes.length}</span>
+          <span className="profile-stat-tile-label">Recipes</span>
+        </div>
+        <div className="profile-stat-tile">
+          <span className="profile-stat-tile-value">{totalCooks}</span>
+          <span className="profile-stat-tile-label">Cooks</span>
+        </div>
+        <div className="profile-stat-tile">
+          <span className="profile-stat-tile-value">{collections.length}</span>
+          <span className="profile-stat-tile-label">Collections</span>
+        </div>
+        <div className="profile-stat-tile">
+          <span className="profile-stat-tile-value">{recipes.filter(r => r.is_public).length}</span>
+          <span className="profile-stat-tile-label">Public</span>
+        </div>
+      </div>
+
+      {/* Most cooked highlight */}
+      {mostCooked && (
+        <button
+          onClick={() => onNavigate("recipe", mostCooked.id)}
+          className="profile-highlight"
+        >
+          <div className="profile-highlight-body">
+            <p className="profile-highlight-eyebrow">Most cooked</p>
+            <p className="profile-highlight-title">{mostCooked.title}</p>
+            <p className="profile-highlight-meta">Cooked {mostCooked.cook_count}× · tap to open</p>
+          </div>
+          <span className="profile-highlight-arrow">→</span>
+        </button>
+      )}
 
       {/* Account tier */}
       <div className="profile-card">
         <p className="profile-card-label">Account</p>
         <div className="profile-tier-row">
-          <span className={"profile-tier-badge profile-tier-" + tier}>{tier === "power" ? "⚡ Power" : tier === "starter" ? "🌱 Starter" : "🆓 Free"}</span>
+          <span className={"profile-tier-badge profile-tier-" + tier}>
+            {tier === "power" ? "⚡ Power" : tier === "starter" ? "🌱 Starter" : "🆓 Free"}
+          </span>
           <span className="profile-credits">{used} / {limit} AI actions today</span>
-        </div>
-      </div>
-
-      {/* My Library stats */}
-      <div className="profile-card">
-        <p className="profile-card-label">My Library</p>
-        <div className="profile-stats">
-          <div className="profile-stat">
-            <span className="profile-stat-value">{recipes.length}</span>
-            <span className="profile-stat-label">Recipes</span>
-          </div>
-          <div className="profile-stat">
-            <span className="profile-stat-value">{collections.length}</span>
-            <span className="profile-stat-label">Collections</span>
-          </div>
-          <div className="profile-stat">
-            <span className="profile-stat-value">{recipes.filter(r => r.is_public).length}</span>
-            <span className="profile-stat-label">Public</span>
-          </div>
         </div>
       </div>
 
@@ -115,9 +157,7 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
       </div>
 
       {/* Sign out */}
-      <div style={{ marginTop: 24 }}>
-        <button onClick={onSignOut} className="btn btn-outline btn-full">Sign Out</button>
-      </div>
+      <button onClick={onSignOut} className="btn btn-outline btn-full profile-signout">Sign Out</button>
     </div>
   );
 }
