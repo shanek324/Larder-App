@@ -3356,3 +3356,23 @@ textarea.input { resize: none; }
   padding: 14px 16px;
   margin-bottom: 10px;
 }
+
+/* ========================================
+   PROFILE — danger zone (delete account)
+   ======================================== */
+
+.profile-danger-zone {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.profile-danger-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0 0 8px;
+}

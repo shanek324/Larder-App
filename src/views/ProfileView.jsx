@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "../supabase";
+import { toast } from "../toast";
 
 function getInitials(profile, email) {
   const source = (profile?.username || email || "").trim();
@@ -15,6 +16,33 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
   const [editingUsername, setEditingUsername] = useState(false);
   const [usernameInput, setUsernameInput] = useState("");
   const [savingUsername, setSavingUsername] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDeleteAccount() {
+    if (deleteConfirmText !== "DELETE") return;
+    setDeleting(true);
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      const token = s?.access_token || "";
+      const res = await fetch("/api/delete-account", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Delete failed");
+      }
+      toast.success("Account deleted");
+      // Sign out locally — the auth row is already gone server-side
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error("delete account error", e);
+      toast.error("Couldn\u2019t delete account: " + e.message);
+      setDeleting(false);
+    }
+  }
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -158,6 +186,52 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
 
       {/* Sign out */}
       <button onClick={onSignOut} className="btn btn-outline btn-full profile-signout">Sign Out</button>
+
+      {/* Danger zone */}
+      <div className="profile-danger-zone">
+        <p className="profile-danger-label">Danger zone</p>
+        <button
+          onClick={() => { setShowDeleteConfirm(true); setDeleteConfirmText(""); }}
+          className="btn btn-danger btn-full"
+        >Delete my account</button>
+      </div>
+
+      {showDeleteConfirm && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 440, textAlign: "center" }}>
+            <p style={{ fontSize: 40, marginBottom: 8 }}>⚠️</p>
+            <h2 className="section-title" style={{ textAlign: "center" }}>Delete your account?</h2>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 16, lineHeight: 1.5 }}>
+              This will permanently delete all your recipes, collections, pantry, meal plans, cook history, shopping list and prices.<br /><br />
+              <strong>This cannot be undone.</strong>
+            </p>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--color-text-muted-dark)", marginBottom: 8 }}>
+              Type <strong>DELETE</strong> to confirm:
+            </p>
+            <input
+              value={deleteConfirmText}
+              onChange={e => setDeleteConfirmText(e.target.value)}
+              placeholder="DELETE"
+              className="input"
+              style={{ marginBottom: 16, textAlign: "center", letterSpacing: 2 }}
+              autoFocus
+            />
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== "DELETE" || deleting}
+                className="btn btn-danger btn-lg"
+                style={{ flex: 1 }}
+              >{deleting ? "Deleting…" : "Yes, delete everything"}</button>
+              <button
+                onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}
+                disabled={deleting}
+                className="btn btn-secondary btn-lg"
+              >Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
