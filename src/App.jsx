@@ -11,6 +11,7 @@ import GenerateModal from "./views/GenerateModal";
 import AddRecipeModal from "./views/AddRecipeModal";
 import ImportRecipeModal from "./views/ImportRecipeModal";
 import Login from "./Login";
+import ToastHost from "./components/ToastHost";
 import CookingMode from "./views/CookingMode";
 import CookHistoryView from "./views/CookHistoryView";
 import BrowseView from "./views/BrowseView";
@@ -528,6 +529,7 @@ export default function App() {
       {showGenerate && <GenerateModal onClose={() => setShowGenerate(false)} onAdd={addRecipe} checkCredits={checkCredits} />}
       {showAdd && <AddRecipeModal onClose={() => { setShowAdd(false); setDuplicateData(null); }} onAdd={addRecipe} initialData={duplicateData} onOverwrite={handleOverwrite} />}
       {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} onAdd={addRecipe} checkCredits={checkCredits} />}
+      <ToastHost />
     </div>
   );
 }
