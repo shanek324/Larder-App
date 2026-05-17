@@ -317,7 +317,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
                         {item.sources && item.sources.length > 0 && (
                           <button
                             onClick={e => { e.preventDefault(); e.stopPropagation(); toggleSources(item.key); }}
-                            style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "var(--color-text-muted)", padding: "0 4px", flexShrink: 0 }}
+                            className="shopping-source-toggle"
                           >
                             {expandedSources[item.key] ? "▲" : "▼"}
                           </button>
