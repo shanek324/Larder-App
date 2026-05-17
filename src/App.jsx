@@ -438,6 +438,27 @@ export default function App() {
     }
   }
 
+  async function handleLogDeleted(recipeId) {
+    try {
+      // Recount logs for this recipe and sync cook_count
+      const { count, error: countErr } = await supabase
+        .from("cook_logs")
+        .select("*", { count: "exact", head: true })
+        .eq("recipe_id", recipeId);
+      if (countErr) throw countErr;
+      const newCount = count || 0;
+      const { error: updErr } = await supabase
+        .from("recipes")
+        .update({ cook_count: newCount })
+        .eq("id", recipeId);
+      if (updErr) throw updErr;
+      setRecipes(rs => rs.map(r => r.id === recipeId ? { ...r, cook_count: newCount } : r));
+    } catch(e) {
+      console.error("handleLogDeleted error", e);
+      toast.error("Couldn't sync cook count. Reload to refresh.");
+    }
+  }
+
   function viewRecipe(id) { setActiveRecipeId(id); setView("recipe"); }
   function handleBack() { setActiveRecipeId(null); setView("home"); }
 
@@ -565,7 +586,7 @@ export default function App() {
             />
           )
         ) : view === "history" ? (
-          <CookHistoryView recipes={recipes} />
+          <CookHistoryView recipes={recipes} onLogDeleted={handleLogDeleted} />
         ) : view === "browse" ? (
           <BrowseView session={session} onAdd={addRecipe} ownRecipeIds={recipes.map(r => r.id)} />
         ) : view === "plan" ? (

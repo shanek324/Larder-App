@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 
-export default function CookHistoryView({ recipes }) {
+export default function CookHistoryView({ recipes, onLogDeleted }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -28,8 +28,14 @@ export default function CookHistoryView({ recipes }) {
   }
 
   async function deleteLog(id) {
-    await supabase.from("cook_logs").delete().eq("id", id);
+    const log = logs.find(l => l.id === id);
+    const { error } = await supabase.from("cook_logs").delete().eq("id", id);
+    if (error) {
+      console.error("deleteLog error", error);
+      return;
+    }
     setLogs(logs => logs.filter(l => l.id !== id));
+    if (log && onLogDeleted) onLogDeleted(log.recipe_id);
   }
 
   if (loading) return <div className="view"><p style={{ padding: 24 }}>Loading...</p></div>;
