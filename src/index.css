@@ -2564,7 +2564,15 @@ textarea.input { resize: none; }
 .recipe-collection-checkbox { accent-color: var(--color-gold); }
 
 @media (max-width: 600px) {
-  .recipe-overflow-menu { min-width: 200px; }
+  .recipe-overflow-menu {
+    /* On mobile the ⋯ button sits mid-screen, so anchor the menu's LEFT edge
+       to the trigger and let it extend rightward. Cap width to viewport. */
+    right: auto;
+    left: 0;
+    min-width: 0;
+    width: max-content;
+    max-width: calc(100vw - 24px);
+  }
 }
 
 /* ========================================
