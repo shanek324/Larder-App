@@ -814,6 +814,13 @@ textarea.input { resize: none; }
   .collections-item { min-width: 140px; flex-shrink: 0; }
 }
 
+
+.collections-recipe-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 /* ========================================
    GENERATE MODAL
    ======================================== */

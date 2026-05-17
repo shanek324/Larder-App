@@ -8,6 +8,7 @@ export default function CollectionsView({ collections, recipes, onUpdateCollecti
   const [newName, setNewName] = useState("");
   const [newEmoji, setNewEmoji] = useState("📁");
   const [activeCol, setActiveCol] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   function createCollection() {
     if (!newName.trim()) return;
@@ -88,7 +89,7 @@ export default function CollectionsView({ collections, recipes, onUpdateCollecti
                   <div className="collections-item-count">{col.recipeIds.length} recipe{col.recipeIds.length !== 1 ? "s" : ""}</div>
                 </div>
                 <span
-                  onClick={e => { e.stopPropagation(); deleteCollection(col.id); }}
+                  onClick={e => { e.stopPropagation(); setConfirmDelete(col); }}
                   className="collections-item-delete"
                 >×</span>
               </div>
@@ -104,13 +105,33 @@ export default function CollectionsView({ collections, recipes, onUpdateCollecti
                   <p className="empty-state-text">Add recipes to this collection from the recipe detail view.</p>
                 </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div className="collections-recipe-stack">
                   {activeRecipes.map(r => <RecipeCard key={r.id} recipe={r} onClick={() => onViewRecipe(r.id)} compact />)}
                 </div>
               )
             ) : (
               <div className="collections-placeholder">← Select a collection to view its recipes</div>
             )}
+          </div>
+        </div>
+      )}
+
+      {confirmDelete && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+            <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
+            <h2 className="section-title" style={{ textAlign: "center" }}>Delete this collection?</h2>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
+              "{confirmDelete.emoji} {confirmDelete.name}" — recipes inside will not be deleted.
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => { deleteCollection(confirmDelete.id); setConfirmDelete(null); }}
+                className="btn btn-danger btn-lg"
+                style={{ flex: 1 }}
+              >Yes, delete</button>
+              <button onClick={() => setConfirmDelete(null)} className="btn btn-secondary btn-lg">Cancel</button>
+            </div>
           </div>
         </div>
       )}
