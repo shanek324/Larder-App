@@ -1,194 +1,135 @@
 # Larder App — Roadmap
 
-## ✅ Completed
+## ✅ Shipped
 
 ### Infrastructure
-- Vite + React project setup on Chromebook Linux
-- Modular file structure (components, views, constants, utils)
-- GitHub repo at shanek324/Larder-App
-- Deployed to Vercel at larder-app-omega.vercel.app
-- Supabase database (recipes, collections, pantry, shopping_list, cook_logs, prices, meal_plans tables)
-- Auto-deploy on git push
-- Supabase Row Level Security (RLS) — all tables locked per user, audited and verified
-- Supabase Auth — email/password login and logout + public sign up flow
-- Auto-create profile row trigger on new user signup (+ backfilled existing users)
-- Claude API proxy via Vercel serverless function (api/claude.js)
-- Anthropic API key safely server-side, JWT-required, credits checked server-side
-- Haiku for mechanical tasks, Sonnet for creative tasks
-- Full CSS refactor — design tokens, CSS variables, no inline styles, ~1400 lines
+- Vite + React, deployed on Vercel (auto-deploy on push), Supabase backend
+- Supabase Auth (email/password, sign up flow, profile auto-create trigger)
+- Row Level Security on every table, audited
+- Claude API proxy via Vercel serverless functions, JWT-required, credits checked server-side
+- Haiku for mechanical tasks (consolidation, cleanup), Sonnet for creative tasks (generation, chat)
+- SSRF protection on /api/fetch-url
 
-### App Features
-- Recipe library with search and tag filtering
-- Recipe detail view with ingredients and method
-- Serving scaler (scale any recipe up or down)
-- Edit and delete recipes
-- Duplicate a recipe (appends "copy", resets cook count)
-- Add recipe manually via form
-- Import recipe from URL — Claude Sonnet extracts and formats via api/fetch-url.js proxy
-- AI recipe generator (describe a dish, get a full recipe)
-- AI recipe assistant per recipe (clickable suggestion chips, conversation trimmed to last 10 messages)
-- Add Recipe consolidated dropdown — manual, AI generate, import URL in one button
-- Recipe hero image — upload photo per recipe, stored in Supabase Storage (recipe-images bucket)
-- Collections (group recipes into named sets with emoji)
-- Pantry (track what you have in stock, grouped by aisle)
-- Pantry tap-to-edit modal — name, quantity, standardised unit dropdown, aisle, stock level
-- Pantry stock levels — High/Medium/Low per item, colour coded
-- Pantry cleanup via Claude Haiku (deduplicates and normalises messy entries)
-- Shopping list — recipe picker with search and tag filter
-- Claude Haiku consolidates ingredients intelligently (combines duplicates, assigns aisles)
-- Quantity editing on consolidated shopping list items (debounced 800ms, single write per edit)
-- Sub-breakdown under consolidated items — tap to see source recipes and original amounts
-- Low stock alert banner in shopping list (shows pantry items marked Low)
-- Shopping list persists immediately on generate — navigating away and back restores it
-- Resume saved shopping list banner — persists between sessions via Supabase
-- Cross off items you already own before heading to shop
-- "Go to Shop" saves final list and switches to in-shop mode
-- In-shop mode — tick off items aisle by aisle, proper start-over modal
-- Manually-add items in in-shop mode (syncs to App state, no refresh needed)
-- Receipt scanner at end of shopping mode (uses authenticated callClaude util)
-- Add bought items to pantry on shop completion
-- Cooking mode — fullscreen dark UI, card-based step carousel with progress dots
-- Tips from last cook shown as a card after ingredients, before step 1
-- Ingredients card as first step, floating ingredients button during steps
-- Per-step notes in cooking mode (saved to recipe)
-- Step text auto-scales to fit card on any screen size
-- Swipe gestures for cooking mode step navigation (ignores input/textarea targets)
-- Post-cook review — 5 star rating + feedback text + recipe notes editing
-- Back button on cook review screen
-- Cook log history — collapsible panel in review screen showing previous cooks (date, rating, feedback, AI tips)
-- Cook history view — dedicated screen listing all past cooks, with delete per entry
-- Claude Haiku generates tips from feedback, saved to cook_logs table
-- Cook count tracked per recipe (Skip review still increments count + lastCooked)
-- Pantry update step after cooking — opt-in AI suggestion button (no auto-burn of credits)
-- Responsive UI — all views adapt to mobile, nav icons-only on very small screens
-- Receipt scanner — photograph supermarket receipt, Haiku extracts + normalises ingredient names
-- Confirm screen — toggle off non-food items, edit names/prices/quantities, aisle editable
-- Confirmed items saved to prices table (price per unit calculated) and added to pantry
-- Recipe cost estimation — exact normalised matching, single batched query, shown on recipe detail and shopping list
-- Public recipes — is_public flag + RLS allows all authenticated users to see public recipes
+### Recipes
+- Library with search, tag filtering, collections
+- Manual add, AI generate, URL import (consolidated into one Add Recipe dropdown)
+- Recipe detail with serving scaler, cost estimation, hero image upload
+- Edit, duplicate, delete, public/private toggle
+- AI recipe assistant per recipe (suggestion chips, trimmed history)
+- Photo-led recipe cards (4:3 hero image, emoji fallback by tag)
+- Recipe action row collapsed to Cook + overflow menu
 
-### Meal Planner ✅
-- 7-day week grid with prev/next/today week navigation
-- Tap-to-add recipe picker per day with search and tag filter
-- Today's column highlighted
-- Remove planned meal per entry
-- Clear week confirmation modal
-- "Shopping list" button on the week pre-populates Shopping with planned recipes
-- meal_plans table with RLS, indexed on (user_id, date)
+### Cooking Mode
+- Fullscreen dark UI, card-based step carousel, swipe gestures, auto-scaling step text
+- Ingredients card first, floating ingredients button during steps
+- Tips from last cook surfaced before step 1
+- Per-step notes saved to recipe
+- Post-cook review: 5-star rating, feedback, AI-generated tips, opt-in pantry update
+- Cook log history (per-recipe panel + dedicated history view)
+- Cook count tracked per recipe
 
-### Security & RLS
-- /api/claude and /api/fetch-url require valid Supabase JWT, credits checked server-side
-- /api/fetch-url SSRF protection — correct 172.16-31 range, IPv6 loopback/unique-local/link-local, GCP metadata endpoint
-- Browse view only fetches profiles for users with public recipes
-- ReceiptScanner uses callClaude util (auth header sent on every request)
-- RLS policies audited and confirmed on every table
+### Pantry & Shopping
+- Pantry with quantity, unit, aisle, stock level (High/Medium/Low)
+- Tap-to-edit modal, Haiku-powered cleanup, sticky aisle headers
+- Shopping list with recipe picker, Haiku ingredient consolidation, sub-breakdown under items
+- Cross-off pantry items before shopping, persist between sessions
+- In-shop mode: tick off aisle by aisle, manual add, debounced sync
+- Receipt scanner (Haiku extraction + normalisation), confirm screen, save to prices + pantry
+- Recipe cost estimation from prices table (exact normalised match, batched query)
 
-### Round-2 Audit Fixes
-- CookingMode useEffect moved above conditional returns (Rules of Hooks)
-- ReceiptScanner uses callClaude (no more 401s on scan)
-- Skip review increments cook_count and sets lastCooked
-- Browse Cook button hidden when no handler
-- Browse "Add to library" button updates immediately after add
-- Price estimate uses exact normalised match (no more "rice" matching "rice vinegar")
-- Price query batched (N+1 eliminated)
-- ProfileView only reloads on user id change, preserves in-progress edits
-- RecipeView only resets draft on recipe id change (no edit-loss on parent re-render)
-- InShopView manual-add routes through App state (no desync)
-- CookingMode refreshes cookLogs after insert (Tips card always current)
-- App.jsx canOverwrite/handleOverwrite memoised (readability + perf)
-- Auth listener unsubscribes on unmount
-- ShoppingListView cost effect: vars declared before effect, cancellation guard added
-- HomeView featured pick stable through the day (date-seeded)
-- AIChat surfaces JSON parse failures instead of silent swallow
-- AIChat trims conversation history to last 10 messages
-- App add-menu click-outside listener only attached when menu is open
-- CookingMode font auto-resize steps by 2 (less layout thrash)
+### Meal Planner
+- 7-day grid with week navigation, today highlighted
+- Tap-to-add recipe picker per day, remove per entry, clear-week confirm
+- "Shopping list" button pre-populates from week's recipes
+- meal_plans table indexed on (user_id, date)
+
+### Home Screen (Round-3 audit)
+- First-run state: three onboarding tiles + browse community fallback
+- Returning users: "Tonight" planned meal + "Running low" pantry strip (only when relevant)
+- Static welcome hero removed
+
+### Profile (Round-3 audit)
+- Avatar header (initials in gold circle), name, email
+- Four-tile stats row: Recipes / Cooks / Collections / Public
+- "Most cooked" highlight card, deep-links to recipe
+- Account tier and credit usage
+
+### Design System
+- Two-font system (Playfair serif + DM Sans)
+- Cream/gold/oak palette via CSS variables in index.css
+- Toast system (success/error/info), mounts once in App.jsx
+- Confirmation modals for destructive actions across all views
+- Round-3 audit: inline-style sweep, dead Vite boilerplate removed
 
 ### Data
-- 24+ sample recipes seeded into Supabase
-- cook_count, step_notes, image_url, is_public columns on recipes table
-- quantity, unit, price, stock_level columns on pantry table
-- prepared column on shopping_list table (tracks prep vs in-shop phase)
-- cook_logs table for rating, feedback and AI tips history
-- prices table — one row per purchase event, stores price_per_unit, quantity, unit, purchased_at
-- meal_plans table — date + recipe_id + slot + servings + notes
-- profiles table — auto-populated via handle_new_user trigger
-- Supabase Storage bucket: recipe-images (public, 5MB limit)
+- recipes: cook_count, step_notes, image_url, is_public
+- pantry: quantity, unit, price, stock_level
+- shopping_list: prepared, scanned_items
+- cook_logs, prices, meal_plans, profiles all with RLS
+- Supabase Storage bucket: recipe-images (public, 5MB)
 
 ---
 
 ## 📋 Next Up
 
-### 🚀 Native App (Priority)
-The app is currently a web app with fundamental limitations around background persistence,
-push notifications, and camera access. Moving to a native app is the next major milestone.
+### 🚀 Native App
+- **PWA** (~2-3 days): manifest.json, service worker, offline caching, installable on Android
+- **Capacitor** (~4-6 weeks): iOS/Android native, background persistence, camera, push, App Store
+- Apple Developer (€99/year), Google Play (€25 one time)
+- Privacy policy + terms required for store distribution
 
-- **Phase 1 — PWA** (~2-3 days): Add manifest.json, service worker, offline caching. Installable
-  on Android home screen. Limited on iOS but good enough for testing.
-- **Phase 2 — Capacitor** (~4-6 weeks): Wrap in Capacitor for true iOS/Android native app.
-  Fixes background persistence, enables proper camera access, push notifications, App Store distribution.
-- Apple Developer account (€99/year) + Google Play (€25 one time) needed for store distribution
-- Privacy policy + terms of service required for App Store
+### Brand & Identity
+- Real logo lockup, app icon, favicon, Apple touch icon, splash screen
+- PWA / Capacitor needs all sizes (192, 512, etc.)
+
+### Round-3 audit — outstanding polish
+- Recipe images on cards exist but no AI-generated image option for new recipes (Replicate / image gen)
+- ai-error-toast in App.jsx still uses the old custom div — migrate to new toast system
+- Loading skeleton states across views (currently blank gaps while data loads)
+- Global error boundary
+- Mobile nav: labels truncate awkwardly between 381-399px — consider icons-only earlier
+- Pantry "Add item" and search inputs look identical, hard to distinguish
+- Cooking mode: timer integration for time-based steps ("simmer 20 min" → tap to start timer)
+- Tap target sizes below 44px on pill filters, stock buttons, × close icons
+- Shopping list selected-recipe-card affordance is too subtle (just a ✓ corner)
+- BrowseView lacks visual distinction from HomeView
 
 ### Bigger Features
-- Nutritional info — AI-generated approximate macros per recipe
-- Meal planner v2 — "✦ Fill empty days" auto-suggest based on lastCooked + cook_count
-- Meal planner v2 — breakfast/lunch slots (column already exists, UI only)
-- Meal planner v2 — servings override per planned meal (column already exists)
-- AI-generated recipe hero images (e.g. via Replicate or DALL-E)
-- Multi-user / household sharing (Eve + Shane see same library)
-- Proper email provider (Resend) for auth emails — replace Supabase default
+- Nutritional info — AI-generated macros per recipe
+- Meal planner v2: AI fill empty days, breakfast/lunch slots, per-meal servings override
+- Multi-user / household sharing
+- Resend for production auth emails
 
 ---
 
-## 💰 Business Model (If Productised)
+## 💰 Business Model
 
-### Monetisation Strategy
-- **Free tier** — all manual features unlimited (add recipes, pantry, shopping list manual mode)
-- AI actions on free tier gated behind a 30 second rewarded ad (YouTube-style)
-- Ad revenue per AI action (~€0.04) covers API cost (~€0.02) on free tier
-- Paid tiers remove ads and include AI action allowances:
-  - **Starter €2.99/month** — 10 AI actions
-  - **Regular €4.99/month** — 30 AI actions
-  - **Power €9.99/month** — 100 AI actions
+### Monetisation
+- Free tier: manual features unlimited, AI actions gated behind 30s rewarded ads (~€0.04/action covers €0.02 API cost)
+- Starter €2.99/mo (10 AI actions), Regular €4.99/mo (30), Power €9.99/mo (100)
 
 ### What counts as an AI action
-- Receipt scan, recipe generation, shopping list consolidation
-- AI recipe chat message, cooking tips, pantry cleanup
+- Recipe generation, URL import, AI chat, shopping consolidation, pantry cleanup, receipt scan, cooking tips
 
 ### To productise
-- Wrap in Capacitor for iOS/Android native app (~4-6 weeks)
-- Apple Developer account (€99/year) + Google Play (€25 one time)
-- Implement action counter per user in Supabase
-- Integrate rewarded ad SDK (e.g. AdMob) for free tier
-- Privacy policy + terms of service required for App Store
-- Stripe or RevenueCat for subscription billing
+- Capacitor wrap, AdMob SDK, Stripe or RevenueCat, action counter per user
 
-### Market differentiation
-- Claude AI integration is unique vs Paprika, Mealime, Whisk
-- Receipt scanning → price tracking → recipe cost estimation — nobody else has this
-- Irish/Dunnes store awareness as local market advantage
-- Meal planner + shopping list integration in a single workflow
-
-## 💡 Future Ideas
-
-### Features
-- Offline support
-- Dark mode
-- Grocery delivery integration (send shopping list to Tesco/Dunnes online)
-- Smart home (send shopping list to Alexa/Google)
+### Differentiation
+- Claude AI throughout vs Paprika/Mealime/Whisk
+- Receipt scanning → price tracking → recipe cost estimation (no competitor has this)
+- Irish/Dunnes-aware aisle ordering
+- Meal planner + shopping list as one workflow
 
 ---
 
-## 🔧 Known Issues / Technical Debt
-- Background persistence — JS stops when switching apps on mobile (native app will fix this)
-- No global error boundary — uncaught render errors blank the whole app
-- No error handling UI on most async actions — failures often only logged to console
-- Shopping list generation can be slow with many recipes selected
-- No loading skeleton UI in views — blank gaps while data loads
-- Collections layout switches to horizontal scroll on mobile which could feel odd with many collections
-- Camera capture (take photo) unreliable on some mobile browsers — upload works fine
-- Supabase default email sender unreliable — need Resend for production auth emails
-- Recipe detail view back button always goes to home, regardless of where you came from (Plan / Browse)
-- Recipe actions row wraps onto 4 lines on small mobile screens — needs a "More" collapse
-- mealPlans only loaded for next 21 days on mount — navigating to past weeks shows empty (acceptable for now)
+## 💡 Future Ideas
+- Offline support, dark mode, grocery delivery integration, voice control in cooking mode
+
+---
+
+## 🔧 Known Issues
+- Background persistence: JS pauses on mobile app-switch (native app fixes this)
+- Shopping list consolidation can be slow with many recipes selected
+- Camera capture unreliable in some mobile browsers (upload works fine)
+- mealPlans only fetched for next 21 days on mount (past weeks empty, acceptable)
+- 500kB JS bundle, no code-splitting yet
