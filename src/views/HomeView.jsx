@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import RecipeCard from "../components/RecipeCard";
+import TagFilterSheet from "../components/TagFilterSheet";
 
 export default function HomeView({
   recipes,
@@ -17,20 +18,25 @@ export default function HomeView({
 }) {
   const [todayPlans, setTodayPlans] = useState([]);
   const [lowStock, setLowStock] = useState([]);
+  const [showTagSheet, setShowTagSheet] = useState(false);
 
-  const allTags = [...new Set(
-    recipes.flatMap(r => r.tags).map(t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase())
-  )].sort();
+  const allTags = useMemo(() => {
+    return [...new Set(
+      recipes.flatMap(r => r.tags).map(t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase())
+    )].sort();
+  }, [recipes]);
 
-  const filtered = recipes.filter(r => {
+  const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    const matchSearch = !q
-      || r.title.toLowerCase().includes(q)
-      || r.description?.toLowerCase().includes(q)
-      || r.tags.some(t => t.toLowerCase().includes(q));
-    const matchTag = !filterTag || r.tags.includes(filterTag);
-    return matchSearch && matchTag;
-  });
+    return recipes.filter(r => {
+      const matchSearch = !q
+        || r.title.toLowerCase().includes(q)
+        || r.description?.toLowerCase().includes(q)
+        || r.tags.some(t => t.toLowerCase().includes(q));
+      const matchTag = !filterTag || r.tags.includes(filterTag);
+      return matchSearch && matchTag;
+    });
+  }, [recipes, search, filterTag]);
 
   const recent = useMemo(
     () => [...recipes].sort((a, b) => b.createdAt - a.createdAt).slice(0, 3),
@@ -141,31 +147,30 @@ export default function HomeView({
         </div>
       )}
 
-      <div className="home-search-bar">
-        <div onClick={onBrowse} className="browse-banner">
-          <span>🌍 Discover public recipes</span>
-          <span className="browse-banner-arrow">›</span>
-        </div>
-
+      <div className="home-search-row">
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search recipes…"
           className="input home-search-input"
         />
-        <div className="home-tags">
-          <span
-            onClick={() => setFilterTag(null)}
-            className={"pill" + (!filterTag ? " active" : "")}
-          >All</span>
-          {allTags.map(t => (
-            <span
-              key={t}
-              onClick={() => setFilterTag(filterTag === t ? null : t)}
-              className={"pill" + (filterTag === t ? " active" : "")}
-            >{t}</span>
-          ))}
-        </div>
+        <button
+          onClick={() => setShowTagSheet(true)}
+          className={"home-tag-trigger" + (filterTag ? " active" : "")}
+          aria-label="Filter by tag"
+        >
+          {filterTag ? (
+            <>
+              <span>🏷 {filterTag}</span>
+              <span
+                className="home-tag-trigger-x"
+                onClick={e => { e.stopPropagation(); setFilterTag(null); }}
+              >×</span>
+            </>
+          ) : (
+            <span>🏷 Filter</span>
+          )}
+        </button>
       </div>
 
       {showingAll && recent.length > 0 && (
@@ -196,6 +201,15 @@ export default function HomeView({
           </div>
         )}
       </div>
+
+      {showTagSheet && (
+        <TagFilterSheet
+          tags={allTags}
+          value={filterTag}
+          onChange={setFilterTag}
+          onClose={() => setShowTagSheet(false)}
+        />
+      )}
     </>
   );
 }
