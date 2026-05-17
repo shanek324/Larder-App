@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, lazy, Suspense } from "react";
 import { supabase } from "./supabase";
 import { checkAiCredit } from "./utils";
 import { toast } from "./toast";
@@ -15,7 +15,7 @@ import Login from "./Login";
 import ResetPassword from "./ResetPassword";
 import ToastHost from "./components/ToastHost";
 import InstallPrompt from "./components/InstallPrompt";
-import CookingMode from "./views/CookingMode";
+const CookingMode = lazy(() => import("./views/CookingMode"));
 import CookHistoryView from "./views/CookHistoryView";
 import BrowseView from "./views/BrowseView";
 import ProfileView from "./views/ProfileView";
@@ -557,15 +557,17 @@ export default function App() {
 
       <div className={isCooking ? "" : "main-content"}>
         {isCooking ? (
-          <CookingMode
-            recipe={activeRecipe}
-            pantryItems={pantryItems}
-            onExit={() => setView("recipe")}
-            onUpdateRecipe={updateRecipe}
-            onUpdatePantry={updatePantry}
-            session={session}
-            checkCredits={checkCredits}
-          />
+          <Suspense fallback={<div className="loading-screen"><div className="loading-inner"><p className="loading-emoji">🫙</p><p className="loading-text">Loading cooking mode…</p></div></div>}>
+            <CookingMode
+              recipe={activeRecipe}
+              pantryItems={pantryItems}
+              onExit={() => setView("recipe")}
+              onUpdateRecipe={updateRecipe}
+              onUpdatePantry={updatePantry}
+              session={session}
+              checkCredits={checkCredits}
+            />
+          </Suspense>
         ) : view === "recipe" && activeRecipe ? (
           <RecipeView
             recipe={activeRecipe}

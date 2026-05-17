@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { supabase } from "../supabase";
 import { DUNNES_AISLES } from "../constants";
 import { categoriseIngredient } from "../utils";
-import ReceiptScanner from "../components/ReceiptScanner";
+const ReceiptScanner = lazy(() => import("../components/ReceiptScanner"));
 
 export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices, onSaveTicked, onUpdateItems, checkCredits }) {
   const [checked, setChecked] = useState(savedList?.ticked || {});
@@ -239,12 +239,14 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
         </div>
       )}
       {showScanner && (
+        <Suspense fallback={<div className="modal-overlay"><div className="modal" style={{ maxWidth: 360, textAlign: "center" }}><p className="loading-emoji">🧾</p><p className="loading-text">Loading scanner…</p></div></div>}>
         <ReceiptScanner
           onConfirm={handleScanComplete}
           onClose={() => setShowScanner(false)}
           checkCredits={checkCredits}
           shoppingItems={items}
         />
+        </Suspense>
       )}
     </div>
   );

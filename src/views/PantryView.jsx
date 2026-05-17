@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import ReceiptScanner from "../components/ReceiptScanner";
+import { useState, useMemo, lazy, Suspense } from "react";
+const ReceiptScanner = lazy(() => import("../components/ReceiptScanner"));
 import { categoriseIngredient, callClaude } from "../utils";
 import { toast } from "../toast";
 import { DUNNES_AISLES } from "../constants";
@@ -242,11 +242,13 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
       )}
 
       {showScanner && (
+        <Suspense fallback={<div className="modal-overlay"><div className="modal" style={{ maxWidth: 360, textAlign: "center" }}><p className="loading-emoji">🧾</p><p className="loading-text">Loading scanner…</p></div></div>}>
         <ReceiptScanner
           onConfirm={handleReceiptConfirm}
           onClose={() => setShowScanner(false)}
           checkCredits={checkCredits}
         />
+        </Suspense>
       )}
     </div>
   );
