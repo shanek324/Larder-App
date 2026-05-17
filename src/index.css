@@ -3013,3 +3013,46 @@ textarea.input { resize: none; }
   text-align: left;
   font-family: monospace;
 }
+
+/* ========================================
+   LOGIN — forgot password & resend
+   ======================================== */
+
+.login-forgot-hint {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-text-muted-dark);
+  text-align: center;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.login-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.login-link-btn {
+  background: none;
+  border: none;
+  color: var(--color-gold);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.login-link-btn:hover {
+  color: var(--color-gold-dark);
+  background: var(--color-gold-light);
+}
+
+.login-link-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

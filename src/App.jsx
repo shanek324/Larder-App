@@ -12,6 +12,7 @@ import GenerateModal from "./views/GenerateModal";
 import AddRecipeModal from "./views/AddRecipeModal";
 import ImportRecipeModal from "./views/ImportRecipeModal";
 import Login from "./Login";
+import ResetPassword from "./ResetPassword";
 import ToastHost from "./components/ToastHost";
 import CookingMode from "./views/CookingMode";
 import CookHistoryView from "./views/CookHistoryView";
@@ -129,6 +130,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [isRecovery, setIsRecovery] = useState(false);
 
   async function checkCredits() {
     if (!session?.user?.id) return false;
@@ -173,7 +175,10 @@ export default function App() {
       setSession(session);
       setAuthLoading(false);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => setSession(session));
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") setIsRecovery(true);
+      setSession(session);
+    });
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -486,6 +491,7 @@ export default function App() {
     );
   }
 
+  if (isRecovery) return <ResetPassword onDone={() => setIsRecovery(false)} />;
   if (!session) return <Login />;
 
   return (
