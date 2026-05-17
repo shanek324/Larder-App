@@ -202,6 +202,7 @@ export default function App() {
         setMealPlans(planData || []);
       } catch(e) {
         console.error("loadData error", e);
+        toast.error("Couldn't load your Larder. Check your connection and reload.");
       }
       setLoading(false);
     }
@@ -209,20 +210,39 @@ export default function App() {
   }, [session]);
 
   async function addRecipe(recipe) {
-    const { data } = await supabase.from("recipes").insert({ ...recipeToDb(recipe), user_id: session?.user?.id }).select().single();
-    if (data) setRecipes(r => [recipeFromDb(data), ...r]);
+    try {
+      const { data, error } = await supabase.from("recipes").insert({ ...recipeToDb(recipe), user_id: session?.user?.id }).select().single();
+      if (error) throw error;
+      if (data) setRecipes(r => [recipeFromDb(data), ...r]);
+    } catch(e) {
+      console.error("addRecipe error", e);
+      toast.error("Couldn't save recipe. Please try again.");
+    }
   }
 
   async function updateRecipe(updated) {
-    const { data } = await supabase.from("recipes").update(recipeToDb(updated)).eq("id", updated.id).select().single();
-    if (data) setRecipes(r => r.map(x => x.id === updated.id ? recipeFromDb(data) : x));
+    try {
+      const { data, error } = await supabase.from("recipes").update(recipeToDb(updated)).eq("id", updated.id).select().single();
+      if (error) throw error;
+      if (data) setRecipes(r => r.map(x => x.id === updated.id ? recipeFromDb(data) : x));
+    } catch(e) {
+      console.error("updateRecipe error", e);
+      toast.error("Couldn't update recipe. Please try again.");
+    }
   }
 
   async function deleteRecipe(id) {
-    await supabase.from("recipes").delete().eq("id", id);
-    setRecipes(r => r.filter(x => x.id !== id));
-    setView("home");
-    setActiveRecipeId(null);
+    try {
+      const { error } = await supabase.from("recipes").delete().eq("id", id);
+      if (error) throw error;
+      setRecipes(r => r.filter(x => x.id !== id));
+      setView("home");
+      setActiveRecipeId(null);
+      toast.success("Recipe deleted");
+    } catch(e) {
+      console.error("deleteRecipe error", e);
+      toast.error("Couldn't delete recipe. Please try again.");
+    }
   }
 
 
@@ -244,70 +264,123 @@ export default function App() {
   }
 
   async function updateCollections(updated) {
-    await supabase.from("collections").upsert(updated.map(c => ({ ...collectionToDb(c), user_id: session?.user?.id })));
-    const updatedIds = updated.map(c => c.id);
-    const removedIds = collections.filter(c => !updatedIds.includes(c.id)).map(c => c.id);
-    if (removedIds.length > 0) await supabase.from("collections").delete().in("id", removedIds);
-    setCollections(updated);
+    try {
+      const { error } = await supabase.from("collections").upsert(updated.map(c => ({ ...collectionToDb(c), user_id: session?.user?.id })));
+      if (error) throw error;
+      const updatedIds = updated.map(c => c.id);
+      const removedIds = collections.filter(c => !updatedIds.includes(c.id)).map(c => c.id);
+      if (removedIds.length > 0) {
+        const { error: delErr } = await supabase.from("collections").delete().in("id", removedIds);
+        if (delErr) throw delErr;
+      }
+      setCollections(updated);
+    } catch(e) {
+      console.error("updateCollections error", e);
+      toast.error("Couldn't update collections. Please try again.");
+    }
   }
 
   async function updatePantry(updated) {
-    const newItems = updated.filter(i => !pantryItems.find(p => p.id === i.id));
-    const removedIds = pantryItems.filter(p => !updated.find(i => i.id === p.id)).map(p => p.id);
-    const changedItems = updated.filter(i => {
-      const existing = pantryItems.find(p => p.id === i.id);
-      return existing && JSON.stringify(pantryToDb(i)) !== JSON.stringify(pantryToDb(existing));
-    });
-    if (newItems.length > 0) await supabase.from("pantry").insert(newItems.map(p => ({ ...pantryToDb(p), user_id: session?.user?.id })));
-    if (removedIds.length > 0) await supabase.from("pantry").delete().in("id", removedIds);
-    if (changedItems.length > 0) await Promise.all(changedItems.map(p => supabase.from("pantry").update(pantryToDb(p)).eq("id", p.id)));
-    setPantryItems(updated);
+    try {
+      const newItems = updated.filter(i => !pantryItems.find(p => p.id === i.id));
+      const removedIds = pantryItems.filter(p => !updated.find(i => i.id === p.id)).map(p => p.id);
+      const changedItems = updated.filter(i => {
+        const existing = pantryItems.find(p => p.id === i.id);
+        return existing && JSON.stringify(pantryToDb(i)) !== JSON.stringify(pantryToDb(existing));
+      });
+      if (newItems.length > 0) {
+        const { error } = await supabase.from("pantry").insert(newItems.map(p => ({ ...pantryToDb(p), user_id: session?.user?.id })));
+        if (error) throw error;
+      }
+      if (removedIds.length > 0) {
+        const { error } = await supabase.from("pantry").delete().in("id", removedIds);
+        if (error) throw error;
+      }
+      if (changedItems.length > 0) {
+        const results = await Promise.all(changedItems.map(p => supabase.from("pantry").update(pantryToDb(p)).eq("id", p.id)));
+        const firstErr = results.find(r => r.error);
+        if (firstErr) throw firstErr.error;
+      }
+      setPantryItems(updated);
+    } catch(e) {
+      console.error("updatePantry error", e);
+      toast.error("Couldn't update pantry. Please try again.");
+    }
   }
 
   async function saveShoppingList(items, prepared = false, ticked = {}, recipe_ids = []) {
-    if (savedShoppingList) {
-      await supabase.from("shopping_list").update({ items, prepared, ticked, recipe_ids }).eq("id", savedShoppingList.id);
-      setSavedShoppingList({ ...savedShoppingList, items, prepared, ticked, recipe_ids });
-    } else {
-      const { data } = await supabase.from("shopping_list").insert({ items, prepared, ticked, recipe_ids, user_id: session?.user?.id, created_at: Date.now() }).select().single();
-      setSavedShoppingList(data);
+    try {
+      if (savedShoppingList) {
+        const { error } = await supabase.from("shopping_list").update({ items, prepared, ticked, recipe_ids }).eq("id", savedShoppingList.id);
+        if (error) throw error;
+        setSavedShoppingList({ ...savedShoppingList, items, prepared, ticked, recipe_ids });
+      } else {
+        const { data, error } = await supabase.from("shopping_list").insert({ items, prepared, ticked, recipe_ids, user_id: session?.user?.id, created_at: Date.now() }).select().single();
+        if (error) throw error;
+        setSavedShoppingList(data);
+      }
+    } catch(e) {
+      console.error("saveShoppingList error", e);
+      toast.error("Couldn't save shopping list. Please try again.");
     }
   }
 
   async function saveTicked(ticked) {
-    if (savedShoppingList) {
-      await supabase.from("shopping_list").update({ ticked }).eq("id", savedShoppingList.id);
+    if (!savedShoppingList) return;
+    try {
+      const { error } = await supabase.from("shopping_list").update({ ticked }).eq("id", savedShoppingList.id);
+      if (error) throw error;
       setSavedShoppingList(s => ({ ...s, ticked }));
+    } catch(e) {
+      console.error("saveTicked error", e);
+      toast.error("Couldn't sync shopping list. Your ticks are saved locally.");
     }
   }
 
   async function updateShoppingListItems(items) {
     if (!savedShoppingList) return;
-    await supabase.from("shopping_list").update({ items }).eq("id", savedShoppingList.id);
-    setSavedShoppingList(s => ({ ...s, items }));
+    try {
+      const { error } = await supabase.from("shopping_list").update({ items }).eq("id", savedShoppingList.id);
+      if (error) throw error;
+      setSavedShoppingList(s => ({ ...s, items }));
+    } catch(e) {
+      console.error("updateShoppingListItems error", e);
+      toast.error("Couldn't update shopping list. Please try again.");
+    }
   }
 
   async function savePrices(priceEntries) {
-    // priceEntries: [{ ingredient_name, total_price, quantity, unit }]
-    const rows = priceEntries.map(e => {
-      const qty = parseFloat(e.quantity) || 1;
-      const price_per_unit = e.total_price / qty;
-      return {
-        ingredient_name: e.ingredient_name,
-        price_per_unit,
-        quantity: qty,
-        unit: e.unit || null,
-        user_id: session?.user?.id,
-        purchased_at: new Date().toISOString(),
-      };
-    });
-    await supabase.from("prices").insert(rows);
+    try {
+      // priceEntries: [{ ingredient_name, total_price, quantity, unit }]
+      const rows = priceEntries.map(e => {
+        const qty = parseFloat(e.quantity) || 1;
+        const price_per_unit = e.total_price / qty;
+        return {
+          ingredient_name: e.ingredient_name,
+          price_per_unit,
+          quantity: qty,
+          unit: e.unit || null,
+          user_id: session?.user?.id,
+          purchased_at: new Date().toISOString(),
+        };
+      });
+      const { error } = await supabase.from("prices").insert(rows);
+      if (error) throw error;
+    } catch(e) {
+      console.error("savePrices error", e);
+      toast.error("Couldn't save prices, but your pantry was updated.");
+    }
   }
 
   async function clearShoppingList() {
-    if (savedShoppingList) {
-      await supabase.from("shopping_list").delete().eq("id", savedShoppingList.id);
+    if (!savedShoppingList) return;
+    try {
+      const { error } = await supabase.from("shopping_list").delete().eq("id", savedShoppingList.id);
+      if (error) throw error;
       setSavedShoppingList(null);
+    } catch(e) {
+      console.error("clearShoppingList error", e);
+      toast.error("Couldn't clear shopping list. Please try again.");
     }
   }
 
@@ -325,26 +398,44 @@ export default function App() {
   }
 
   async function addMealPlan(date, recipeId, slot = "dinner") {
-    const { data } = await supabase
-      .from("meal_plans")
-      .insert({ user_id: session?.user?.id, date, recipe_id: recipeId, slot })
-      .select()
-      .single();
-    if (data) setMealPlans(p => [...p, data]);
+    try {
+      const { data, error } = await supabase
+        .from("meal_plans")
+        .insert({ user_id: session?.user?.id, date, recipe_id: recipeId, slot })
+        .select()
+        .single();
+      if (error) throw error;
+      if (data) setMealPlans(p => [...p, data]);
+    } catch(e) {
+      console.error("addMealPlan error", e);
+      toast.error("Couldn't add to meal plan. Please try again.");
+    }
   }
 
   async function removeMealPlan(planId) {
-    await supabase.from("meal_plans").delete().eq("id", planId);
-    setMealPlans(p => p.filter(x => x.id !== planId));
+    try {
+      const { error } = await supabase.from("meal_plans").delete().eq("id", planId);
+      if (error) throw error;
+      setMealPlans(p => p.filter(x => x.id !== planId));
+    } catch(e) {
+      console.error("removeMealPlan error", e);
+      toast.error("Couldn't remove meal. Please try again.");
+    }
   }
 
   async function clearWeekPlans(startDate, endDate) {
-    await supabase
-      .from("meal_plans")
-      .delete()
-      .gte("date", startDate)
-      .lte("date", endDate);
-    setMealPlans(p => p.filter(x => x.date < startDate || x.date > endDate));
+    try {
+      const { error } = await supabase
+        .from("meal_plans")
+        .delete()
+        .gte("date", startDate)
+        .lte("date", endDate);
+      if (error) throw error;
+      setMealPlans(p => p.filter(x => x.date < startDate || x.date > endDate));
+    } catch(e) {
+      console.error("clearWeekPlans error", e);
+      toast.error("Couldn't clear week plan. Please try again.");
+    }
   }
 
   function viewRecipe(id) { setActiveRecipeId(id); setView("recipe"); }
