@@ -67,7 +67,8 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
     // Update existing items or add new ones, always set stock to high
     const updatedPantry = [...pantryItems];
     scannedItems.forEach(scanned => {
-      const existingIdx = updatedPantry.findIndex(p => p.name.toLowerCase() === scanned.name.toLowerCase());
+      const norm = (s) => (s || "").trim().toLowerCase();
+      const existingIdx = updatedPantry.findIndex(p => norm(p.name) === norm(scanned.name));
       if (existingIdx >= 0) {
         updatedPantry[existingIdx] = {
           ...updatedPantry[existingIdx],
@@ -98,7 +99,8 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
     const boughtItems = items.filter(i => checked[i.key]);
     const updatedPantry = [...currentPantry];
     boughtItems.forEach(bought => {
-      const existingIdx = updatedPantry.findIndex(p => p.name.toLowerCase() === bought.name.toLowerCase());
+      const normF = (s) => (s || "").trim().toLowerCase();
+      const existingIdx = updatedPantry.findIndex(p => normF(p.name) === normF(bought.name));
       if (existingIdx >= 0) {
         updatedPantry[existingIdx] = { ...updatedPantry[existingIdx], stockLevel: "high" };
       } else {

@@ -26,7 +26,8 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
     // Update existing items or add new ones, always set stock to high
     const updatedPantry = [...pantryItems];
     scannedItems.forEach(scanned => {
-      const existingIdx = updatedPantry.findIndex(p => p.name.toLowerCase() === scanned.name.toLowerCase());
+      const norm = (s) => (s || "").trim().toLowerCase();
+      const existingIdx = updatedPantry.findIndex(p => norm(p.name) === norm(scanned.name));
       if (existingIdx >= 0) {
         updatedPantry[existingIdx] = {
           ...updatedPantry[existingIdx],
