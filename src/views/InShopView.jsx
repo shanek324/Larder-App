@@ -177,7 +177,8 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
 
       <button
         onClick={() => setShowAddItem(true)}
-        style={{ position: "fixed", bottom: 90, right: 20, width: 52, height: 52, borderRadius: "50%", background: "var(--color-gold)", border: "none", fontSize: 28, color: "white", boxShadow: "0 4px 12px rgba(0,0,0,0.2)", cursor: "pointer", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center" }}
+        className="shopping-fab"
+        aria-label="Add item"
       >+</button>
 
       {showAddItem && (

@@ -1204,6 +1204,30 @@ textarea.input { resize: none; }
   .shopping-list-header { flex-direction: column; align-items: flex-start; }
 }
 
+
+/* ========================================
+   SHOPPING FAB
+   ======================================== */
+
+.shopping-fab {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  border: none;
+  font-size: 28px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ========================================
    COOKING MODE
    ======================================== */
