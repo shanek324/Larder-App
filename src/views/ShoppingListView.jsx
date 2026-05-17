@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { DUNNES_AISLES } from "../constants";
 import { callClaude, matchesPantry, estimateRecipeCost, categoriseIngredient } from "../utils";
 import { toast } from "../toast";
@@ -17,7 +17,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
 
   const aisleOrder = DUNNES_AISLES.map(a => a.name).concat(["Other"]);
   const aisleNames = DUNNES_AISLES.map(a => a.name).join(", ");
-  const allTags = [...new Set(recipes.flatMap(r => r.tags))].sort();
+  const allTags = useMemo(() => [...new Set(recipes.flatMap(r => r.tags))].sort(), [recipes]);
 
   function toggleRecipe(id) {
     setSelectedRecipes(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
@@ -36,15 +36,23 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
     setExpandedSources(s => ({ ...s, [key]: !s[key] }));
   }
 
-  const filteredRecipes = recipes.filter(r => {
+  const filteredRecipes = useMemo(() => {
     const q = search.toLowerCase();
-    const matchSearch = !q || r.title.toLowerCase().includes(q) || r.tags.some(t => t.toLowerCase().includes(q));
-    const matchTag = !filterTag || r.tags.includes(filterTag);
-    return matchSearch && matchTag;
-  });
+    return recipes.filter(r => {
+      const matchSearch = !q || r.title.toLowerCase().includes(q) || r.tags.some(t => t.toLowerCase().includes(q));
+      const matchTag = !filterTag || r.tags.includes(filterTag);
+      return matchSearch && matchTag;
+    });
+  }, [recipes, search, filterTag]);
 
-  const selectedRecipeObjects = recipes.filter(r => selectedRecipes.includes(r.id));
-  const rawIngredients = selectedRecipeObjects.flatMap(r => r.ingredients);
+  const selectedRecipeObjects = useMemo(
+    () => recipes.filter(r => selectedRecipes.includes(r.id)),
+    [recipes, selectedRecipes]
+  );
+  const rawIngredients = useMemo(
+    () => selectedRecipeObjects.flatMap(r => r.ingredients),
+    [selectedRecipeObjects]
+  );
 
   useEffect(() => {
     if (selectedRecipes.length === 0) { setTotalCost(null); return; }
@@ -120,13 +128,17 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
     setSaving(false);
   }
 
-  const grouped = {};
-  (consolidated || []).forEach(item => {
-    const a = item.aisle || "Other";
-    if (!grouped[a]) grouped[a] = [];
-    grouped[a].push(item);
-  });
-  const sortedAisles = Object.keys(grouped).sort((a, b) => aisleOrder.indexOf(a) - aisleOrder.indexOf(b));
+  const { grouped, sortedAisles } = useMemo(() => {
+    const g = {};
+    (consolidated || []).forEach(item => {
+      const a = item.aisle || "Other";
+      if (!g[a]) g[a] = [];
+      g[a].push(item);
+    });
+    const s = Object.keys(g).sort((a, b) => aisleOrder.indexOf(a) - aisleOrder.indexOf(b));
+    return { grouped: g, sortedAisles: s };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [consolidated]);
 
   return (
     <div className="view">

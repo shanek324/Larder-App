@@ -49,13 +49,15 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
     return map;
   }, [mealPlans]);
 
-  const allTags = [...new Set(recipes.flatMap(r => r.tags))].sort();
-  const filteredRecipes = recipes.filter(r => {
+  const allTags = useMemo(() => [...new Set(recipes.flatMap(r => r.tags))].sort(), [recipes]);
+  const filteredRecipes = useMemo(() => {
     const q = search.toLowerCase();
-    const matchSearch = !q || r.title.toLowerCase().includes(q) || r.tags.some(t => t.toLowerCase().includes(q));
-    const matchTag = !filterTag || r.tags.includes(filterTag);
-    return matchSearch && matchTag;
-  });
+    return recipes.filter(r => {
+      const matchSearch = !q || r.title.toLowerCase().includes(q) || r.tags.some(t => t.toLowerCase().includes(q));
+      const matchTag = !filterTag || r.tags.includes(filterTag);
+      return matchSearch && matchTag;
+    });
+  }, [recipes, search, filterTag]);
 
   function prevWeek() {
     const d = new Date(weekStart);

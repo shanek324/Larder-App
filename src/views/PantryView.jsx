@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import ReceiptScanner from "../components/ReceiptScanner";
 import { categoriseIngredient, callClaude } from "../utils";
 import { toast } from "../toast";
@@ -121,15 +121,18 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
     setEditingItem(null);
   }
 
-  const filtered = pantryItems.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
-
-  const grouped = {};
-  filtered.forEach(item => {
-    const a = item.aisle || "Other";
-    if (!grouped[a]) grouped[a] = [];
-    grouped[a].push(item);
-  });
-  const sortedAisles = Object.keys(grouped).sort((a, b) => aisleOrder.indexOf(a) - aisleOrder.indexOf(b));
+  const { filtered, grouped, sortedAisles } = useMemo(() => {
+    const f = pantryItems.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
+    const g = {};
+    f.forEach(item => {
+      const a = item.aisle || "Other";
+      if (!g[a]) g[a] = [];
+      g[a].push(item);
+    });
+    const s = Object.keys(g).sort((a, b) => aisleOrder.indexOf(a) - aisleOrder.indexOf(b));
+    return { filtered: f, grouped: g, sortedAisles: s };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pantryItems, search]);
 
   return (
     <div className="view">
