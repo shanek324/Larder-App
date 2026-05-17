@@ -3230,3 +3230,76 @@ textarea.input { resize: none; }
   background: var(--color-danger-bg);
   border-color: var(--color-danger);
 }
+
+/* ========================================
+   INSTALL PROMPT (PWA)
+   ======================================== */
+
+.install-prompt {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 250;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  animation: install-prompt-slide-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+@keyframes install-prompt-slide-in {
+  from { transform: translateY(120%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.install-prompt-body {
+  pointer-events: auto;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 6px 20px rgba(44, 24, 16, 0.12);
+}
+
+.install-prompt-emoji {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.install-prompt-text {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text);
+  margin: 0;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.install-prompt-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.install-prompt-actions .btn {
+  font-size: 13px;
+  padding: 8px 14px;
+}
+
+@media (max-width: 480px) {
+  .install-prompt-body {
+    flex-wrap: wrap;
+  }
+  .install-prompt-text {
+    flex-basis: calc(100% - 40px);
+  }
+  .install-prompt-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

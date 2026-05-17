@@ -14,6 +14,7 @@ import ImportRecipeModal from "./views/ImportRecipeModal";
 import Login from "./Login";
 import ResetPassword from "./ResetPassword";
 import ToastHost from "./components/ToastHost";
+import InstallPrompt from "./components/InstallPrompt";
 import CookingMode from "./views/CookingMode";
 import CookHistoryView from "./views/CookHistoryView";
 import BrowseView from "./views/BrowseView";
@@ -664,6 +665,7 @@ export default function App() {
       {showAdd && <AddRecipeModal onClose={() => { setShowAdd(false); setDuplicateData(null); }} onAdd={addRecipe} initialData={duplicateData} onOverwrite={handleOverwrite} />}
       {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} onAdd={addRecipe} checkCredits={checkCredits} />}
       <ToastHost />
+      <InstallPrompt />
     </div>
   );
 }
