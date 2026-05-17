@@ -113,7 +113,7 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
             {days[6].toLocaleDateString("en-IE", { day: "numeric", month: "short" })}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className="meal-plan-header-actions">
           {weekRecipeIds.length > 0 && (
             <button onClick={() => onPlanToShopping(weekRecipeIds)} className="btn btn-gold btn-lg">
               🛒 Shopping list
@@ -123,12 +123,12 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
       </div>
 
       {/* Week navigation */}
-      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 16 }}>
+      <div className="meal-plan-weeknav">
         <button onClick={prevWeek} className="btn btn-secondary">← Prev</button>
         <button onClick={thisWeek} className="btn btn-secondary">Today</button>
         <button onClick={nextWeek} className="btn btn-secondary">Next →</button>
         {weekRecipeIds.length > 0 && (
-          <button onClick={() => setShowClearConfirm(true)} className="btn btn-danger" style={{ marginLeft: "auto", fontSize: 12 }}>
+          <button onClick={() => setShowClearConfirm(true)} className="btn btn-danger meal-plan-clear-btn">
             🗑 Clear week
           </button>
         )}
@@ -178,19 +178,18 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search recipes…"
-              className="input"
-              style={{ marginBottom: 8 }}
+              className="input meal-plan-picker-search"
               autoFocus
             />
-            <div className="home-tags" style={{ marginBottom: 12 }}>
+            <div className="home-tags meal-plan-picker-tags">
               <span onClick={() => setFilterTag(null)} className={"pill" + (!filterTag ? " active" : "")}>All</span>
               {allTags.map(t => (
                 <span key={t} onClick={() => setFilterTag(filterTag === t ? null : t)} className={"pill" + (filterTag === t ? " active" : "")}>{t}</span>
               ))}
             </div>
-            <div style={{ overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className="meal-plan-picker-list">
               {filteredRecipes.length === 0 ? (
-                <p style={{ textAlign: "center", color: "var(--color-text-muted)", padding: 24 }}>No recipes match</p>
+                <p className="meal-plan-picker-empty">No recipes match</p>
               ) : (
                 filteredRecipes.map(r => (
                   <div key={r.id} onClick={() => handlePickRecipe(r.id)} className="meal-plan-picker-item">

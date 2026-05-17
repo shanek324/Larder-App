@@ -80,7 +80,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
         ) : (
           <div>
             <h1 className="page-title recipe-title">{recipe.title}</h1>
-            {authorName && <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--color-text-muted)", marginTop: 2 }}>by {authorName}</p>}
+            {authorName && <p className="recipe-author-byline">by {authorName}</p>}
           </div>
         )}
 

@@ -74,7 +74,7 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
       </div>
 
       {/* Account tier */}
-      <div className="profile-card" style={{ marginTop: 12 }}>
+      <div className="profile-card">
         <p className="profile-card-label">Account</p>
         <div className="profile-tier-row">
           <span className={"profile-tier-badge profile-tier-" + tier}>{tier === "power" ? "⚡ Power" : tier === "starter" ? "🌱 Starter" : "🆓 Free"}</span>
@@ -83,7 +83,7 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
       </div>
 
       {/* My Library stats */}
-      <div className="profile-card" style={{ marginTop: 12 }}>
+      <div className="profile-card">
         <p className="profile-card-label">My Library</p>
         <div className="profile-stats">
           <div className="profile-stat">
@@ -102,7 +102,7 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
       </div>
 
       {/* Navigation links */}
-      <div className="profile-card" style={{ marginTop: 12 }}>
+      <div className="profile-card">
         <p className="profile-card-label">My Stuff</p>
         <button onClick={() => onNavigate("collections")} className="profile-nav-item">
           <span>📁 Collections</span>
