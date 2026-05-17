@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import RecipeCard from "../components/RecipeCard";
 import TagFilterSheet from "../components/TagFilterSheet";
+import Skeleton from "../components/Skeleton";
 
 export default function HomeView({
   recipes,
@@ -19,6 +20,7 @@ export default function HomeView({
   const [todayPlans, setTodayPlans] = useState([]);
   const [lowStock, setLowStock] = useState([]);
   const [showTagSheet, setShowTagSheet] = useState(false);
+  const [loadingToday, setLoadingToday] = useState(true);
 
   const allTags = useMemo(() => {
     return [...new Set(
@@ -69,8 +71,13 @@ export default function HomeView({
         setTodayPlans(recipesToday);
       }
       if (pantryRes.data) setLowStock(pantryRes.data.map(p => p.name));
+      setLoadingToday(false);
     }
-    if (!isFirstRun) loadTodayContext();
+    if (!isFirstRun) {
+      loadTodayContext();
+    } else {
+      setLoadingToday(false);
+    }
     return () => { cancelled = true; };
   }, [recipes, isFirstRun]);
 
@@ -121,6 +128,15 @@ export default function HomeView({
   // ============================================================
   return (
     <>
+      {showingAll && loadingToday && !hasTodayContext && (
+        <div className="home-today">
+          <div className="home-today-block">
+            <Skeleton width="60px" height="11px" style={{ marginBottom: 8 }} />
+            <Skeleton width="80%" height="18px" />
+          </div>
+        </div>
+      )}
+
       {showingAll && hasTodayContext && (
         <div className="home-today">
           {todayPlans.length > 0 && (

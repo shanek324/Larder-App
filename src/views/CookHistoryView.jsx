@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
+import { SkeletonHistoryEntry } from "../components/Skeleton";
 
 export default function CookHistoryView({ recipes, onLogDeleted }) {
   const [logs, setLogs] = useState([]);
@@ -38,7 +39,23 @@ export default function CookHistoryView({ recipes, onLogDeleted }) {
     if (log && onLogDeleted) onLogDeleted(log.recipe_id);
   }
 
-  if (loading) return <div className="view"><p style={{ padding: 24 }}>Loading...</p></div>;
+  if (loading) {
+    return (
+      <div className="view">
+        <div className="view-header">
+          <div>
+            <h1 className="page-title">Cook History</h1>
+            <p className="page-subtitle">Loading your cooks…</p>
+          </div>
+        </div>
+        <div className="cook-history-list">
+          <SkeletonHistoryEntry />
+          <SkeletonHistoryEntry />
+          <SkeletonHistoryEntry />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="view">

@@ -3303,3 +3303,56 @@ textarea.input { resize: none; }
     justify-content: flex-end;
   }
 }
+
+/* ========================================
+   SKELETON LOADING STATES
+   ======================================== */
+
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    var(--color-bg) 0%,
+    var(--color-border) 50%,
+    var(--color-bg) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.6s linear infinite;
+  border-radius: 8px;
+}
+
+.skeleton-line { margin: 0; }
+.skeleton-line-title { height: 18px; width: 70%; margin-bottom: 8px; }
+.skeleton-line-meta { height: 12px; width: 40%; }
+
+.skeleton-card {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-card-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 0;
+}
+
+.skeleton-card-body {
+  padding: 12px 14px 14px;
+}
+
+.skeleton-history-entry {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}

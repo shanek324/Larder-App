@@ -3,6 +3,7 @@ import Tag from "../components/Tag";
 import ServingScaler from "../components/ServingScaler";
 import AIChat from "../components/AIChat";
 import { scaleAmount, estimateRecipeCost } from "../utils";
+import Skeleton from "../components/Skeleton";
 
 export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onStartCooking, onDuplicate, onAddToLibrary, session, checkCredits, authorName }) {
   const [editMode, setEditMode] = useState(false);
@@ -14,6 +15,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
   const [showCollectionPicker, setShowCollectionPicker] = useState(false);
   const [showOverflow, setShowOverflow] = useState(false);
   const [costEstimate, setCostEstimate] = useState(null);
+  const [loadingCost, setLoadingCost] = useState(true);
 
   useEffect(() => { setDraft(recipe); setScaledServings(recipe.servings); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [recipe.id]);
 
@@ -21,8 +23,16 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
     let cancelled = false;
     async function loadCost() {
       setCostEstimate(null);
-      const result = await estimateRecipeCost(recipe.ingredients);
-      if (!cancelled && result.hasData) setCostEstimate(result);
+      setLoadingCost(true);
+      try {
+        const result = await estimateRecipeCost(recipe.ingredients);
+        if (!cancelled) {
+          if (result.hasData) setCostEstimate(result);
+        }
+      } catch (e) {
+        console.error("loadCost error", e);
+      }
+      if (!cancelled) setLoadingCost(false);
     }
     loadCost();
     return () => { cancelled = true; };
@@ -230,7 +240,12 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
             <div className="recipe-meta-value">{recipe.cook_count}x</div>
           </div>
         )}
-        {costEstimate !== null && (
+        {loadingCost ? (
+          <div className="recipe-meta-item">
+            <div className="recipe-meta-label">Est. Cost</div>
+            <Skeleton width="60px" height="22px" style={{ margin: "4px auto 0" }} />
+          </div>
+        ) : costEstimate !== null && (
           <div className="recipe-meta-item">
             <div className="recipe-meta-label">Est. Cost</div>
             <div className="recipe-meta-value">€{(costEstimate.total * ratio).toFixed(2)}</div>

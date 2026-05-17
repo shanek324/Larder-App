@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import RecipeCard from "../components/RecipeCard";
 import RecipeView from "./RecipeView";
+import { SkeletonCard } from "../components/Skeleton";
 import { slugify } from "../utils";
 
 export default function BrowseView({ session, onAdd, ownRecipeIds }) {
@@ -85,7 +86,23 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
     return matchSearch && matchTag;
   });
 
-  if (loading) return <div className="view"><p style={{ padding: 24 }}>Loading...</p></div>;
+  if (loading) {
+    return (
+      <div className="view">
+        <div className="view-header">
+          <div>
+            <h1 className="page-title">Browse</h1>
+            <p className="page-subtitle">Loading public recipes…</p>
+          </div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      </div>
+    );
+  }
 
   if (selectedRecipe) {
     return (
