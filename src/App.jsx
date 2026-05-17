@@ -238,9 +238,31 @@ export default function App() {
 
   async function deleteRecipe(id) {
     try {
+      // 1) Delete meal_plans referencing this recipe
+      const { error: planErr } = await supabase.from("meal_plans").delete().eq("recipe_id", id);
+      if (planErr) throw planErr;
+
+      // 2) Strip id from any collections.recipe_ids arrays
+      const affected = collections.filter(c => c.recipeIds.includes(id));
+      if (affected.length > 0) {
+        const updated = affected.map(c => ({ ...c, recipeIds: c.recipeIds.filter(rid => rid !== id) }));
+        const { error: colErr } = await supabase
+          .from("collections")
+          .upsert(updated.map(c => ({ ...collectionToDb(c), user_id: session?.user?.id })));
+        if (colErr) throw colErr;
+        setCollections(cs => cs.map(c => {
+          const u = updated.find(x => x.id === c.id);
+          return u || c;
+        }));
+      }
+
+      // 3) Delete the recipe itself
       const { error } = await supabase.from("recipes").delete().eq("id", id);
       if (error) throw error;
+
+      // 4) Local state cleanup
       setRecipes(r => r.filter(x => x.id !== id));
+      setMealPlans(p => p.filter(x => x.recipe_id !== id));
       setView("home");
       setActiveRecipeId(null);
       toast.success("Recipe deleted");
