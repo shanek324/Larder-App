@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { DUNNES_AISLES } from "../constants";
 import { callClaude, matchesPantry, estimateRecipeCost, categoriseIngredient } from "../utils";
+import { toast } from "../toast";
 
 export default function ShoppingListView({ recipes, pantryItems, onSaveList, savedList, onClearList, selectedRecipes, setSelectedRecipes, consolidated, setConsolidated, crossedOff, setCrossedOff, checkCredits }) {
 
@@ -95,7 +96,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
       await onSaveList(filtered, false, {}, selectedRecipes);
     } catch(e) {
       console.error("Generate error:", e);
-      alert("Failed to generate list: " + e.message);
+      toast.error("Couldn't generate shopping list. Please try again.");
     }
     setGenerating(false);
   }

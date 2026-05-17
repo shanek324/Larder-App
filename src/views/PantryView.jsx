@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ReceiptScanner from "../components/ReceiptScanner";
 import { categoriseIngredient, callClaude } from "../utils";
+import { toast } from "../toast";
 import { DUNNES_AISLES } from "../constants";
 
 export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, session, checkCredits }) {
@@ -107,7 +108,7 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
       await onUpdatePantry(newItems);
     } catch(e) {
       console.error("Cleanup error:", e);
-      alert("Cleanup failed, please try again.");
+      toast.error("Pantry cleanup failed. Please try again.");
     }
     setCleaning(false);
   }
