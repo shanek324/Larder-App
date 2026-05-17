@@ -419,9 +419,17 @@ textarea.input { resize: none; }
   align-items: center;
   gap: 6px;
   margin-bottom: 10px;
-  padding-bottom: 6px;
+  padding: 8px 4px 6px;
   border-bottom: 1.5px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  background: var(--color-bg);
+  z-index: 5;
+  backdrop-filter: blur(6px);
 }
+
+/* When the app header + nav are sticky above, offset the aisle header */
+.cooking-screen .aisle-header { top: 0; }
 
 .aisle-name {
   font-family: var(--font-serif);
