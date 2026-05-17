@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "./supabase";
 import { checkAiCredit } from "./utils";
+import { toast } from "./toast";
 import HomeView from "./views/HomeView";
 import RecipeView from "./views/RecipeView";
 import CollectionsView from "./views/CollectionsView";
@@ -128,7 +129,6 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [aiError, setAiError] = useState(null);
 
   async function checkCredits() {
     if (!session?.user?.id) return false;
@@ -136,7 +136,7 @@ export default function App() {
       await checkAiCredit(supabase, session.user.id);
       return true;
     } catch(e) {
-      setAiError(e.message);
+      toast.error(e.message);
       return false;
     }
   }
@@ -520,12 +520,6 @@ export default function App() {
         )}
       </div>
 
-      {aiError && (
-        <div className="ai-error-toast" onClick={() => setAiError(null)}>
-          <p>⚠️ {aiError}</p>
-          <span>×</span>
-        </div>
-      )}
       {showGenerate && <GenerateModal onClose={() => setShowGenerate(false)} onAdd={addRecipe} checkCredits={checkCredits} />}
       {showAdd && <AddRecipeModal onClose={() => { setShowAdd(false); setDuplicateData(null); }} onAdd={addRecipe} initialData={duplicateData} onOverwrite={handleOverwrite} />}
       {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} onAdd={addRecipe} checkCredits={checkCredits} />}
