@@ -4,6 +4,7 @@ import { supabase } from "../supabase";
 export default function CookHistoryView({ recipes }) {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   useEffect(() => {
     async function loadLogs() {
@@ -55,7 +56,7 @@ export default function CookHistoryView({ recipes }) {
               <div className="cook-history-entry-header">
                 <span className="cook-history-recipe">{getRecipeTitle(log.recipe_id)}</span>
                 <span className="cook-history-date">{formatDate(log.cooked_at)}</span>
-                <span onClick={() => deleteLog(log.id)} style={{ cursor: "pointer", color: "var(--color-danger)", fontSize: 18, lineHeight: 1 }}>×</span>
+                <span onClick={() => setConfirmDelete(log)} className="cook-history-delete">×</span>
               </div>
               <div className="cook-history-rating">{"⭐".repeat(log.rating)}</div>
               {log.feedback && (
@@ -69,6 +70,26 @@ export default function CookHistoryView({ recipes }) {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {confirmDelete && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+            <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
+            <h2 className="section-title" style={{ textAlign: "center" }}>Delete this cook log?</h2>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
+              "{getRecipeTitle(confirmDelete.recipe_id)}" — {formatDate(confirmDelete.cooked_at)}
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={async () => { await deleteLog(confirmDelete.id); setConfirmDelete(null); }}
+                className="btn btn-danger btn-lg"
+                style={{ flex: 1 }}
+              >Yes, delete</button>
+              <button onClick={() => setConfirmDelete(null)} className="btn btn-secondary btn-lg">Cancel</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
