@@ -5,3 +5,5 @@ dist
 *.log
 .viminfo
 .env
+.env.local
+.env*
