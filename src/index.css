@@ -2153,6 +2153,100 @@ textarea.input { resize: none; }
   color: var(--color-text-muted);
 }
 
+
+/* ========================================
+   RECIPE OVERFLOW MENU (round-3 audit)
+   ======================================== */
+
+.recipe-overflow-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.recipe-overflow-btn {
+  font-size: 18px;
+  padding: 6px 14px;
+  line-height: 1;
+}
+
+.recipe-overflow-backdrop {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  z-index: 199;
+}
+
+.recipe-overflow-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 6px;
+  min-width: 220px;
+  z-index: 200;
+  box-shadow: 0 8px 24px rgba(44, 24, 16, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recipe-overflow-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.12s;
+}
+
+.recipe-overflow-item:hover {
+  background: var(--color-bg);
+}
+
+.recipe-overflow-item-danger {
+  color: var(--color-danger);
+  margin-top: 4px;
+  border-top: 1px solid var(--color-border);
+  border-radius: 0 0 8px 8px;
+  padding-top: 12px;
+}
+
+.recipe-overflow-item-danger:hover {
+  background: var(--color-danger-bg);
+}
+
+.recipe-overflow-badge {
+  background: var(--color-gold-light);
+  color: var(--color-gold-dark);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.recipe-overflow-hint {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.recipe-collection-heading { margin-bottom: 8px; }
+.recipe-collection-checkbox { accent-color: var(--color-gold); }
+
+@media (max-width: 600px) {
+  .recipe-overflow-menu { min-width: 200px; }
+}
+
 /* ========================================
    ROUND-3 AUDIT — EXTRACTED INLINE STYLES
    ======================================== */

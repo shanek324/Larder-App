@@ -12,6 +12,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
   const [newTag, setNewTag] = useState("");
   const [scaledServings, setScaledServings] = useState(recipe.servings);
   const [showCollectionPicker, setShowCollectionPicker] = useState(false);
+  const [showOverflow, setShowOverflow] = useState(false);
   const [costEstimate, setCostEstimate] = useState(null);
 
   useEffect(() => { setDraft(recipe); setScaledServings(recipe.servings); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [recipe.id]);
@@ -68,7 +69,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
 
   return (
     <div className="view">
-      <button onClick={onBack} className="recipe-back-btn">← Back to Larder</button>
+      <button onClick={onBack} className="recipe-back-btn">← Back</button>
 
       <div className="recipe-header">
         {editMode ? (
@@ -85,48 +86,88 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
         )}
 
         <div className="recipe-actions">
-          <div className="recipe-collection-picker-wrapper">
-            <button onClick={() => setShowCollectionPicker(v => !v)} className="btn btn-secondary">
-              📁 Collections {recipeCollections.length > 0 ? `(${recipeCollections.length})` : ""}
-            </button>
-            {showCollectionPicker && (
-              <div className="recipe-collection-dropdown">
-                <p className="label-uppercase" style={{ marginBottom: 8 }}>Add to Collection</p>
-                {collections.length === 0 && <p className="recipe-collection-empty">No collections yet</p>}
-                {collections.map(c => (
-                  <label key={c.id} className="recipe-collection-option">
-                    <input type="checkbox" checked={c.recipeIds.includes(recipe.id)} onChange={() => toggleCollection(c.id)} style={{ accentColor: "var(--color-gold)" }} />
-                    {c.emoji} {c.name}
-                  </label>
-                ))}
-                <button onClick={() => setShowCollectionPicker(false)} className="recipe-collection-done">Done</button>
-              </div>
-            )}
-          </div>
-
           {editMode ? (
             <>
-              <button onClick={save} className="btn btn-gold">Save</button>
+              <button onClick={save} className="btn btn-gold btn-lg">Save</button>
               <button onClick={() => { setDraft(recipe); setEditMode(false); }} className="btn btn-secondary">Cancel</button>
             </>
           ) : (
             <>
-              {isOwner && (
-                <button
-                  onClick={() => onUpdate({ ...recipe, is_public: !recipe.is_public })}
-                  className={"btn " + (recipe.is_public ? "btn-gold" : "btn-secondary")}
-                  title={recipe.is_public ? "Make private" : "Make public"}
-                >
-                  {recipe.is_public ? "🌍 Public" : "🔒 Private"}
-                </button>
-              )}
               {onAddToLibrary && (
-                <button onClick={onAddToLibrary} className="btn btn-gold">+ Add to my library</button>
+                <button onClick={onAddToLibrary} className="btn btn-gold btn-lg">+ Add to my library</button>
               )}
-              {onStartCooking && <button onClick={onStartCooking} className="btn btn-primary">👨‍🍳 Cook</button>}
-              {isOwner && <button onClick={() => setEditMode(true)} className="btn btn-secondary">Edit</button>}
-              <button onClick={onDuplicate} className="btn btn-secondary">⧉ Duplicate</button>
-              {isOwner && <button onClick={onDelete} className="btn btn-danger">Delete</button>}
+              {onStartCooking && (
+                <button onClick={onStartCooking} className="btn btn-primary btn-lg">👨‍🍳 Cook</button>
+              )}
+
+              <div className="recipe-overflow-wrapper">
+                <button
+                  onClick={() => setShowOverflow(v => !v)}
+                  className="btn btn-secondary recipe-overflow-btn"
+                  aria-label="More actions"
+                >⋯</button>
+                {showOverflow && (
+                  <>
+                    <div className="recipe-overflow-backdrop" onClick={() => setShowOverflow(false)} />
+                    <div className="recipe-overflow-menu">
+                      <button
+                        onClick={() => { setShowCollectionPicker(true); setShowOverflow(false); }}
+                        className="recipe-overflow-item"
+                      >
+                        <span>📁 Collections</span>
+                        {recipeCollections.length > 0 && <span className="recipe-overflow-badge">{recipeCollections.length}</span>}
+                      </button>
+                      {isOwner && (
+                        <button
+                          onClick={() => { onUpdate({ ...recipe, is_public: !recipe.is_public }); setShowOverflow(false); }}
+                          className="recipe-overflow-item"
+                        >
+                          <span>{recipe.is_public ? "🌍 Public" : "🔒 Private"}</span>
+                          <span className="recipe-overflow-hint">{recipe.is_public ? "tap to hide" : "tap to share"}</span>
+                        </button>
+                      )}
+                      {isOwner && (
+                        <button
+                          onClick={() => { setEditMode(true); setShowOverflow(false); }}
+                          className="recipe-overflow-item"
+                        >✏️ Edit</button>
+                      )}
+                      <button
+                        onClick={() => { onDuplicate(); setShowOverflow(false); }}
+                        className="recipe-overflow-item"
+                      >⧉ Duplicate</button>
+                      {isOwner && (
+                        <button
+                          onClick={() => { setShowOverflow(false); onDelete(); }}
+                          className="recipe-overflow-item recipe-overflow-item-danger"
+                        >🗑 Delete recipe</button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {showCollectionPicker && (
+                <>
+                  <div className="recipe-overflow-backdrop" onClick={() => setShowCollectionPicker(false)} />
+                  <div className="recipe-collection-dropdown">
+                    <p className="label-uppercase recipe-collection-heading">Add to Collection</p>
+                    {collections.length === 0 && <p className="recipe-collection-empty">No collections yet</p>}
+                    {collections.map(c => (
+                      <label key={c.id} className="recipe-collection-option">
+                        <input
+                          type="checkbox"
+                          checked={c.recipeIds.includes(recipe.id)}
+                          onChange={() => toggleCollection(c.id)}
+                          className="recipe-collection-checkbox"
+                        />
+                        {c.emoji} {c.name}
+                      </label>
+                    ))}
+                    <button onClick={() => setShowCollectionPicker(false)} className="recipe-collection-done">Done</button>
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
