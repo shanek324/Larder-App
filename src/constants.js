@@ -47,3 +47,11 @@ export const TAG_COLORS = {
   Breakfast: { bg: "#f9fbe7", text: "#558b2f" },
   Soup: { bg: "#e8eaf6", text: "#283593" },
 };
+
+// Admins can moderate public recipes (approve / unpublish).
+// Source of truth is the is_admin() SQL function in Supabase;
+// this list is purely for UX (showing the admin nav link).
+export const ADMIN_USER_IDS = [
+  "6af0f1f3-09fe-4fa5-90e3-13758b1f0999", // Shane
+  "3f4948e6-83f9-497c-883c-a247206d6f4d", // Eve
+];

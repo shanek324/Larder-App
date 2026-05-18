@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "../supabase";
 import { toast } from "../toast";
+import { ADMIN_USER_IDS } from "../constants";
 
 function getInitials(profile, email) {
   const source = (profile?.username || email || "").trim();
@@ -59,6 +60,56 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
     loadProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id]);
+
+  const isAdmin = ADMIN_USER_IDS.includes(session?.user?.id);
+  const [pending, setPending] = useState([]);
+  const [expandedPending, setExpandedPending] = useState(null);
+  const [pendingAuthors, setPendingAuthors] = useState({});
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    async function loadPending() {
+      const { data, error } = await supabase
+        .from("recipes")
+        .select("*")
+        .eq("is_public", true)
+        .eq("is_approved", false)
+        .order("created_at", { ascending: false });
+      if (cancelled) return;
+      if (error) { toast.error("Couldn't load moderation queue."); return; }
+      setPending(data || []);
+      // Resolve author usernames in a single call
+      const userIds = [...new Set((data || []).map(r => r.user_id).filter(Boolean))];
+      if (userIds.length > 0) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, username")
+          .in("id", userIds);
+        if (!cancelled && profs) {
+          const map = {};
+          profs.forEach(p => { map[p.id] = p.username; });
+          setPendingAuthors(map);
+        }
+      }
+    }
+    loadPending();
+    return () => { cancelled = true; };
+  }, [isAdmin]);
+
+  async function approveRecipe(id) {
+    const { error } = await supabase.from("recipes").update({ is_approved: true }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    setPending(p => p.filter(r => r.id !== id));
+    toast.success("Recipe approved.");
+  }
+
+  async function unpublishRecipe(id) {
+    const { error } = await supabase.from("recipes").update({ is_public: false, is_approved: false }).eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    setPending(p => p.filter(r => r.id !== id));
+    toast.success("Recipe unpublished.");
+  }
 
   async function saveUsername() {
     setSavingUsername(true);
@@ -183,6 +234,58 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
           <span className="profile-nav-chevron">›</span>
         </button>
       </div>
+
+      {isAdmin && (
+        <div className="profile-card">
+          <p className="profile-card-label">Moderation queue {pending.length > 0 && <span style={{ background: "var(--color-gold-light)", padding: "2px 8px", borderRadius: 10, fontSize: 12, marginLeft: 6 }}>{pending.length}</span>}</p>
+          {pending.length === 0 ? (
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--color-text-muted-dark)", margin: 0 }}>Nothing pending review. ✨</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+              {pending.map(r => {
+                const expanded = expandedPending === r.id;
+                const author = pendingAuthors[r.user_id] || "Anonymous";
+                return (
+                  <div key={r.id} style={{ border: "1px solid var(--color-border)", borderRadius: 10, padding: 12, background: "var(--color-bg)" }}>
+                    <button
+                      onClick={() => setExpandedPending(expanded ? null : r.id)}
+                      style={{ background: "none", border: "none", padding: 0, textAlign: "left", width: "100%", cursor: "pointer", fontFamily: "inherit", color: "inherit" }}
+                    >
+                      <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 18, margin: 0 }}>{r.title}</h3>
+                      <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--color-text-muted-dark)", margin: "4px 0 0" }}>
+                        by {author} · {(r.tags || []).slice(0, 3).join(" · ") || "untagged"} · {expanded ? "▲ hide details" : "▼ view full"}
+                      </p>
+                      {r.description && <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--color-text)", margin: "6px 0 0", lineHeight: 1.4 }}>{r.description}</p>}
+                    </button>
+                    {expanded && (
+                      <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--color-border)" }}>
+                        <p style={{ fontFamily: "var(--font-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: "var(--color-text-muted)", marginBottom: 4 }}>Ingredients</p>
+                        <ul style={{ fontFamily: "var(--font-sans)", fontSize: 13, margin: 0, paddingLeft: 16 }}>
+                          {(r.ingredients || []).map((ing, i) => <li key={i}>{ing.amount ? ing.amount + " " : ""}{ing.name}</li>)}
+                        </ul>
+                        <p style={{ fontFamily: "var(--font-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: "var(--color-text-muted)", margin: "10px 0 4px" }}>Method</p>
+                        <ol style={{ fontFamily: "var(--font-sans)", fontSize: 13, margin: 0, paddingLeft: 18 }}>
+                          {(r.method || []).map((step, i) => <li key={i} style={{ marginBottom: 4 }}>{step}</li>)}
+                        </ol>
+                        {r.notes && (
+                          <>
+                            <p style={{ fontFamily: "var(--font-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: "var(--color-text-muted)", margin: "10px 0 4px" }}>Notes</p>
+                            <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, margin: 0, fontStyle: "italic", color: "var(--color-text-secondary)" }}>{r.notes}</p>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                      <button onClick={() => approveRecipe(r.id)} className="btn btn-primary" style={{ flex: 1, fontSize: 13 }}>Approve</button>
+                      <button onClick={() => unpublishRecipe(r.id)} className="btn btn-secondary" style={{ flex: 1, fontSize: 13 }}>Unpublish</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Sign out */}
       <button onClick={onSignOut} className="btn btn-outline btn-full profile-signout">Sign Out</button>

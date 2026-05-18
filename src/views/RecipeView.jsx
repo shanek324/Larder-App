@@ -135,14 +135,18 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
                             setShowOverflow(false);
                             if (recipe.is_public) {
                               // Going public → private: no confirm needed.
-                              onUpdate({ ...recipe, is_public: false });
+                              onUpdate({ ...recipe, is_public: false, is_approved: false });
                             } else {
                               setConfirmPublic(true);
                             }
                           }}
                           className="recipe-overflow-item"
                         >
-                          <span>{recipe.is_public ? "🌍 Public" : "🔒 Private"}</span>
+                          <span>
+                            {recipe.is_public
+                              ? (recipe.is_approved ? "🌍 Public" : "🕓 Pending review")
+                              : "🔒 Private"}
+                          </span>
                           <span className="recipe-overflow-hint">{recipe.is_public ? "tap to hide" : "tap to share"}</span>
                         </button>
                       )}
@@ -386,14 +390,14 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
           <p style={{ fontSize: 40, marginBottom: 8 }}>🌍</p>
           <h2 className="section-title" style={{ textAlign: "center" }}>Make this recipe public?</h2>
           <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24, lineHeight: 1.5 }}>
-            Anyone using Larder will be able to view "{recipe.title}" and add it to their library. You can make it private again at any time.
+            "{recipe.title}" will be submitted for a quick review. Once approved, anyone using Larder will be able to view it and add it to their library. You can make it private again at any time.
           </p>
           <div style={{ display: "flex", gap: 10 }}>
             <button
-              onClick={() => { onUpdate({ ...recipe, is_public: true }); setConfirmPublic(false); }}
+              onClick={() => { onUpdate({ ...recipe, is_public: true, is_approved: false }); setConfirmPublic(false); }}
               className="btn btn-gold btn-lg"
               style={{ flex: 1 }}
-            >Make public</button>
+            >Submit for review</button>
             <button onClick={() => setConfirmPublic(false)} className="btn btn-secondary btn-lg">Cancel</button>
           </div>
         </div>

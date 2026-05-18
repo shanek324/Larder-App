@@ -71,6 +71,7 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
       step_notes: {},
       lastCooked: null,
       is_public: false,
+      is_approved: false,
     };
     await onAdd(forked);
     setAddedOriginals(s => { const n = new Set(s); n.add(recipe.id); return n; });
