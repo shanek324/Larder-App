@@ -619,6 +619,54 @@ textarea.input { resize: none; }
    HOME — TODAY STRIP
    ======================================== */
 
+.home-resume-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: linear-gradient(135deg, var(--color-gold-light), var(--color-note-bg));
+  border: 1.5px solid var(--color-gold);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 14px rgba(200, 169, 110, 0.18);
+}
+.home-resume-banner-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.home-resume-banner-emoji { font-size: 32px; line-height: 1; }
+.home-resume-banner-text { flex: 1; min-width: 0; }
+.home-resume-banner-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-gold-dark);
+  margin: 0 0 2px;
+  font-weight: 600;
+}
+.home-resume-banner-title {
+  font-family: var(--font-serif);
+  font-size: 19px;
+  color: var(--color-primary);
+  margin: 0;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-resume-banner-actions {
+  display: flex;
+  gap: 8px;
+}
+.home-resume-banner-actions .btn { flex: 1; }
+@media (min-width: 600px) {
+  .home-resume-banner { flex-direction: row; align-items: center; }
+  .home-resume-banner-actions { flex: 0 0 auto; }
+  .home-resume-banner-actions .btn { flex: 0 0 auto; }
+}
+
 .home-today {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1658,6 +1706,20 @@ textarea.input { resize: none; }
 
 .cooking-card-ingredients-title { margin: 0 0 16px; font-family: var(--font-serif); font-size: 20px; color: var(--color-primary); font-weight: 700; }
 .cooking-ingredients-list { display: flex; flex-direction: column; gap: 8px; }
+.cooking-return-to-step {
+  margin-top: 20px;
+  background: var(--color-gold);
+  color: var(--color-primary);
+  border: none;
+  padding: 14px 22px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: center;
+}
+.cooking-return-to-step:hover { background: var(--color-gold-light); }
 
 .cooking-ingredient-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--color-border); }
 .cooking-ingredient-name { font-family: var(--font-sans); font-size: 15px; color: var(--color-primary); }

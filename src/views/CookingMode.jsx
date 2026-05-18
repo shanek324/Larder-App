@@ -4,8 +4,36 @@ import { callClaude } from "../utils";
 import { toast } from "../toast";
 
 export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecipe, onUpdatePantry, session }) {
-  const [currentStep, setCurrentStep] = useState(0);
+  // On mount, check if there's saved resume state for this recipe.
+  const savedResume = (() => {
+    try {
+      const raw = localStorage.getItem("larder:resume-cook");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed.recipeId === recipe.id) return parsed;
+    } catch (_) {}
+    return null;
+  })();
+  const [currentStep, setCurrentStep] = useState(savedResume?.currentStep ?? 0);
   const [stepNotes, setStepNotes] = useState(recipe.step_notes || {});
+  const [lastNonIngredientStep, setLastNonIngredientStep] = useState(savedResume?.lastNonIngredientStep ?? 0);
+
+  // Persist cooking position so we can offer to resume after app kill.
+  useEffect(() => {
+    if (phase !== "cooking") return;
+    try {
+      localStorage.setItem("larder:resume-cook", JSON.stringify({
+        recipeId: recipe.id,
+        currentStep,
+        lastNonIngredientStep,
+        savedAt: Date.now(),
+      }));
+    } catch (_) {}
+  }, [recipe.id, currentStep, lastNonIngredientStep, phase]);
+
+  function clearResumeState() {
+    try { localStorage.removeItem("larder:resume-cook"); } catch (_) {}
+  }
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [phase, setPhase] = useState("cooking");
@@ -208,6 +236,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     } else if (removedPantryIds.length > 0) {
       await onUpdatePantry(pantryItems.filter(i => !removedPantryIds.includes(i.id)));
     }
+    clearResumeState();
     onExit();
   }
 
@@ -223,7 +252,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     return (
       <div className="cooking-screen">
         <div className="cooking-header">
-          <button onClick={onExit} className="cooking-exit-btn">← Exit</button>
+          <button onClick={() => { clearResumeState(); onExit(); }} className="cooking-exit-btn">← Exit</button>
           <span className="cooking-progress-label">
             {isIngredientCard ? "Ingredients" : isTipsCard ? "Tips" : "Step " + (currentStep - (lastTips ? 1 : 0)) + " of " + (recipe.method || []).length}
           </span>
@@ -249,6 +278,12 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
                     </div>
                   ))}
                 </div>
+                {lastNonIngredientStep > 0 && lastNonIngredientStep < steps.length && (
+                  <button
+                    onClick={() => { setCurrentStep(lastNonIngredientStep); setLastNonIngredientStep(0); }}
+                    className="cooking-return-to-step"
+                  >Return to step {lastNonIngredientStep - (lastTips ? 1 : 0)} →</button>
+                )}
               </>
             ) : isTipsCard ? (
               <>
@@ -272,7 +307,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
         </div>
 
         {!isIngredientCard && (
-          <button onClick={() => setCurrentStep(0)} className="cooking-ingredients-fab">🥘</button>
+          <button onClick={() => { setLastNonIngredientStep(currentStep); setCurrentStep(0); }} className="cooking-ingredients-fab">🥘</button>
         )}
 
         <div className="cooking-dots">
@@ -322,7 +357,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
     return (
       <div className="cooking-screen cooking-screen-centered">
         <div className="cooking-review-card">
-          <button onClick={onExit} className="cooking-exit-btn" style={{ alignSelf: "flex-start", marginBottom: 8 }}>← Back</button>
+          <button onClick={() => { clearResumeState(); onExit(); }} className="cooking-exit-btn" style={{ alignSelf: "flex-start", marginBottom: 8 }}>← Back</button>
           <p className="cooking-review-emoji">🍽</p>
           <h2 className="cooking-review-title">How did it go?</h2>
           <p className="cooking-review-subtitle">{recipe.title}</p>
@@ -483,7 +518,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
         <button onClick={handleFinishPantry} className="btn btn-primary btn-full btn-lg" style={{ marginTop: 16 }}>
           Update & Finish
         </button>
-        <button onClick={onExit} className="btn btn-secondary btn-full" style={{ marginTop: 8 }}>
+        <button onClick={() => { clearResumeState(); onExit(); }} className="btn btn-secondary btn-full" style={{ marginTop: 8 }}>
           Skip
         </button>
       </div>

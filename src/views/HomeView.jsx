@@ -16,6 +16,9 @@ export default function HomeView({
   onOpenAdd,
   onOpenGenerate,
   onOpenImport,
+  resumeOffer,
+  onAcceptResume,
+  onDismissResume,
 }) {
   const [todayPlans, setTodayPlans] = useState([]);
   const [lowStock, setLowStock] = useState([]);
@@ -128,6 +131,21 @@ export default function HomeView({
   // ============================================================
   return (
     <>
+      {resumeOffer && (
+        <div className="home-resume-banner">
+          <div className="home-resume-banner-body">
+            <span className="home-resume-banner-emoji" aria-hidden="true">🍳</span>
+            <div className="home-resume-banner-text">
+              <p className="home-resume-banner-label">Resume cooking</p>
+              <p className="home-resume-banner-title">{resumeOffer.recipe.title}</p>
+            </div>
+          </div>
+          <div className="home-resume-banner-actions">
+            <button onClick={onAcceptResume} className="btn btn-gold">Resume</button>
+            <button onClick={onDismissResume} className="btn btn-outline" aria-label="Dismiss resume cooking">Dismiss</button>
+          </div>
+        </div>
+      )}
       {showingAll && loadingToday && !hasTodayContext && (
         <div className="home-today">
           <div className="home-today-block">

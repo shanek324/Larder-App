@@ -134,6 +134,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [isRecovery, setIsRecovery] = useState(false);
+  const [resumeOffer, setResumeOffer] = useState(null);
 
   const [view, setView] = useState("home");
   const [activeRecipeId, setActiveRecipeId] = useState(null);
@@ -192,7 +193,23 @@ export default function App() {
           supabase.from("shopping_list").select("*").order("created_at", { ascending: false }).limit(1),
           supabase.from("meal_plans").select("*").gte("date", toIso(today)).lte("date", toIso(future)).order("date", { ascending: true }),
         ]);
-        setRecipes(recipeData ? recipeData.map(recipeFromDb) : []);
+        const loadedRecipes = recipeData ? recipeData.map(recipeFromDb) : [];
+        setRecipes(loadedRecipes);
+
+        // Resume cooking: check localStorage for an unfinished cook < 6h old.
+        try {
+          const raw = localStorage.getItem("larder:resume-cook");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const ageMs = Date.now() - (parsed.savedAt || 0);
+            const stillExists = loadedRecipes.find(r => r.id === parsed.recipeId);
+            if (stillExists && ageMs < 6 * 60 * 60 * 1000 && parsed.currentStep > 0) {
+              setResumeOffer({ recipe: stillExists, currentStep: parsed.currentStep });
+            } else {
+              localStorage.removeItem("larder:resume-cook");
+            }
+          }
+        } catch (_) { /* ignore corrupted resume state */ }
         setCollections(colData ? colData.map(collectionFromDb) : []);
         setPantryItems(pantryData ? pantryData.map(pantryFromDb) : []);
         setSavedShoppingList(shopData?.[0] || null);
@@ -205,6 +222,19 @@ export default function App() {
     }
     loadData();
   }, [session]);
+
+  function acceptResume() {
+    if (!resumeOffer) return;
+    setActiveRecipeId(resumeOffer.recipe.id);
+    setView("cooking");
+    setResumeOffer(null);
+    // currentStep is re-read from localStorage by CookingMode on mount.
+  }
+
+  function dismissResume() {
+    setResumeOffer(null);
+    try { localStorage.removeItem("larder:resume-cook"); } catch (_) {}
+  }
 
   async function addRecipe(recipe) {
     try {
@@ -650,6 +680,9 @@ export default function App() {
             onOpenAdd={() => setShowAdd(true)}
             onOpenGenerate={() => setShowGenerate(true)}
             onOpenImport={() => setShowImport(true)}
+            resumeOffer={resumeOffer}
+            onAcceptResume={acceptResume}
+            onDismissResume={dismissResume}
           />
         )}
       </div>
