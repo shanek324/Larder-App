@@ -137,9 +137,9 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
         <button onClick={() => setShowStartOver(true)} className="btn btn-secondary" style={{ fontSize: 12 }}>
           Start over
         </button>
-        {allChecked && (
+        {tickedCount > 0 && (
           <button onClick={() => setShowConfirm(true)} className="btn btn-primary btn-lg">
-            Finished Shopping ✓
+            {allChecked ? "Finished Shopping ✓" : `Finish (${tickedCount} of ${items.length})`}
           </button>
         )}
       </div>
@@ -228,7 +228,9 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
             <p style={{ fontSize: 40, marginBottom: 8 }}>🛒</p>
             <h2 className="section-title" style={{ textAlign: "center" }}>All done?</h2>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
-              This will add your bought items to the pantry and clear your shopping list.
+              {allChecked
+                ? "This will add your bought items to the pantry and clear your shopping list."
+                : `You've ticked ${tickedCount} of ${items.length} items. The ${items.length - tickedCount} unticked items will be discarded — only ticked items will be added to your pantry.`}
             </p>
             <div style={{ display: "flex", gap: 10, flexDirection: "column" }}>
               <button onClick={handleFinished} className="btn btn-primary btn-lg">Yes, finish up</button>
