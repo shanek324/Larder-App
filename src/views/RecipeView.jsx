@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "../toast";
 import Tag from "../components/Tag";
 import ServingScaler from "../components/ServingScaler";
 import AIChat from "../components/AIChat";
@@ -66,7 +67,21 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
   }
 
   function handleAIUpdate(updated) {
-    onUpdate({ ...recipe, ...updated, id: recipe.id, createdAt: recipe.createdAt });
+    // Snapshot the pre-update recipe so the user can undo.
+    const snapshot = { ...recipe };
+    // Only let the AI change content fields. All metadata (cook_count, step_notes,
+    // lastCooked, is_public, is_approved, user_id, image_url) is preserved.
+    const CONTENT_FIELDS = ["title", "description", "ingredients", "method", "tags",
+                            "prepTime", "cookTime", "servings", "notes"];
+    const safeUpdate = { ...recipe };
+    CONTENT_FIELDS.forEach(field => {
+      if (updated[field] !== undefined) safeUpdate[field] = updated[field];
+    });
+    onUpdate(safeUpdate);
+    toast.action("Recipe updated by AI", {
+      actionLabel: "Undo",
+      onAction: () => { onUpdate(snapshot); toast.info("Reverted."); },
+    });
   }
 
   const recipeCollections = collections.filter(c => c.recipeIds.includes(recipe.id));
