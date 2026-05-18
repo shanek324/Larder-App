@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 
 const DISMISS_KEY = "larder:install-prompt-dismissed";
+const IOS_LAST_SEEN_KEY = "larder:install-prompt-ios-last-seen";
+const IOS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 function isIOS() {
   if (typeof navigator === "undefined") return false;
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) return true;
+  // iPad on iOS 13+ reports as Mac. Heuristic: Mac UA + touch points.
+  if (/Mac/.test(navigator.userAgent) && navigator.maxTouchPoints > 1) return true;
+  return false;
 }
 
 function isStandalone() {
@@ -22,7 +27,7 @@ export default function InstallPrompt() {
 
   useEffect(() => {
     if (isStandalone()) return; // already installed
-    if (localStorage.getItem(DISMISS_KEY)) return;
+    if (localStorage.getItem(DISMISS_KEY)) return; // permanently dismissed
 
     // Android / Chrome: catch the install prompt event
     function handler(e) {
@@ -32,8 +37,15 @@ export default function InstallPrompt() {
     }
     window.addEventListener("beforeinstallprompt", handler);
 
-    // iOS: show a manual hint once
-    if (isIOS()) setIosHint(true);
+    // iOS: show a manual hint, but rate-limited to once every 7 days.
+    if (isIOS()) {
+      const lastSeenStr = localStorage.getItem(IOS_LAST_SEEN_KEY);
+      const lastSeen = lastSeenStr ? parseInt(lastSeenStr, 10) : 0;
+      if (Date.now() - lastSeen > IOS_COOLDOWN_MS) {
+        setIosHint(true);
+        localStorage.setItem(IOS_LAST_SEEN_KEY, String(Date.now()));
+      }
+    }
 
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
