@@ -27,7 +27,7 @@ export default function RecipeCard({ recipe, onClick, collections = [], compact 
   const fallbackEmoji = emojiForRecipe(recipe);
 
   return (
-    <div onClick={onClick} className={"recipe-card" + (compact ? " recipe-card-compact" : "")}>
+    <button type="button" onClick={onClick} className={"recipe-card" + (compact ? " recipe-card-compact" : "")} aria-label={`Open recipe: ${recipe.title}`}>
       {compact ? (
         <div className="recipe-card-thumb">
           {hasImage ? (
@@ -77,6 +77,6 @@ export default function RecipeCard({ recipe, onClick, collections = [], compact 
           {compact && recipe.cook_count > 0 && <span>👨‍🍳 {recipe.cook_count}x</span>}
         </div>
       </div>
-    </div>
+    </button>
   );
 }

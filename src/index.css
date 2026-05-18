@@ -54,6 +54,20 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Keyboard focus indicator — visible only for keyboard nav, hidden on mouse click */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* Tighter focus offset for elements with their own rounded surface */
+.recipe-card:focus-visible,
+.btn:focus-visible,
+.modal-close:focus-visible {
+  outline-offset: 3px;
+}
+
 /* ========================================
    LAYOUT
    ======================================== */
@@ -776,6 +790,14 @@ textarea.input { resize: none; }
    ======================================== */
 
 .recipe-card {
+  /* Neutralise default button styling */
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  text-align: left;
+  padding: 0;
+  width: 100%;
+
   background: var(--color-surface);
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-lg);
