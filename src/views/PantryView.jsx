@@ -10,6 +10,7 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
   const [cleaning, setCleaning] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [confirmDeleteItem, setConfirmDeleteItem] = useState(null);
 
   const aisleOrder = DUNNES_AISLES.map(a => a.name).concat(["Other"]);
   const aisleNames = DUNNES_AISLES.map(a => a.name).join(", ");
@@ -234,7 +235,27 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
                 <option value="low">🔴 Low</option>
               </select>
               <button className="btn btn-primary btn-full" onClick={saveEdit}>Save</button>
-              <button className="btn btn-danger btn-full" style={{ marginTop: 8 }} onClick={() => { removeItem(editingItem.id); setEditingItem(null); }}>Delete Item</button>
+              <button className="btn btn-danger btn-full" style={{ marginTop: 8 }} onClick={() => { setConfirmDeleteItem(editingItem); setEditingItem(null); }}>Delete Item</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmDeleteItem && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+            <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
+            <h2 className="section-title" style={{ textAlign: "center" }}>Delete this item?</h2>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
+              "{confirmDeleteItem.name}" will be removed from your pantry.
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => { removeItem(confirmDeleteItem.id); setConfirmDeleteItem(null); }}
+                className="btn btn-danger btn-lg"
+                style={{ flex: 1 }}
+              >Yes, delete</button>
+              <button onClick={() => setConfirmDeleteItem(null)} className="btn btn-secondary btn-lg">Cancel</button>
             </div>
           </div>
         </div>

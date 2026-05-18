@@ -2891,6 +2891,9 @@ textarea.input { resize: none; }
 .meal-plan-entry-title:hover { color: var(--color-gold-dark); }
 
 .meal-plan-entry-remove {
+  background: none;
+  border: none;
+  font-family: inherit;
   cursor: pointer;
   color: var(--color-text-muted);
   font-size: 14px;

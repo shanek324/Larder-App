@@ -26,6 +26,7 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
   const [search, setSearch] = useState("");
   const [filterTag, setFilterTag] = useState(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [confirmRemovePlan, setConfirmRemovePlan] = useState(null);
 
   // Build the 7 days of the current week
   const days = useMemo(() => {
@@ -154,7 +155,7 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
                     <span onClick={() => onViewRecipe(p.recipe_id)} className="meal-plan-entry-title">
                       {recipeTitleById(p.recipe_id)}
                     </span>
-                    <span onClick={() => onRemovePlan(p.id)} className="meal-plan-entry-remove">×</span>
+                    <button onClick={() => setConfirmRemovePlan(p)} className="meal-plan-entry-remove" aria-label={`Remove ${recipeTitleById(p.recipe_id)} from plan`}>×</button>
                   </div>
                 ))}
                 <button onClick={() => setPickerDate(iso)} className="meal-plan-add-btn">
@@ -200,6 +201,26 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmRemovePlan && (
+        <div className="modal-overlay">
+          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+            <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
+            <h2 className="section-title" style={{ textAlign: "center" }}>Remove this plan?</h2>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
+              "{recipeTitleById(confirmRemovePlan.recipe_id)}" will be removed from this day's plan.
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => { onRemovePlan(confirmRemovePlan.id); setConfirmRemovePlan(null); }}
+                className="btn btn-danger btn-lg"
+                style={{ flex: 1 }}
+              >Yes, remove</button>
+              <button onClick={() => setConfirmRemovePlan(null)} className="btn btn-secondary btn-lg">Cancel</button>
             </div>
           </div>
         </div>

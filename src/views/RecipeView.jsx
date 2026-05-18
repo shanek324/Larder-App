@@ -14,6 +14,8 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
   const [scaledServings, setScaledServings] = useState(recipe.servings);
   const [showCollectionPicker, setShowCollectionPicker] = useState(false);
   const [showOverflow, setShowOverflow] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmPublic, setConfirmPublic] = useState(false);
   const [costEstimate, setCostEstimate] = useState(null);
   const [loadingCost, setLoadingCost] = useState(true);
 
@@ -129,7 +131,15 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
                       </button>
                       {isOwner && (
                         <button
-                          onClick={() => { onUpdate({ ...recipe, is_public: !recipe.is_public }); setShowOverflow(false); }}
+                          onClick={() => {
+                            setShowOverflow(false);
+                            if (recipe.is_public) {
+                              // Going public → private: no confirm needed.
+                              onUpdate({ ...recipe, is_public: false });
+                            } else {
+                              setConfirmPublic(true);
+                            }
+                          }}
                           className="recipe-overflow-item"
                         >
                           <span>{recipe.is_public ? "🌍 Public" : "🔒 Private"}</span>
@@ -148,7 +158,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
                       >⧉ Duplicate</button>
                       {isOwner && (
                         <button
-                          onClick={() => { setShowOverflow(false); onDelete(); }}
+                          onClick={() => { setShowOverflow(false); setConfirmDelete(true); }}
                           className="recipe-overflow-item recipe-overflow-item-danger"
                         >🗑 Delete recipe</button>
                       )}
@@ -351,6 +361,44 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
         )}
         </div>
       )}
+    {confirmDelete && (
+      <div className="modal-overlay">
+        <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+          <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
+          <h2 className="section-title" style={{ textAlign: "center" }}>Delete this recipe?</h2>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
+            "{recipe.title}" will be permanently removed, along with its cook history. This can't be undone.
+          </p>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              onClick={() => { setConfirmDelete(false); onDelete(); }}
+              className="btn btn-danger btn-lg"
+              style={{ flex: 1 }}
+            >Yes, delete</button>
+            <button onClick={() => setConfirmDelete(false)} className="btn btn-secondary btn-lg">Cancel</button>
+          </div>
+        </div>
+      </div>
+    )}
+    {confirmPublic && (
+      <div className="modal-overlay">
+        <div className="modal" style={{ maxWidth: 420, textAlign: "center" }}>
+          <p style={{ fontSize: 40, marginBottom: 8 }}>🌍</p>
+          <h2 className="section-title" style={{ textAlign: "center" }}>Make this recipe public?</h2>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24, lineHeight: 1.5 }}>
+            Anyone using Larder will be able to view "{recipe.title}" and add it to their library. You can make it private again at any time.
+          </p>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              onClick={() => { onUpdate({ ...recipe, is_public: true }); setConfirmPublic(false); }}
+              className="btn btn-gold btn-lg"
+              style={{ flex: 1 }}
+            >Make public</button>
+            <button onClick={() => setConfirmPublic(false)} className="btn btn-secondary btn-lg">Cancel</button>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }
