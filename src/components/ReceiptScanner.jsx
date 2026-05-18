@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { categoriseIngredient, callClaude } from "../utils";
 import CameraCapture from "./CameraCapture";
 import { DUNNES_AISLES, API_MODEL } from "../constants";
+import { toast } from "../toast";
 
 const COMMON_UNITS = ["each", "g", "kg", "ml", "l", "pack", "6 pack", "dozen", "bunch", "bag", "loaf", "tin", "jar", "box", "bottle"];
 
@@ -69,7 +70,7 @@ function toBase64(file) {
   });
 }
 
-export default function ReceiptScanner({ onConfirm, onClose, checkCredits, shoppingItems = [] }) {
+export default function ReceiptScanner({ onConfirm, onClose, shoppingItems = [] }) {
   const shoppingContext = shoppingItems.length > 0
     ? "\nThe user was shopping for these items: " + shoppingItems.map(i => i.name).join(", ") + ". Use this as context to help identify ambiguous receipt items."
     : "";
@@ -77,13 +78,10 @@ export default function ReceiptScanner({ onConfirm, onClose, checkCredits, shopp
   const [unitPicker, setUnitPicker] = useState(null); // { id, currentUnit }
   const [showCamera, setShowCamera] = useState(false);
   const [items, setItems] = useState([]);
-  const [error, setError] = useState(null);
 
   async function handleCameraCapture({ base64, mediaType }) {
-    if (checkCredits && !(await checkCredits())) { setShowCamera(false); return; }
     setShowCamera(false);
     setStage("scanning");
-    setError(null);
     try {
       const messages = [{
         role: "user",
@@ -110,7 +108,7 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
       setItems(withMeta);
       setStage("confirm");
     } catch(err) {
-      setError("Could not read receipt: " + err.message);
+      toast.error(err.message || "Could not read receipt");
       setStage("upload");
     }
   }
@@ -121,9 +119,7 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
       console.warn("No file selected");
       return;
     }
-    if (checkCredits && !(await checkCredits())) return;
     setStage("scanning");
-    setError(null);
 
     try {
       const base64 = await toBase64(file);
@@ -178,7 +174,7 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
       setStage("confirm");
     } catch (err) {
       console.error("Receipt scan error:", err);
-      setError("Could not read receipt: " + err.message);
+      toast.error(err.message || "Could not read receipt");
       setStage("upload");
     }
   }
@@ -214,7 +210,6 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
           <div className="receipt-upload">
             <div className="receipt-upload-icon">🧾</div>
             <p className="receipt-hint">Upload a photo of your supermarket receipt. Larder will extract the items and prices automatically.</p>
-            {error && <p className="receipt-error">{error}</p>}
             <div className="receipt-upload-buttons">
               <button onClick={() => setShowCamera(true)} className="receipt-upload-label">
                 📷 Take Photo

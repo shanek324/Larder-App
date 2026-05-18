@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { callClaude } from "../utils";
+import { toast } from "../toast";
 
 const SUGGESTIONS = [
   "Make this for 4 people",
@@ -8,7 +9,7 @@ const SUGGESTIONS = [
   "What can I substitute for the main protein?",
 ];
 
-export default function AIChat({ recipe, onUpdate, checkCredits }) {
+export default function AIChat({ recipe, onUpdate }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,7 +20,6 @@ export default function AIChat({ recipe, onUpdate, checkCredits }) {
   async function send(text) {
     const userMsg = (text || input).trim();
     if (!userMsg || loading) return;
-    if (checkCredits && !(await checkCredits())) return;
     setInput("");
     const newMessages = [...messages, { role: "user", content: userMsg }];
     setMessages(newMessages);
@@ -54,6 +54,7 @@ If just a question, reply normally. Be concise. Use metric/Irish measurements.`;
       }
       setMessages([...newMessages, { role: "assistant", content: displayReply }]);
     } catch (e) {
+      toast.error(e.message || "Couldn't process that request");
       setMessages([...newMessages, { role: "assistant", content: "Sorry, something went wrong." }]);
     }
     setLoading(false);

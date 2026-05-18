@@ -2,18 +2,16 @@ import { useState } from "react";
 import { supabase } from "../supabase";
 import { callClaude, slugify } from "../utils";
 import { API_MODEL } from "../constants";
+import { toast } from "../toast";
 
-export default function ImportRecipeModal({ onClose, onAdd, checkCredits }) {
+export default function ImportRecipeModal({ onClose, onAdd }) {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [preview, setPreview] = useState(null);
 
   async function handleImport() {
     if (!url.trim()) return;
-    if (checkCredits && !(await checkCredits())) return;
     setLoading(true);
-    setError("");
     setPreview(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -39,7 +37,7 @@ export default function ImportRecipeModal({ onClose, onAdd, checkCredits }) {
       const recipe = JSON.parse(clean);
       setPreview(recipe);
     } catch (e) {
-      setError("Could not extract recipe. Try a different URL. (" + e.message + ")");
+      toast.error("Could not extract recipe. Try a different URL. (" + e.message + ")");
     }
     setLoading(false);
   }
@@ -75,7 +73,6 @@ export default function ImportRecipeModal({ onClose, onAdd, checkCredits }) {
             {loading ? "Importing..." : "Import Recipe"}
           </button>
 
-          {error && <p style={{ color: "var(--color-danger)", marginTop: 8 }}>{error}</p>}
 
           {preview && (
             <div style={{ marginTop: 16 }}>

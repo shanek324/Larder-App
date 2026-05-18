@@ -4,7 +4,7 @@ import { categoriseIngredient, callClaude } from "../utils";
 import { toast } from "../toast";
 import { DUNNES_AISLES } from "../constants";
 
-export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, session, checkCredits }) {
+export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, session }) {
   const [newItem, setNewItem] = useState("");
   const [search, setSearch] = useState("");
   const [cleaning, setCleaning] = useState(false);
@@ -75,7 +75,6 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
   }
 
   async function handleCleanup() {
-    if (checkCredits && !(await checkCredits())) return;
     setCleaning(true);
     try {
       const itemList = pantryItems.map(i => i.name + (i.quantity ? " [" + i.quantity + (i.unit ? " " + i.unit : "") + "]" : "")).join("\n");
@@ -246,7 +245,6 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
         <ReceiptScanner
           onConfirm={handleReceiptConfirm}
           onClose={() => setShowScanner(false)}
-          checkCredits={checkCredits}
         />
         </Suspense>
       )}

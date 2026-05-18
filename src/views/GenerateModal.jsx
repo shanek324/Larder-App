@@ -1,18 +1,16 @@
 import { useState } from "react";
 import { callClaude, slugify } from "../utils";
 import Tag from "../components/Tag";
+import { toast } from "../toast";
 
-export default function GenerateModal({ onClose, onAdd, checkCredits }) {
+export default function GenerateModal({ onClose, onAdd }) {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
 
   async function generate() {
     if (!prompt.trim() || loading) return;
-    if (checkCredits && !(await checkCredits())) return;
     setLoading(true);
-    setError("");
     setResult(null);
 
     const system = `You are a recipe generator for an Irish household. Respond ONLY with valid JSON (no markdown, no preamble):
@@ -30,7 +28,7 @@ Rules:
       const reply = await callClaude([{ role: "user", content: prompt }], system);
       setResult(JSON.parse(reply.replace(/```json|```/g, "").trim()));
     } catch (e) {
-      setError("Couldn't generate a recipe. Try a more specific description.");
+      toast.error(e.message || "Couldn't generate a recipe. Try a more specific description.");
     }
     setLoading(false);
   }
@@ -55,8 +53,6 @@ Rules:
         <button onClick={generate} disabled={loading} className="btn btn-gold btn-full generate-btn">
           {loading ? "Generating…" : "Generate Recipe"}
         </button>
-
-        {error && <p className="generate-error">{error}</p>}
 
         {result && (
           <div className="generate-result">

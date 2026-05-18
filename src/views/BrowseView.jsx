@@ -117,7 +117,7 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
         onDuplicate={() => handleAdd(selectedRecipe)}
         onAddToLibrary={(ownRecipeIds.includes(selectedRecipe.id) || addedOriginals.has(selectedRecipe.id)) ? null : () => handleAdd(selectedRecipe)}
         session={session}
-        checkCredits={() => false}
+       
         authorName={profiles[selectedRecipe.user_id] || null}
       />
     );

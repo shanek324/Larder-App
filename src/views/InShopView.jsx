@@ -4,7 +4,7 @@ import { DUNNES_AISLES } from "../constants";
 import { categoriseIngredient } from "../utils";
 const ReceiptScanner = lazy(() => import("../components/ReceiptScanner"));
 
-export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices, onSaveTicked, onUpdateItems, checkCredits }) {
+export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices, onSaveTicked, onUpdateItems }) {
   const [checked, setChecked] = useState(savedList?.ticked || {});
   const debounceRef = useRef(null);
 
@@ -243,7 +243,7 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
         <ReceiptScanner
           onConfirm={handleScanComplete}
           onClose={() => setShowScanner(false)}
-          checkCredits={checkCredits}
+         
           shoppingItems={items}
         />
         </Suspense>

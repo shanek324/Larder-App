@@ -3,7 +3,7 @@ import { DUNNES_AISLES } from "../constants";
 import { callClaude, matchesPantry, estimateRecipeCost, categoriseIngredient } from "../utils";
 import { toast } from "../toast";
 
-export default function ShoppingListView({ recipes, pantryItems, onSaveList, savedList, onClearList, selectedRecipes, setSelectedRecipes, consolidated, setConsolidated, crossedOff, setCrossedOff, checkCredits }) {
+export default function ShoppingListView({ recipes, pantryItems, onSaveList, savedList, onClearList, selectedRecipes, setSelectedRecipes, consolidated, setConsolidated, crossedOff, setCrossedOff }) {
 
   const [expandedSources, setExpandedSources] = useState({});
   const [generating, setGenerating] = useState(false);
@@ -104,7 +104,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
       await onSaveList(filtered, false, {}, selectedRecipes);
     } catch(e) {
       console.error("Generate error:", e);
-      toast.error("Couldn't generate shopping list. Please try again.");
+      toast.error(e.message || "Couldn't generate shopping list. Please try again.");
     }
     setGenerating(false);
   }

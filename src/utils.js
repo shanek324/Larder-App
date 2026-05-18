@@ -68,13 +68,6 @@ export function scaleAmount(amountStr, ratio) {
   return unit ? `${formatted}${unit}` : formatted;
 }
 
-export async function checkAiCredit(supabase, userId) {
-  const { data, error } = await supabase.rpc("check_and_use_ai_credit", { user_uuid: userId });
-  if (error) throw new Error("Could not check AI credits: " + error.message);
-  if (!data.allowed) throw new Error(data.message || "AI limit reached.");
-  return data;
-}
-
 export async function callClaude(messages, system = "", maxTokens = 1000, model = API_MODEL) {
   const body = { model: model, max_tokens: maxTokens, messages };
   if (system) body.system = system;

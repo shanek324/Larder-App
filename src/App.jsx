@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, lazy, Suspense } from "react";
 import { supabase } from "./supabase";
-import { checkAiCredit } from "./utils";
+
 import { toast } from "./toast";
 import HomeView from "./views/HomeView";
 import RecipeView from "./views/RecipeView";
@@ -132,17 +132,6 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [isRecovery, setIsRecovery] = useState(false);
-
-  async function checkCredits() {
-    if (!session?.user?.id) return false;
-    try {
-      await checkAiCredit(supabase, session.user.id);
-      return true;
-    } catch(e) {
-      toast.error(e.message);
-      return false;
-    }
-  }
 
   const [view, setView] = useState("home");
   const [activeRecipeId, setActiveRecipeId] = useState(null);
@@ -565,7 +554,7 @@ export default function App() {
               onUpdateRecipe={updateRecipe}
               onUpdatePantry={updatePantry}
               session={session}
-              checkCredits={checkCredits}
+             
             />
           </Suspense>
         ) : view === "recipe" && activeRecipe ? (
@@ -579,7 +568,7 @@ export default function App() {
             onStartCooking={() => setView("cooking")}
             onDuplicate={() => duplicateRecipe(activeRecipe)}
             session={session}
-            checkCredits={checkCredits}
+           
           />
         ) : view === "collections" ? (
           <CollectionsView
@@ -598,7 +587,7 @@ export default function App() {
               onSavePrices={savePrices}
               onSaveTicked={saveTicked}
               onUpdateItems={updateShoppingListItems}
-              checkCredits={checkCredits}
+             
             />
           ) : (
             <ShoppingListView
@@ -613,7 +602,7 @@ export default function App() {
               setConsolidated={setConsolidatedList}
               crossedOff={crossedOff}
               setCrossedOff={setCrossedOff}
-              checkCredits={checkCredits}
+             
             />
           )
         ) : view === "history" ? (
@@ -644,7 +633,7 @@ export default function App() {
             onUpdatePantry={updatePantry}
             onSavePrices={savePrices}
             session={session}
-            checkCredits={checkCredits}
+           
           />
         ) : (
           <HomeView
@@ -663,9 +652,9 @@ export default function App() {
         )}
       </div>
 
-      {showGenerate && <GenerateModal onClose={() => setShowGenerate(false)} onAdd={addRecipe} checkCredits={checkCredits} />}
+      {showGenerate && <GenerateModal onClose={() => setShowGenerate(false)} onAdd={addRecipe} />}
       {showAdd && <AddRecipeModal onClose={() => { setShowAdd(false); setDuplicateData(null); }} onAdd={addRecipe} initialData={duplicateData} onOverwrite={handleOverwrite} />}
-      {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} onAdd={addRecipe} checkCredits={checkCredits} />}
+      {showImport && <ImportRecipeModal onClose={() => setShowImport(false)} onAdd={addRecipe} />}
       <ToastHost />
       <InstallPrompt />
     </div>

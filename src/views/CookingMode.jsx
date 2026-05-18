@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { supabase } from "../supabase";
 import { callClaude } from "../utils";
+import { toast } from "../toast";
 
-export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecipe, onUpdatePantry, session, checkCredits }) {
+export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecipe, onUpdatePantry, session }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [stepNotes, setStepNotes] = useState(recipe.step_notes || {});
   const [showNoteInput, setShowNoteInput] = useState(false);
@@ -101,15 +102,24 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   }
 
   async function handleFinishReview() {
-    if (checkCredits && !(await checkCredits())) { setPhase("pantry"); return; }
     setGeneratingTips(true);
+
+    // Tips are best-effort. If they fail (e.g. AI limit reached), we still log the cook.
+    let aiTips = "";
     try {
       const messages = [{
         role: "user",
         content: "A cook just made: " + recipe.title + ". They rated it " + rating + "/5 and said: \"" + feedback + "\". Give 2-3 specific, practical cooking tips for next time based on their feedback. Be concise and actionable. Format as plain text, no bullet points."
       }];
-      const aiTips = await callClaude(messages, "", 500, "claude-haiku-4-5-20251001");
+      aiTips = await callClaude(messages, "", 500, "claude-haiku-4-5-20251001");
       setTips(aiTips);
+    } catch(e) {
+      console.error("Tips generation error:", e);
+      toast.error(e.message || "Couldn't generate tips, but your cook was saved.");
+    }
+
+    // Always log the cook + bump count, even if tips failed.
+    try {
       await supabase.from("cook_logs").insert({
         user_id: session?.user?.id,
         recipe_id: recipe.id,
@@ -118,7 +128,6 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
         feedback,
         ai_tips: aiTips,
       });
-      // Refresh local logs so the Tips card uses the most recent cook on next entry
       const { data: refreshedLogs } = await supabase
         .from("cook_logs")
         .select("*")
@@ -129,8 +138,10 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
       const newCount = (recipe.cook_count || 0) + 1;
       await onUpdateRecipe({ ...recipe, cook_count: newCount, lastCooked: Date.now(), notes: recipeNotes });
     } catch(e) {
-      console.error("Review error:", e);
+      console.error("Cook log save error:", e);
+      toast.error("Couldn't save your cook log. Please try again.");
     }
+
     setGeneratingTips(false);
     setPhase("pantry");
   }
@@ -146,7 +157,11 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   }
 
   async function generatePantrySuggestions() {
-    if (checkCredits && !(await checkCredits())) { setLoadingSuggestions(false); return; }
+    // Short-circuit on empty pantry — no point burning a credit on a no-op.
+    if (pantryItems.length === 0) {
+      setPantryUpdates([]);
+      return;
+    }
     setLoadingSuggestions(true);
     try {
       const ingredientList = recipe.ingredients.map(i => i.amount + " " + i.name).join(", ");
@@ -167,6 +182,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
       setPantryUpdates(matched);
     } catch(e) {
       console.error("Pantry suggestion error:", e);
+      toast.error(e.message || "Couldn't analyse pantry — you can update it manually.");
       setPantryUpdates([]);
     }
     setLoadingSuggestions(false);
