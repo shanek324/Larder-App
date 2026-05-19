@@ -7,16 +7,47 @@ const ReceiptScanner = lazy(() => import("../components/ReceiptScanner"));
 export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices, onSaveTicked, onUpdateItems }) {
   const [checked, setChecked] = useState(savedList?.ticked || {});
   const debounceRef = useRef(null);
+  const pendingCheckedRef = useRef(savedList?.ticked || {});
+  const hasPendingRef = useRef(false);
 
   useEffect(() => {
     setChecked(savedList?.ticked || {});
+    pendingCheckedRef.current = savedList?.ticked || {};
+    hasPendingRef.current = false;
   }, [savedList?.id]);
 
   const debouncedSave = useCallback((newChecked) => {
+    pendingCheckedRef.current = newChecked;
+    hasPendingRef.current = true;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      onSaveTicked(newChecked);
+      onSaveTicked(pendingCheckedRef.current);
+      hasPendingRef.current = false;
     }, 2000);
+  }, [onSaveTicked]);
+
+  // Flush pending ticks immediately when the app goes to background, the page
+  // is about to unload, or this view unmounts. Protects against the user
+  // switching apps mid-shop and losing 2s of unticked progress.
+  useEffect(() => {
+    function flush() {
+      if (!hasPendingRef.current) return;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      onSaveTicked(pendingCheckedRef.current);
+      hasPendingRef.current = false;
+    }
+    function onVisibility() {
+      if (document.visibilityState === "hidden") flush();
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("beforeunload", flush);
+    window.addEventListener("pagehide", flush); // iOS Safari fires this, not always beforeunload
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("beforeunload", flush);
+      window.removeEventListener("pagehide", flush);
+      flush(); // also flush on unmount
+    };
   }, [onSaveTicked]);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showStartOver, setShowStartOver] = useState(false);
