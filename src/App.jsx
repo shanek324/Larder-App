@@ -111,6 +111,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [stuckTooLong, setStuckTooLong] = useState(false);
   const [isRecovery, setIsRecovery] = useState(false);
   const [resumeOffer, setResumeOffer] = useState(null);
   const [priceMap, setPriceMap] = useState({});
@@ -125,6 +126,15 @@ export default function App() {
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [duplicateData, setDuplicateData] = useState(null);
   const addMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!authLoading && !loading) {
+      setStuckTooLong(false);
+      return;
+    }
+    const t = setTimeout(() => setStuckTooLong(true), 8000);
+    return () => clearTimeout(t);
+  }, [authLoading, loading]);
 
   useEffect(() => {
     if (!showAddMenu) return;
@@ -490,6 +500,13 @@ export default function App() {
         <div className="loading-inner">
           <p className="loading-emoji">🫙</p>
           <p className="loading-text">Loading your Larder…</p>
+          {stuckTooLong && (
+            <button
+              onClick={() => window.location.reload()}
+              className="btn btn-secondary"
+              style={{ marginTop: 16 }}
+            >Taking a while — reload?</button>
+          )}
         </div>
       </div>
     );

@@ -76,6 +76,10 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
     }, 800);
   }
 
+  function removeConsolidatedItem(key) {
+    setConsolidated(prev => prev.filter(i => i.key !== key));
+  }
+
   async function handleGenerate() {
     setGenerating(true);
 
@@ -335,6 +339,12 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
                             {expandedSources[item.key] ? "▲" : "▼"}
                           </button>
                         )}
+                        <button
+                          type="button"
+                          onClick={e => { e.preventDefault(); e.stopPropagation(); removeConsolidatedItem(item.key); }}
+                          className="shopping-item-remove"
+                          aria-label={`Remove ${item.name}`}
+                        >×</button>
                       </label>
                       {item.sources && item.sources.length > 0 && expandedSources[item.key] && (
                         <div className="shopping-item-sources">

@@ -313,9 +313,12 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
 
         <div className="cooking-dots">
           {steps.map((_, i) => (
-            <div
+            <button
+              type="button"
               key={i}
               onClick={() => setCurrentStep(i)}
+              aria-label={`Jump to step ${i + 1}`}
+              aria-current={i === currentStep ? "true" : undefined}
               className={"cooking-dot" + (i === currentStep ? " active" : i < currentStep ? " past" : "")}
             />
           ))}

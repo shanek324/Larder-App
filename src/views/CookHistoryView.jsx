@@ -25,7 +25,7 @@ export default function CookHistoryView({ recipes, onLogDeleted }) {
 
   function getRecipeTitle(id) {
     const r = recipes.find(r => r.id === id);
-    return r ? r.title : "Unknown recipe";
+    return r ? r.title : "[Deleted recipe]";
   }
 
   async function deleteLog(id) {

@@ -158,6 +158,17 @@ export default function HomeView({
         </div>
       )}
 
+      {showingAll && !loadingToday && !hasTodayContext && (
+        <div className="home-today">
+          <div className="home-today-block">
+            <p className="home-today-label">Today</p>
+            <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", margin: 0 }}>
+              No meal planned. What are you cooking?
+            </p>
+          </div>
+        </div>
+      )}
+
       {showingAll && hasTodayContext && (
         <div className="home-today">
           {todayPlans.length > 0 && (
