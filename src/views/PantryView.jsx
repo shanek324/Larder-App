@@ -86,21 +86,41 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
       const res = await callClaude(messages, "", 2000, "claude-haiku-4-5-20251001");
       const cleaned = res.replace(/```json/g, "").replace(/```/g, "").trim();
       const parsed = JSON.parse(cleaned);
-      const newItems = parsed.map((i, idx) => {
-        // Find all pantry items that match this cleaned name and keep the highest stock level
+      // Track which existing UUIDs we've already consumed so we don't reuse one twice.
+      const consumed = new Set();
+
+      const newItems = parsed.map((i) => {
+        // Find all existing pantry items whose name overlaps with this cleaned name.
         const matches = pantryItems.filter(p =>
-          p.name.toLowerCase().includes(i.name.toLowerCase()) ||
-          i.name.toLowerCase().includes(p.name.toLowerCase())
+          !consumed.has(p.id) && (
+            p.name.toLowerCase().includes(i.name.toLowerCase()) ||
+            i.name.toLowerCase().includes(p.name.toLowerCase())
+          )
         );
         const stockLevels = ["high", "medium", "low"];
         const bestStock = matches.length > 0
           ? stockLevels.find(level => matches.some(m => (m.stockLevel || "high") === level)) || "high"
           : "high";
+
+        // Reuse the first matching UUID so this becomes an UPDATE rather than an
+        // INSERT+DELETE pair. The other matches will be cleaned up by the diff in
+        // App.jsx.updatePantry (their UUIDs aren't in newItems → they get deleted).
+        // If insert/update fails partway, no doubled items result.
+        let id, addedAt;
+        if (matches.length > 0) {
+          consumed.add(matches[0].id);
+          id = matches[0].id;
+          addedAt = matches[0].addedAt || Date.now();
+        } else {
+          id = crypto.randomUUID();
+          addedAt = Date.now();
+        }
+
         return {
-          id: crypto.randomUUID(),
+          id,
           name: i.name,
           aisle: i.aisle || "Other",
-          addedAt: Date.now(),
+          addedAt,
           stockLevel: bestStock,
           quantity: i.quantity || null,
           unit: i.unit || null,
