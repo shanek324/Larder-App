@@ -56,17 +56,17 @@ export default function ImportRecipeModal({ onClose, onAdd }) {
 
   return (
     <div className="modal-overlay">
-      <div className="modal">
+      <div className="modal" role="dialog" aria-modal="true">
         <div className="modal-header">
           <h2 className="modal-title">Import from URL</h2>
-          <span onClick={onClose} className="modal-close">×</span>
+          <button type="button" onClick={onClose} className="modal-close" aria-label="Close">×</button>
         </div>
 
         <div className="add-recipe-form">
           <input
             value={url}
             onChange={e => setUrl(e.target.value)}
-            placeholder="Paste recipe URL..."
+            placeholder="Paste recipe URL..." aria-label="Paste recipe URL..."
             className="input add-recipe-input"
           />
           <button onClick={handleImport} disabled={loading || !url.trim()} className="btn btn-gold btn-full">

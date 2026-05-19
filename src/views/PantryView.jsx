@@ -176,7 +176,7 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
           value={newItem}
           onChange={e => setNewItem(e.target.value)}
           onKeyDown={e => e.key === "Enter" && addItem()}
-          placeholder="Add item to pantry…"
+          placeholder="Add item to pantry…" aria-label="Add item to pantry…"
           className="input"
         />
         <button onClick={addItem} className="btn btn-gold btn-lg">Add</button>
@@ -185,7 +185,7 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
       <input
         value={search}
         onChange={e => setSearch(e.target.value)}
-        placeholder="Search pantry…"
+        placeholder="Search pantry…" aria-label="Search pantry…"
         className="input pantry-search"
       />
 
@@ -222,10 +222,10 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
       )}
       {editingItem && (
         <div className="modal-overlay">
-          <div className="modal">
+          <div className="modal" role="dialog" aria-modal="true">
             <div className="modal-header">
               <h2 className="modal-title">Edit Item</h2>
-              <span className="modal-close" onClick={() => setEditingItem(null)}>×</span>
+              <button type="button" className="modal-close" onClick={() => setEditingItem(null)} aria-label="Close">×</button>
             </div>
             <div className="add-recipe-form">
               <label className="add-recipe-label">Name</label>
@@ -263,7 +263,7 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
 
       {confirmDeleteItem && (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+          <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 400, textAlign: "center" }}>
             <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
             <h2 className="section-title" style={{ textAlign: "center" }}>Delete this item?</h2>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
@@ -282,7 +282,7 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
       )}
 
       {showScanner && (
-        <Suspense fallback={<div className="modal-overlay"><div className="modal" style={{ maxWidth: 360, textAlign: "center" }}><p className="loading-emoji">🧾</p><p className="loading-text">Loading scanner…</p></div></div>}>
+        <Suspense fallback={<div className="modal-overlay"><div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 360, textAlign: "center" }}><p className="loading-emoji">🧾</p><p className="loading-text">Loading scanner…</p></div></div>}>
         <ReceiptScanner
           onConfirm={handleReceiptConfirm}
           onClose={() => setShowScanner(false)}

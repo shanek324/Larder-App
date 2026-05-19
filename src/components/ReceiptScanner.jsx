@@ -12,10 +12,10 @@ function UnitPickerModal({ currentUnit, onSelect, onClose }) {
 
   return (
     <div className="modal-overlay" style={{ zIndex: 1100 }}>
-      <div className="modal" style={{ maxWidth: 360 }}>
+      <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 360 }}>
         <div className="modal-header">
           <h2 className="modal-title">Select Unit</h2>
-          <span className="modal-close" onClick={onClose}>×</span>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Close">×</button>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, padding: "12px 0" }}>
           {COMMON_UNITS.map(u => (
@@ -42,7 +42,7 @@ function UnitPickerModal({ currentUnit, onSelect, onClose }) {
               className="input"
               value={custom}
               onChange={e => setCustom(e.target.value)}
-              placeholder="Type unit…"
+              placeholder="Type unit…" aria-label="Type unit…"
               autoFocus
               style={{ flex: 1 }}
             />
@@ -200,10 +200,10 @@ Exclude: deposits, loyalty points, saver deals, discounts, subtotals, totals, no
 
   return (
     <div className="modal-overlay">
-      <div className="modal">
+      <div className="modal" role="dialog" aria-modal="true">
         <div className="modal-header">
           <h2 className="modal-title">🧾 Scan Receipt</h2>
-          <span className="modal-close" onClick={onClose}>×</span>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Close">×</button>
         </div>
 
         {stage === "upload" && (

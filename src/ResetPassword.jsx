@@ -43,7 +43,7 @@ export default function ResetPassword({ onDone }) {
 
         <input
           type="password"
-          placeholder="New password"
+          placeholder="New password" aria-label="New password"
           value={password}
           onChange={e => setPassword(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -52,7 +52,7 @@ export default function ResetPassword({ onDone }) {
         />
         <input
           type="password"
-          placeholder="Confirm password"
+          placeholder="Confirm password" aria-label="Confirm password"
           value={confirm}
           onChange={e => setConfirm(e.target.value)}
           onKeyDown={handleKeyDown}

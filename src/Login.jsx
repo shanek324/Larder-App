@@ -103,7 +103,7 @@ export default function Login() {
 
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Email" aria-label="Email"
           value={email}
           onChange={e => setEmail(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -113,7 +113,7 @@ export default function Login() {
         {mode !== "forgot" && (
           <input
             type="password"
-            placeholder="Password"
+            placeholder="Password" aria-label="Password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             onKeyDown={handleKeyDown}

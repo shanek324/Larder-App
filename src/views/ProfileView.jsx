@@ -154,7 +154,7 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
             <input
               value={usernameInput}
               onChange={e => setUsernameInput(e.target.value)}
-              placeholder="Your name"
+              placeholder="Your name" aria-label="Your name"
               className="input profile-edit-input"
               autoFocus
             />
@@ -301,7 +301,7 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
 
       {showDeleteConfirm && (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 440, textAlign: "center" }}>
+          <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 440, textAlign: "center" }}>
             <p style={{ fontSize: 40, marginBottom: 8 }}>⚠️</p>
             <h2 className="section-title" style={{ textAlign: "center" }}>Delete your account?</h2>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 16, lineHeight: 1.5 }}>
@@ -314,7 +314,7 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
             <input
               value={deleteConfirmText}
               onChange={e => setDeleteConfirmText(e.target.value)}
-              placeholder="DELETE"
+              placeholder="DELETE" aria-label="DELETE"
               className="input"
               style={{ marginBottom: 16, textAlign: "center", letterSpacing: 2 }}
               autoFocus

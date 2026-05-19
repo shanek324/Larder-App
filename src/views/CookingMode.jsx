@@ -337,7 +337,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
               <textarea
                 value={noteText}
                 onChange={e => setNoteText(e.target.value)}
-                placeholder="e.g. Added extra garlic, kept sauce on longer..."
+                placeholder="e.g. Added extra garlic, kept sauce on longer..." aria-label="e.g. Added extra garlic, kept sauce on longer..."
                 autoFocus
                 rows={3}
                 className="input cooking-note-textarea"
@@ -404,7 +404,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
           <textarea
             value={feedback}
             onChange={e => setFeedback(e.target.value)}
-            placeholder="e.g. Needed more seasoning, sauce was too thick..."
+            placeholder="e.g. Needed more seasoning, sauce was too thick..." aria-label="e.g. Needed more seasoning, sauce was too thick..."
             rows={3}
             className="input cooking-feedback-input"
           />
@@ -413,7 +413,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
           <textarea
             value={recipeNotes}
             onChange={e => setRecipeNotes(e.target.value)}
-            placeholder="e.g. Add more garlic next time, serve with crusty bread..."
+            placeholder="e.g. Add more garlic next time, serve with crusty bread..." aria-label="e.g. Add more garlic next time, serve with crusty bread..."
             rows={3}
             className="input cooking-feedback-input"
           />
@@ -472,7 +472,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
                         value={item.usedAmount || ""}
                         onChange={e => setPantryUpdates(u => u.map((x, idx) => idx === i ? { ...x, usedAmount: parseFloat(e.target.value) || null } : x))}
                         className="receipt-price-input"
-                        placeholder="amt"
+                        placeholder="amt" aria-label="amt"
                         style={{ width: 60 }}
                       />
                       <span style={{ fontSize: 12, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>{item.usedUnit || item.unit || ""}</span>

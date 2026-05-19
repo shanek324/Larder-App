@@ -210,9 +210,9 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
                 {selectedRecipes.map(id => {
                   const r = recipes.find(x => x.id === id);
                   return r ? (
-                    <span key={id} onClick={() => toggleRecipe(id)} className="shopping-selected-pill">
+                    <button type="button" key={id} onClick={() => toggleRecipe(id)} className="shopping-selected-pill" aria-label="Remove from shopping list">
                       {r.title} ×
-                    </span>
+                    </button>
                   ) : null;
                 })}
               </div>
@@ -223,15 +223,15 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search recipes…"
+              placeholder="Search recipes…" aria-label="Search recipes…"
               className="input"
             />
           </div>
 
           <div className="home-tags" style={{ marginBottom: 16 }}>
-            <span onClick={() => setFilterTag(null)} className={"pill" + (!filterTag ? " active" : "")}>All</span>
+            <button type="button" onClick={() => setFilterTag(null)} className={"pill" + (!filterTag ? " active" : "")}>All</button>
             {allTags.map(t => (
-              <span key={t} onClick={() => setFilterTag(filterTag === t ? null : t)} className={"pill" + (filterTag === t ? " active" : "")}>{t}</span>
+              <button type="button" key={t} onClick={() => setFilterTag(filterTag === t ? null : t)} className={"pill" + (filterTag === t ? " active" : "")}>{t}</button>
             ))}
           </div>
 
@@ -277,7 +277,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
               value={manualItem}
               onChange={e => setManualItem(e.target.value)}
               onKeyDown={e => e.key === "Enter" && addManualItem()}
-              placeholder="Add item to list…"
+              placeholder="Add item to list…" aria-label="Add item to list…"
               className="input"
             />
             <button onClick={addManualItem} className="btn btn-gold">Add</button>
@@ -285,7 +285,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
 
           {showClearConfirm && (
             <div className="modal-overlay">
-              <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+              <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 400, textAlign: "center" }}>
                 <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
                 <h2 className="section-title" style={{ textAlign: "center" }}>Clear your list?</h2>
                 <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
@@ -325,7 +325,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
                           onChange={e => updateAmount(item.key, e.target.value)}
                           onClick={e => e.stopPropagation()}
                           className="shopping-item-amount-input"
-                          placeholder="amount"
+                          placeholder="amount" aria-label="amount"
                         />
                         {item.sources && item.sources.length > 0 && (
                           <button

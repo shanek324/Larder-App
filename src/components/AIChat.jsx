@@ -99,7 +99,7 @@ If just a question, reply normally. Be concise. Use metric/Irish measurements.`;
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && send()}
-          placeholder="Ask something about this recipe..."
+          placeholder="Ask something about this recipe..." aria-label="Ask something about this recipe..."
           className="input aichat-input"
         />
         <button onClick={() => send()} disabled={loading} className="btn btn-gold aichat-send">

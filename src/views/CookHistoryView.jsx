@@ -79,7 +79,7 @@ export default function CookHistoryView({ recipes, onLogDeleted }) {
               <div className="cook-history-entry-header">
                 <span className="cook-history-recipe">{getRecipeTitle(log.recipe_id)}</span>
                 <span className="cook-history-date">{formatDate(log.cooked_at)}</span>
-                <span onClick={() => setConfirmDelete(log)} className="cook-history-delete">×</span>
+                <button type="button" onClick={() => setConfirmDelete(log)} className="cook-history-delete" aria-label="Delete cook log">×</button>
               </div>
               <div className="cook-history-rating">{"⭐".repeat(log.rating)}</div>
               {log.feedback && (
@@ -98,7 +98,7 @@ export default function CookHistoryView({ recipes, onLogDeleted }) {
 
       {confirmDelete && (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+          <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 400, textAlign: "center" }}>
             <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
             <h2 className="section-title" style={{ textAlign: "center" }}>Delete this cook log?</h2>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>

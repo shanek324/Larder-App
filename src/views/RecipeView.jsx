@@ -219,7 +219,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
             value={newTag}
             onChange={e => setNewTag(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && newTag.trim()) { setDraft(d => ({ ...d, tags: [...d.tags, newTag.trim()] })); setNewTag(""); }}}
-            placeholder="Add tag…"
+            placeholder="Add tag…" aria-label="Add tag…"
             className="recipe-tag-input"
           />
         )}
@@ -300,7 +300,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
                       <>
                         <input value={ing.amount} onChange={e => { const arr = [...draft.ingredients]; arr[i] = { ...arr[i], amount: e.target.value }; setDraft(d => ({ ...d, ingredients: arr })); }} className="recipe-ing-amount-input" />
                         <input value={ing.name} onChange={e => { const arr = [...draft.ingredients]; arr[i] = { ...arr[i], name: e.target.value }; setDraft(d => ({ ...d, ingredients: arr })); }} className="recipe-ing-name-input" />
-                        <span onClick={() => removeIngredient(i)} className="recipe-remove">×</span>
+                        <button type="button" onClick={() => removeIngredient(i)} className="recipe-remove" aria-label="Remove ingredient">×</button>
                       </>
                     ) : (
                       <>
@@ -312,8 +312,8 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
                 ))}
                 {editMode && (
                   <div className="recipe-add-ingredient">
-                    <input value={newIngredient.amount} onChange={e => setNewIngredient(n => ({ ...n, amount: e.target.value }))} placeholder="Amount" className="recipe-ing-amount-input" />
-                    <input value={newIngredient.name} onChange={e => setNewIngredient(n => ({ ...n, name: e.target.value }))} placeholder="Ingredient" onKeyDown={e => e.key === "Enter" && addIngredient()} className="recipe-ing-name-input" />
+                    <input value={newIngredient.amount} onChange={e => setNewIngredient(n => ({ ...n, amount: e.target.value }))} placeholder="Amount" aria-label="Amount" className="recipe-ing-amount-input" />
+                    <input value={newIngredient.name} onChange={e => setNewIngredient(n => ({ ...n, name: e.target.value }))} placeholder="Ingredient" aria-label="Ingredient" onKeyDown={e => e.key === "Enter" && addIngredient()} className="recipe-ing-name-input" />
                     <button onClick={addIngredient} className="btn btn-gold">+</button>
                   </div>
                 )}
@@ -329,7 +329,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
                     {editMode ? (
                       <div className="recipe-step-edit">
                         <textarea value={step} onChange={e => updateMethod(i, e.target.value)} rows={2} className="input" />
-                        <span onClick={() => removeStep(i)} className="recipe-remove">×</span>
+                        <button type="button" onClick={() => removeStep(i)} className="recipe-remove" aria-label="Remove step">×</button>
                       </div>
                     ) : (
                       <p className="recipe-step-text">{step}</p>
@@ -369,7 +369,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
       )}
     {confirmDelete && (
       <div className="modal-overlay">
-        <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+        <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 400, textAlign: "center" }}>
           <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
           <h2 className="section-title" style={{ textAlign: "center" }}>Delete this recipe?</h2>
           <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
@@ -388,7 +388,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
     )}
     {confirmPublic && (
       <div className="modal-overlay">
-        <div className="modal" style={{ maxWidth: 420, textAlign: "center" }}>
+        <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 420, textAlign: "center" }}>
           <p style={{ fontSize: 40, marginBottom: 8 }}>🌍</p>
           <h2 className="section-title" style={{ textAlign: "center" }}>Make this recipe public?</h2>
           <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24, lineHeight: 1.5 }}>

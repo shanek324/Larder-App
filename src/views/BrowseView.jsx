@@ -119,15 +119,15 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
       <input
         value={search}
         onChange={e => setSearch(e.target.value)}
-        placeholder="Search public recipes…"
+        placeholder="Search public recipes…" aria-label="Search public recipes…"
         className="input"
         style={{ marginBottom: 12 }}
       />
 
       <div className="home-tags" style={{ marginBottom: 16 }}>
-        <span onClick={() => setFilterTag(null)} className={"pill" + (!filterTag ? " active" : "")}>All</span>
+        <button type="button" onClick={() => setFilterTag(null)} className={"pill" + (!filterTag ? " active" : "")}>All</button>
         {allTags.map(t => (
-          <span key={t} onClick={() => setFilterTag(filterTag === t ? null : t)} className={"pill" + (filterTag === t ? " active" : "")}>{t}</span>
+          <button type="button" key={t} onClick={() => setFilterTag(filterTag === t ? null : t)} className={"pill" + (filterTag === t ? " active" : "")}>{t}</button>
         ))}
       </div>
 

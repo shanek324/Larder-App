@@ -68,6 +68,29 @@ body {
   outline-offset: 3px;
 }
 
+/* Buttons that replaced inline spans need browser button defaults neutralised.
+   The visual styling for each class still comes from its own rule elsewhere. */
+button.modal-close,
+button.tag-remove,
+button.recipe-remove,
+button.add-recipe-remove,
+button.cook-history-delete,
+button.shopping-selected-pill,
+button.meal-plan-entry-title,
+button.meal-plan-entry-remove,
+button.pill {
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  padding: 0;
+}
+/* .pill has its own padding+border styling; restore for button.pill. */
+button.pill {
+  padding: 7px 14px;
+  border: 1.5px solid var(--color-border);
+}
+
 /* ========================================
    LAYOUT
    ======================================== */

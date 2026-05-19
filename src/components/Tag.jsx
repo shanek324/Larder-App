@@ -9,7 +9,7 @@ export default function Tag({ label, onRemove }) {
     >
       {label}
       {onRemove && (
-        <span onClick={onRemove} className="tag-remove">×</span>
+        <button type="button" onClick={onRemove} className="tag-remove" aria-label="Remove tag">×</button>
       )}
     </span>
   );

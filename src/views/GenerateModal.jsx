@@ -35,10 +35,10 @@ Rules:
 
   return (
     <div className="modal-overlay">
-      <div className="modal">
+      <div className="modal" role="dialog" aria-modal="true">
         <div className="modal-header">
           <h2 className="modal-title">✦ Generate a Recipe</h2>
-          <span onClick={onClose} className="modal-close">×</span>
+          <button type="button" onClick={onClose} className="modal-close" aria-label="Close">×</button>
         </div>
 
         <textarea
@@ -46,7 +46,7 @@ Rules:
           onChange={e => setPrompt(e.target.value)}
           onKeyDown={e => e.key === "Enter" && !e.shiftKey && generate()}
           rows={4}
-          placeholder="e.g. A quick weeknight pasta using chorizo and cherry tomatoes."
+          placeholder="e.g. A quick weeknight pasta using chorizo and cherry tomatoes." aria-label="e.g. A quick weeknight pasta using chorizo and cherry tomatoes."
           className="input generate-textarea"
         />
 

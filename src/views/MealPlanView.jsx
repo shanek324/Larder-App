@@ -152,9 +152,9 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
               <div className="meal-plan-day-body">
                 {plans.map(p => (
                   <div key={p.id} className="meal-plan-entry">
-                    <span onClick={() => onViewRecipe(p.recipe_id)} className="meal-plan-entry-title">
+                    <button type="button" onClick={() => onViewRecipe(p.recipe_id)} className="meal-plan-entry-title">
                       {recipeTitleById(p.recipe_id)}
-                    </span>
+                    </button>
                     <button onClick={() => setConfirmRemovePlan(p)} className="meal-plan-entry-remove" aria-label={`Remove ${recipeTitleById(p.recipe_id)} from plan`}>×</button>
                   </div>
                 ))}
@@ -170,12 +170,12 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
       {/* Recipe picker modal */}
       {pickerDate && (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 600, maxHeight: "85vh", display: "flex", flexDirection: "column" }}>
+          <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 600, maxHeight: "85vh", display: "flex", flexDirection: "column" }}>
             <div className="modal-header">
               <h2 className="modal-title">
                 Add recipe for {new Date(pickerDate).toLocaleDateString("en-IE", { weekday: "long", day: "numeric", month: "short" })}
               </h2>
-              <span className="modal-close" onClick={() => setPickerDate(null)}>×</span>
+              <button type="button" className="modal-close" onClick={() => setPickerDate(null)} aria-label="Close">×</button>
             </div>
             <input
               value={search}
@@ -185,9 +185,9 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
               autoFocus
             />
             <div className="home-tags meal-plan-picker-tags">
-              <span onClick={() => setFilterTag(null)} className={"pill" + (!filterTag ? " active" : "")}>All</span>
+              <button type="button" onClick={() => setFilterTag(null)} className={"pill" + (!filterTag ? " active" : "")}>All</button>
               {allTags.map(t => (
-                <span key={t} onClick={() => setFilterTag(filterTag === t ? null : t)} className={"pill" + (filterTag === t ? " active" : "")}>{t}</span>
+                <button type="button" key={t} onClick={() => setFilterTag(filterTag === t ? null : t)} className={"pill" + (filterTag === t ? " active" : "")}>{t}</button>
               ))}
             </div>
             <div className="meal-plan-picker-list">
@@ -208,7 +208,7 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
 
       {confirmRemovePlan && (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+          <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 400, textAlign: "center" }}>
             <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
             <h2 className="section-title" style={{ textAlign: "center" }}>Remove this plan?</h2>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
@@ -229,7 +229,7 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
       {/* Clear week confirm */}
       {showClearConfirm && (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+          <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 400, textAlign: "center" }}>
             <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
             <h2 className="section-title" style={{ textAlign: "center" }}>Clear this week's plan?</h2>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>

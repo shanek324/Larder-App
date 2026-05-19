@@ -61,7 +61,7 @@ export default function CollectionsView({ collections, recipes, onUpdateCollecti
               value={newName}
               onChange={e => setNewName(e.target.value)}
               onKeyDown={e => e.key === "Enter" && createCollection()}
-              placeholder="Collection name…"
+              placeholder="Collection name…" aria-label="Collection name…"
               className="input"
             />
             <button onClick={createCollection} className="btn btn-primary btn-lg">Create</button>
@@ -118,7 +118,7 @@ export default function CollectionsView({ collections, recipes, onUpdateCollecti
 
       {confirmDelete && (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+          <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 400, textAlign: "center" }}>
             <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
             <h2 className="section-title" style={{ textAlign: "center" }}>Delete this collection?</h2>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>

@@ -62,27 +62,27 @@ export default function AddRecipeModal({ onClose, onAdd, onOverwrite, initialDat
 
   return (
     <div className="modal-overlay">
-      <div className="modal">
+      <div className="modal" role="dialog" aria-modal="true">
         <div className="modal-header">
           <h2 className="modal-title">{initialData ? "Edit Duplicate" : "Add Recipe"}</h2>
-          <span onClick={onClose} className="modal-close">×</span>
+          <button type="button" onClick={onClose} className="modal-close" aria-label="Close">×</button>
         </div>
 
         <div className="add-recipe-form">
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title *" className="input add-recipe-input" />
+          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title *" aria-label="Title *" className="input add-recipe-input" />
           <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" rows={2} className="input add-recipe-input" />
 
           <div className="add-recipe-row">
-            <input value={prepTime} onChange={e => setPrepTime(e.target.value)} placeholder="Prep time" className="input" />
-            <input value={cookTime} onChange={e => setCookTime(e.target.value)} placeholder="Cook time" className="input" />
-            <input value={servings} onChange={e => setServings(e.target.value)} placeholder="Servings" type="number" className="input" style={{ width: 80 }} />
+            <input value={prepTime} onChange={e => setPrepTime(e.target.value)} placeholder="Prep time" aria-label="Prep time" className="input" />
+            <input value={cookTime} onChange={e => setCookTime(e.target.value)} placeholder="Cook time" aria-label="Cook time" className="input" />
+            <input value={servings} onChange={e => setServings(e.target.value)} placeholder="Servings" aria-label="Servings" type="number" className="input" style={{ width: 80 }} />
           </div>
 
           <div className="add-recipe-tags">
             <p className="add-recipe-label">Tags</p>
             <div className="add-recipe-tag-list">
               {TAGS.map(t => (
-                <span key={t} onClick={() => toggleTag(t)} className={"pill" + (tags.includes(t) ? " active" : "")}>{t}</span>
+                <button type="button" key={t} onClick={() => toggleTag(t)} className={"pill" + (tags.includes(t) ? " active" : "")}>{t}</button>
               ))}
             </div>
           </div>
@@ -91,9 +91,9 @@ export default function AddRecipeModal({ onClose, onAdd, onOverwrite, initialDat
             <p className="add-recipe-label">Ingredients</p>
             {ingredients.map((ing, i) => (
               <div key={i} className="add-recipe-ingredient-row">
-                <input value={ing.amount} onChange={e => updateIngredient(i, "amount", e.target.value)} placeholder="Amount" className="input add-recipe-amount" />
-                <input value={ing.name} onChange={e => updateIngredient(i, "name", e.target.value)} placeholder="Ingredient" className="input" style={{ flex: 1 }} />
-                {ingredients.length > 1 && <span onClick={() => removeIngredient(i)} className="add-recipe-remove">×</span>}
+                <input value={ing.amount} onChange={e => updateIngredient(i, "amount", e.target.value)} placeholder="Amount" aria-label="Amount" className="input add-recipe-amount" />
+                <input value={ing.name} onChange={e => updateIngredient(i, "name", e.target.value)} placeholder="Ingredient" aria-label="Ingredient" className="input" style={{ flex: 1 }} />
+                {ingredients.length > 1 && <button type="button" onClick={() => removeIngredient(i)} className="add-recipe-remove" aria-label="Remove ingredient">×</button>}
               </div>
             ))}
             <button onClick={addIngredient} className="btn btn-secondary add-recipe-add-btn">+ Add ingredient</button>
@@ -105,13 +105,13 @@ export default function AddRecipeModal({ onClose, onAdd, onOverwrite, initialDat
               <div key={i} className="add-recipe-step-row">
                 <span className="add-recipe-step-num">{i + 1}</span>
                 <textarea value={step} onChange={e => updateStep(i, e.target.value)} rows={2} placeholder={"Step " + (i + 1)} className="input" style={{ flex: 1 }} />
-                {method.length > 1 && <span onClick={() => removeStep(i)} className="add-recipe-remove">×</span>}
+                {method.length > 1 && <button type="button" onClick={() => removeStep(i)} className="add-recipe-remove" aria-label="Remove step">×</button>}
               </div>
             ))}
             <button onClick={addStep} className="btn btn-secondary add-recipe-add-btn">+ Add step</button>
           </div>
 
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes (optional)" rows={2} className="input add-recipe-input" />
+          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes (optional)" aria-label="Notes (optional)" rows={2} className="input add-recipe-input" />
 
           <button onClick={handleAdd} disabled={!title.trim()} className="btn btn-primary btn-full add-recipe-submit">
             Save as New Recipe →

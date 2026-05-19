@@ -188,7 +188,7 @@ export default function HomeView({
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search recipes…"
+          placeholder="Search recipes…" aria-label="Search recipes…"
           className="input home-search-input"
         />
         <button

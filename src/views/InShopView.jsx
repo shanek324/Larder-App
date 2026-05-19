@@ -242,17 +242,17 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
 
       {showAddItem && (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 400 }}>
+          <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 400 }}>
             <div className="modal-header">
               <h2 className="modal-title">Add item</h2>
-              <span className="modal-close" onClick={() => setShowAddItem(false)}>×</span>
+              <button type="button" className="modal-close" onClick={() => setShowAddItem(false)} aria-label="Close">×</button>
             </div>
             <div style={{ display: "flex", gap: 8, padding: "8px 0" }}>
               <input
                 value={manualItem}
                 onChange={e => setManualItem(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && addManualItem()}
-                placeholder="e.g. Milk, Bread…"
+                placeholder="e.g. Milk, Bread…" aria-label="e.g. Milk, Bread…"
                 className="input"
                 style={{ flex: 1 }}
                 autoFocus
@@ -265,7 +265,7 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
 
       {showStartOver && (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+          <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 400, textAlign: "center" }}>
             <p style={{ fontSize: 40, marginBottom: 8 }}>🗑️</p>
             <h2 className="section-title" style={{ textAlign: "center" }}>Start over?</h2>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
@@ -281,7 +281,7 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
 
       {showConfirm && (
         <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 400, textAlign: "center" }}>
+          <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 400, textAlign: "center" }}>
             <p style={{ fontSize: 40, marginBottom: 8 }}>🛒</p>
             <h2 className="section-title" style={{ textAlign: "center" }}>All done?</h2>
             <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--color-text-muted-dark)", marginBottom: 24 }}>
@@ -297,7 +297,7 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
         </div>
       )}
       {showScanner && (
-        <Suspense fallback={<div className="modal-overlay"><div className="modal" style={{ maxWidth: 360, textAlign: "center" }}><p className="loading-emoji">🧾</p><p className="loading-text">Loading scanner…</p></div></div>}>
+        <Suspense fallback={<div className="modal-overlay"><div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 360, textAlign: "center" }}><p className="loading-emoji">🧾</p><p className="loading-text">Loading scanner…</p></div></div>}>
         <ReceiptScanner
           onConfirm={handleScanComplete}
           onClose={() => setShowScanner(false)}

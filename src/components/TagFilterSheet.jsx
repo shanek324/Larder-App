@@ -34,7 +34,7 @@ export default function TagFilterSheet({ tags, value, onChange, onClose }) {
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Search tags…"
+          placeholder="Search tags…" aria-label="Search tags…"
           className="input tag-sheet-search"
           autoFocus
         />
