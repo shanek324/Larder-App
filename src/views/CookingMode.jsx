@@ -17,23 +17,6 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const [currentStep, setCurrentStep] = useState(savedResume?.currentStep ?? 0);
   const [stepNotes, setStepNotes] = useState(recipe.step_notes || {});
   const [lastNonIngredientStep, setLastNonIngredientStep] = useState(savedResume?.lastNonIngredientStep ?? 0);
-
-  // Persist cooking position so we can offer to resume after app kill.
-  useEffect(() => {
-    if (phase !== "cooking") return;
-    try {
-      localStorage.setItem("larder:resume-cook", JSON.stringify({
-        recipeId: recipe.id,
-        currentStep,
-        lastNonIngredientStep,
-        savedAt: Date.now(),
-      }));
-    } catch (_) {}
-  }, [recipe.id, currentStep, lastNonIngredientStep, phase]);
-
-  function clearResumeState() {
-    try { localStorage.removeItem("larder:resume-cook"); } catch (_) {}
-  }
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [phase, setPhase] = useState("cooking");
@@ -52,6 +35,24 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
   const [stepFontSize, setStepFontSize] = useState(22);
   const stepTextRef = useRef(null);
   const [recipeNotes, setRecipeNotes] = useState(recipe.notes || "");
+
+  // Persist cooking position so we can offer to resume after app kill.
+  // (Placed after `phase` is declared above to avoid temporal-dead-zone errors.)
+  useEffect(() => {
+    if (phase !== "cooking") return;
+    try {
+      localStorage.setItem("larder:resume-cook", JSON.stringify({
+        recipeId: recipe.id,
+        currentStep,
+        lastNonIngredientStep,
+        savedAt: Date.now(),
+      }));
+    } catch (_) {}
+  }, [recipe.id, currentStep, lastNonIngredientStep, phase]);
+
+  function clearResumeState() {
+    try { localStorage.removeItem("larder:resume-cook"); } catch (_) {}
+  }
 
   const ingredients = recipe.ingredients || [];
   const lastTips = cookLogs.length > 0 ? cookLogs[0].ai_tips : null;
