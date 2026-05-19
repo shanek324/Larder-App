@@ -121,7 +121,7 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
 
   const tier = profile?.tier || "starter";
   const used = profile?.ai_credits_used || 0;
-  const limit = tier === "power" ? "∞" : tier === "starter" ? 5 : 0;
+  const limit = tier === "power" ? "∞" : 10;
   const initials = getInitials(profile, session?.user?.email);
   const email = session?.user?.email || "";
 
@@ -216,7 +216,7 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
         <p className="profile-card-label">Account</p>
         <div className="profile-tier-row">
           <span className={"profile-tier-badge profile-tier-" + tier}>
-            {tier === "power" ? "⚡ Power" : tier === "starter" ? "🌱 Starter" : "🆓 Free"}
+            {tier === "power" ? "⚡ Power" : "🌱 Starter"}
           </span>
           <span className="profile-credits">{used} / {limit} AI actions today</span>
         </div>
