@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, lazy, Suspense } from "react";
 import { supabase } from "./supabase";
-import { loadPriceMap } from "./utils";
+import { loadPriceMap, recipeFromDb } from "./utils";
 
 import { toast } from "./toast";
 import HomeView from "./views/HomeView";
@@ -50,29 +50,6 @@ function recipeToDb(r) {
     image_url: r.image_url || null,
     is_public: r.is_public || false,
     is_approved: r.is_approved || false,
-  };
-}
-
-function recipeFromDb(r) {
-  return {
-    id: r.id,
-    title: r.title,
-    description: r.description,
-    tags: r.tags || [],
-    servings: r.servings,
-    prepTime: r.prep_time,
-    cookTime: r.cook_time,
-    ingredients: r.ingredients || [],
-    method: r.method || [],
-    notes: r.notes,
-    createdAt: r.created_at,
-    lastCooked: r.last_cooked,
-    cook_count: r.cook_count || 0,
-    step_notes: r.step_notes || {},
-    image_url: r.image_url || null,
-    is_public: r.is_public || false,
-    is_approved: r.is_approved || false,
-    user_id: r.user_id || null,
   };
 }
 
@@ -426,19 +403,6 @@ export default function App() {
     } catch(e) {
       console.error("clearShoppingList error", e);
       toast.error("Couldn't clear shopping list. Please try again.");
-    }
-  }
-
-  async function handleUpdateShoppingList(updatedList, addToPantry = []) {
-    if (addToPantry.length > 0) {
-      const existing = pantryItems.map(i => i.name.toLowerCase());
-      const newItems = addToPantry
-        .filter(i => !existing.includes(i.name.toLowerCase()))
-        .map(i => ({ id: crypto.randomUUID(), name: i.name, aisle: i.aisle, addedAt: Date.now() }));
-      if (newItems.length > 0) {
-        await supabase.from("pantry").insert(newItems.map(p => ({ ...pantryToDb(p), user_id: session?.user?.id })));
-        setPantryItems(p => [...p, ...newItems]);
-      }
     }
   }
 

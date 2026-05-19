@@ -154,3 +154,30 @@ export async function estimateRecipeCost(ingredients) {
   const total = known.reduce((sum, b) => sum + b.estimate, 0);
   return { total, breakdown, hasData: known.length > 0 };
 }
+
+
+// Shape conversion: Supabase row → app-shaped recipe object.
+// Mirrored counterpart `recipeToDb` lives in App.jsx (depends on session/state-ish concerns).
+// Exported so BrowseView and any other view can use a single source of truth.
+export function recipeFromDb(r) {
+  return {
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    tags: r.tags || [],
+    servings: r.servings,
+    prepTime: r.prep_time,
+    cookTime: r.cook_time,
+    ingredients: r.ingredients || [],
+    method: r.method || [],
+    notes: r.notes,
+    createdAt: r.created_at,
+    lastCooked: r.last_cooked,
+    cook_count: r.cook_count || 0,
+    step_notes: r.step_notes || {},
+    image_url: r.image_url || null,
+    is_public: r.is_public || false,
+    is_approved: r.is_approved || false,
+    user_id: r.user_id || null,
+  };
+}

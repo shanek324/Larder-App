@@ -75,7 +75,7 @@ export default function CookHistoryView({ recipes, onLogDeleted }) {
       ) : (
         <div className="cook-history-list">
           {logs.map((log, i) => (
-            <div key={i} className="cook-history-entry">
+            <div key={log.id} className="cook-history-entry">
               <div className="cook-history-entry-header">
                 <span className="cook-history-recipe">{getRecipeTitle(log.recipe_id)}</span>
                 <span className="cook-history-date">{formatDate(log.cooked_at)}</span>

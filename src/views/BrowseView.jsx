@@ -3,7 +3,7 @@ import { supabase } from "../supabase";
 import RecipeCard from "../components/RecipeCard";
 import RecipeView from "./RecipeView";
 import { SkeletonCard } from "../components/Skeleton";
-import { slugify } from "../utils";
+import { slugify, recipeFromDb } from "../utils";
 
 export default function BrowseView({ session, onAdd, ownRecipeIds }) {
   const [recipes, setRecipes] = useState([]);
@@ -38,24 +38,7 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
         }
       }
 
-      if (recipeData) setRecipes(recipeData.map(r => ({
-        id: r.id,
-        title: r.title,
-        description: r.description,
-        tags: r.tags || [],
-        servings: r.servings,
-        prepTime: r.prep_time,
-        cookTime: r.cook_time,
-        ingredients: r.ingredients || [],
-        method: r.method || [],
-        notes: r.notes,
-        createdAt: r.created_at,
-        cook_count: r.cook_count || 0,
-        step_notes: r.step_notes || {},
-        image_url: r.image_url || null,
-        user_id: r.user_id,
-        is_public: r.is_public,
-      })));
+      if (recipeData) setRecipes(recipeData.map(recipeFromDb));
       setLoading(false);
     }
     loadPublic();

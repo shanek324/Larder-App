@@ -110,7 +110,7 @@ export default function CollectionsView({ collections, recipes, onUpdateCollecti
                 </div>
               )
             ) : (
-              <div className="collections-placeholder">← Select a collection to view its recipes</div>
+              <div className="collections-placeholder">Tap a collection to view its recipes</div>
             )}
           </div>
         </div>

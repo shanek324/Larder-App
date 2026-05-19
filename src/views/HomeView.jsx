@@ -20,7 +20,7 @@ export default function HomeView({
   onAcceptResume,
   onDismissResume,
 }) {
-  const [todayPlans, setTodayPlans] = useState([]);
+  const [todayPlanIds, setTodayPlanIds] = useState([]);
   const [lowStock, setLowStock] = useState([]);
   const [showTagSheet, setShowTagSheet] = useState(false);
   const [loadingToday, setLoadingToday] = useState(true);
@@ -68,11 +68,7 @@ export default function HomeView({
 
       if (cancelled) return;
 
-      if (planRes.data) {
-        const ids = planRes.data.map(p => p.recipe_id);
-        const recipesToday = recipes.filter(r => ids.includes(r.id));
-        setTodayPlans(recipesToday);
-      }
+      if (planRes.data) setTodayPlanIds(planRes.data.map(p => p.recipe_id));
       if (pantryRes.data) setLowStock(pantryRes.data.map(p => p.name));
       setLoadingToday(false);
     }
@@ -82,7 +78,14 @@ export default function HomeView({
       setLoadingToday(false);
     }
     return () => { cancelled = true; };
-  }, [recipes, isFirstRun]);
+  }, [isFirstRun]);
+
+  // Derive todayPlans from the fetched ids + current recipes, so edits to
+  // recipes don't refetch but DO update the displayed list.
+  const todayPlans = useMemo(
+    () => recipes.filter(r => todayPlanIds.includes(r.id)),
+    [recipes, todayPlanIds]
+  );
 
   const hasTodayContext = todayPlans.length > 0 || lowStock.length > 0;
 
@@ -226,6 +229,13 @@ export default function HomeView({
           <div className="empty-state">
             <p className="empty-state-emoji">🍳</p>
             <p className="empty-state-title">No recipes found</p>
+            {(search || filterTag) && (
+              <button
+                onClick={() => { setSearch(""); setFilterTag(null); }}
+                className="btn btn-secondary"
+                style={{ marginTop: 12 }}
+              >Clear filters</button>
+            )}
           </div>
         ) : (
           <div className="recipe-grid">
