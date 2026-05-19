@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react"
 import { supabase } from "../supabase";
 import { DUNNES_AISLES } from "../constants";
 import { categoriseIngredient } from "../utils";
+import { toast } from "../toast";
 const ReceiptScanner = lazy(() => import("../components/ReceiptScanner"));
 
 export default function InShopView({ savedList, pantryItems, onClearList, onUpdatePantry, onSavePrices, onSaveTicked, onUpdateItems }) {
@@ -122,8 +123,30 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
       }
     });
     await onUpdatePantry(updatedPantry);
+
+    // Auto-tick shopping-list items that match what we just scanned.
+    // The user is free to untick/edit before finishing.
+    const norm = (s) => (s || "").trim().toLowerCase();
+    const scannedNorms = scannedItems.map(s => norm(s.name));
+    let autoTicked = 0;
+    setChecked(prev => {
+      const next = { ...prev };
+      items.forEach(item => {
+        if (next[item.key]) return; // already ticked
+        const itemNorm = norm(item.name);
+        const match = scannedNorms.some(sn => sn.includes(itemNorm) || itemNorm.includes(sn));
+        if (match) { next[item.key] = true; autoTicked++; }
+      });
+      debouncedSave(next);
+      return next;
+    });
+
     setShowScanner(false);
-    await handleFinished(updatedPantry);
+    if (autoTicked > 0) {
+      toast.success(`Receipt scanned. ${autoTicked} item${autoTicked === 1 ? "" : "s"} auto-ticked.`);
+    } else {
+      toast.success("Receipt added to your pantry.");
+    }
   }
 
   async function handleFinished(currentPantry = pantryItems) {
@@ -167,6 +190,9 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
         </div>
         <button onClick={() => setShowStartOver(true)} className="btn btn-secondary" style={{ fontSize: 12 }}>
           Start over
+        </button>
+        <button onClick={() => setShowScanner(true)} className="btn btn-gold" style={{ fontSize: 12 }}>
+          🧾 Scan
         </button>
         {tickedCount > 0 && (
           <button onClick={() => setShowConfirm(true)} className="btn btn-primary btn-lg">
@@ -265,7 +291,6 @@ export default function InShopView({ savedList, pantryItems, onClearList, onUpda
             </p>
             <div style={{ display: "flex", gap: 10, flexDirection: "column" }}>
               <button onClick={handleFinished} className="btn btn-primary btn-lg">Yes, finish up</button>
-              <button onClick={() => { setShowConfirm(false); setShowScanner(true); }} className="btn btn-gold btn-lg">🧾 Scan Receipt First</button>
               <button onClick={() => setShowConfirm(false)} className="btn btn-secondary btn-lg">Cancel</button>
             </div>
           </div>
