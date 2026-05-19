@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "../toast";
+import CostBreakdownModal from "./CostBreakdownModal";
 import Tag from "../components/Tag";
 import ServingScaler from "../components/ServingScaler";
 import AIChat from "../components/AIChat";
 import { scaleAmount, computeRecipeCost } from "../utils";
 import Skeleton from "../components/Skeleton";
 
-export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onStartCooking, onDuplicate, onAddToLibrary, session, authorName, priceMap}) {
+export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onStartCooking, onDuplicate, onAddToLibrary, session, authorName, priceMap, onSavePrices }) {
   const [editMode, setEditMode] = useState(false);
   const [draft, setDraft] = useState(recipe);
   const [tab, setTab] = useState("recipe");
@@ -17,14 +18,14 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
   const [showOverflow, setShowOverflow] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmPublic, setConfirmPublic] = useState(false);
+  const [showCostBreakdown, setShowCostBreakdown] = useState(false);
   useEffect(() => { setDraft(recipe); setScaledServings(recipe.servings); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [recipe.id]);
 
   // Cost estimate is computed synchronously against a priceMap loaded once
   // in App.jsx (and refreshed when new prices arrive via receipt scan).
   // No fetch here, no loading state.
   const costEstimate = useMemo(() => {
-    const result = computeRecipeCost(recipe.ingredients, priceMap);
-    return result.hasData ? result : null;
+    return computeRecipeCost(recipe.ingredients, priceMap);
   }, [recipe.ingredients, priceMap]);
   const loadingCost = false;
 
@@ -261,14 +262,21 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
             <div className="recipe-meta-label">Est. Cost</div>
             <Skeleton width="60px" height="22px" style={{ margin: "4px auto 0" }} />
           </div>
-        ) : costEstimate !== null && (
-          <div className="recipe-meta-item">
+        ) : costEstimate.breakdown.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowCostBreakdown(true)}
+            className="recipe-meta-item recipe-meta-cost-btn"
+            aria-label="Show cost breakdown"
+          >
             <div className="recipe-meta-label">Est. Cost</div>
-            <div className="recipe-meta-value">€{(costEstimate.total * ratio).toFixed(2)}</div>
-            <div className="recipe-meta-label" style={{ marginTop: 2 }}>
-              {costEstimate.breakdown.filter(b => b.estimate !== null).length}/{costEstimate.breakdown.length} items
+            <div className="recipe-meta-value">
+              {costEstimate.hasData ? "€" + (costEstimate.total * ratio).toFixed(2) : "—"}
             </div>
-          </div>
+            <div className="recipe-meta-label" style={{ marginTop: 2 }}>
+              {costEstimate.breakdown.filter(b => b.estimate !== null).length}/{costEstimate.breakdown.length} items ›
+            </div>
+          </button>
         )}
       </div>
 
@@ -367,6 +375,16 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
         )}
         </div>
       )}
+    {showCostBreakdown && (
+      <CostBreakdownModal
+        breakdown={costEstimate.breakdown}
+        total={costEstimate.total}
+        ratio={ratio}
+        recipeTitle={recipe.title}
+        onClose={() => setShowCostBreakdown(false)}
+        onAddPrice={(entry) => onSavePrices([entry])}
+      />
+    )}
     {confirmDelete && (
       <div className="modal-overlay">
         <div className="modal" role="dialog" aria-modal="true" style={{ maxWidth: 400, textAlign: "center" }}>

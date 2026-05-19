@@ -576,6 +576,7 @@ export default function App() {
             onUpdateCollections={updateCollections}
             onStartCooking={() => setView("cooking")}
             priceMap={priceMap}
+            onSavePrices={savePrices}
             onDuplicate={() => duplicateRecipe(activeRecipe)}
             session={session}
            

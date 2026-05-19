@@ -109,15 +109,31 @@ export async function loadPriceMap() {
 
 export function computeRecipeCost(ingredients, priceMap) {
   // Pure synchronous compute against an already-loaded priceMap.
+  // Each breakdown row exposes enough detail for the cost breakdown screen:
+  //   { name, amount, key, estimate, avgPricePerUnit, qty, unit, sourceCount }
+  // estimate is null when no priceMap entry exists for the normalised name.
   if (!priceMap) return { total: 0, breakdown: [], hasData: false };
   const breakdown = ingredients.map(ing => {
     const key = consolidateName(ing.name);
     const prices = priceMap[key];
-    if (!prices || prices.length === 0) return { name: ing.name, estimate: null };
-    const avg = prices.reduce((a, b) => a + b.price, 0) / prices.length;
     const amountMatch = ing.amount ? ing.amount.match(/^([\d.]+)/) : null;
     const qty = amountMatch ? parseFloat(amountMatch[1]) : 1;
-    return { name: ing.name, estimate: avg * qty };
+    if (!prices || prices.length === 0) {
+      return { name: ing.name, amount: ing.amount, key, estimate: null, qty };
+    }
+    const avg = prices.reduce((a, b) => a + b.price, 0) / prices.length;
+    // Most-common unit across the past purchases (just first for now; refinement later).
+    const unit = prices[0].unit || null;
+    return {
+      name: ing.name,
+      amount: ing.amount,
+      key,
+      estimate: avg * qty,
+      avgPricePerUnit: avg,
+      qty,
+      unit,
+      sourceCount: prices.length,
+    };
   });
   const known = breakdown.filter(b => b.estimate !== null);
   const total = known.reduce((sum, b) => sum + b.estimate, 0);
