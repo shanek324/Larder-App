@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, lazy, Suspense } from "react";
 import { supabase } from "./supabase";
+import { loadPriceMap } from "./utils";
 
 import { toast } from "./toast";
 import HomeView from "./views/HomeView";
@@ -135,6 +136,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [isRecovery, setIsRecovery] = useState(false);
   const [resumeOffer, setResumeOffer] = useState(null);
+  const [priceMap, setPriceMap] = useState({});
 
   const [view, setView] = useState("home");
   const [activeRecipeId, setActiveRecipeId] = useState(null);
@@ -214,6 +216,10 @@ export default function App() {
         setPantryItems(pantryData ? pantryData.map(pantryFromDb) : []);
         setSavedShoppingList(shopData?.[0] || null);
         setMealPlans(planData || []);
+
+        // Load prices once for cost estimation across all recipe views.
+        const map = await loadPriceMap();
+        setPriceMap(map);
       } catch(e) {
         console.error("loadData error", e);
         toast.error("Couldn't load your Larder. Check your connection and reload.");
@@ -415,6 +421,9 @@ export default function App() {
       });
       const { error } = await supabase.from("prices").insert(rows);
       if (error) throw error;
+      // Refresh the priceMap so cost estimates pick up the new prices immediately.
+      const map = await loadPriceMap();
+      setPriceMap(map);
     } catch(e) {
       console.error("savePrices error", e);
       toast.error("Couldn't save prices, but your pantry was updated.");
@@ -598,6 +607,7 @@ export default function App() {
             collections={collections}
             onUpdateCollections={updateCollections}
             onStartCooking={() => setView("cooking")}
+            priceMap={priceMap}
             onDuplicate={() => duplicateRecipe(activeRecipe)}
             session={session}
            

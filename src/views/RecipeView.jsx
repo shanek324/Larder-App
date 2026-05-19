@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "../toast";
 import Tag from "../components/Tag";
 import ServingScaler from "../components/ServingScaler";
 import AIChat from "../components/AIChat";
-import { scaleAmount, estimateRecipeCost } from "../utils";
+import { scaleAmount, computeRecipeCost } from "../utils";
 import Skeleton from "../components/Skeleton";
 
-export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onStartCooking, onDuplicate, onAddToLibrary, session, authorName }) {
+export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onStartCooking, onDuplicate, onAddToLibrary, session, authorName, priceMap}) {
   const [editMode, setEditMode] = useState(false);
   const [draft, setDraft] = useState(recipe);
   const [tab, setTab] = useState("recipe");
@@ -17,29 +17,16 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
   const [showOverflow, setShowOverflow] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmPublic, setConfirmPublic] = useState(false);
-  const [costEstimate, setCostEstimate] = useState(null);
-  const [loadingCost, setLoadingCost] = useState(true);
-
   useEffect(() => { setDraft(recipe); setScaledServings(recipe.servings); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [recipe.id]);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function loadCost() {
-      setCostEstimate(null);
-      setLoadingCost(true);
-      try {
-        const result = await estimateRecipeCost(recipe.ingredients);
-        if (!cancelled) {
-          if (result.hasData) setCostEstimate(result);
-        }
-      } catch (e) {
-        console.error("loadCost error", e);
-      }
-      if (!cancelled) setLoadingCost(false);
-    }
-    loadCost();
-    return () => { cancelled = true; };
-  }, [recipe.id]);
+  // Cost estimate is computed synchronously against a priceMap loaded once
+  // in App.jsx (and refreshed when new prices arrive via receipt scan).
+  // No fetch here, no loading state.
+  const costEstimate = useMemo(() => {
+    const result = computeRecipeCost(recipe.ingredients, priceMap);
+    return result.hasData ? result : null;
+  }, [recipe.ingredients, priceMap]);
+  const loadingCost = false;
 
   const ratio = scaledServings / recipe.servings;
   const isOwner = recipe.user_id === session?.user?.id;

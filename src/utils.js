@@ -89,6 +89,41 @@ export async function callClaude(messages, system = "", maxTokens = 1000, model 
   return data.content?.map(b => b.text || "").join("") || "";
 }
 
+export async function loadPriceMap() {
+  // Fetch recent prices once; return a map of consolidated-name → [{price, unit}].
+  const { data, error } = await supabase
+    .from("prices")
+    .select("price_per_unit, unit, ingredient_name, purchased_at")
+    .order("purchased_at", { ascending: false })
+    .limit(500);
+  if (error) return {};
+  const priceMap = {};
+  (data || []).forEach(r => {
+    const key = consolidateName(r.ingredient_name);
+    if (!key) return;
+    if (!priceMap[key]) priceMap[key] = [];
+    if (priceMap[key].length < 5) priceMap[key].push({ price: parseFloat(r.price_per_unit), unit: r.unit });
+  });
+  return priceMap;
+}
+
+export function computeRecipeCost(ingredients, priceMap) {
+  // Pure synchronous compute against an already-loaded priceMap.
+  if (!priceMap) return { total: 0, breakdown: [], hasData: false };
+  const breakdown = ingredients.map(ing => {
+    const key = consolidateName(ing.name);
+    const prices = priceMap[key];
+    if (!prices || prices.length === 0) return { name: ing.name, estimate: null };
+    const avg = prices.reduce((a, b) => a + b.price, 0) / prices.length;
+    const amountMatch = ing.amount ? ing.amount.match(/^([\d.]+)/) : null;
+    const qty = amountMatch ? parseFloat(amountMatch[1]) : 1;
+    return { name: ing.name, estimate: avg * qty };
+  });
+  const known = breakdown.filter(b => b.estimate !== null);
+  const total = known.reduce((sum, b) => sum + b.estimate, 0);
+  return { total, breakdown, hasData: known.length > 0 };
+}
+
 export async function estimateRecipeCost(ingredients) {
   // Single batched query: pull recent prices once, match against consolidated names in JS.
   const { data } = await supabase
