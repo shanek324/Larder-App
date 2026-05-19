@@ -84,9 +84,31 @@ export default function ImportRecipeModal({ onClose, onAdd }) {
                   {preview.cookTime && "Cook: " + preview.cookTime + " · "}
                   Serves {preview.servings}
                 </p>
-                <p style={{ margin: "8px 0 0", opacity: 0.6 }}>
-                  {preview.ingredients?.length} ingredients · {preview.method?.length} steps
-                </p>
+
+                <div style={{ marginTop: 14 }}>
+                  <p className="label-uppercase" style={{ marginBottom: 6 }}>Ingredients</p>
+                  <ul style={{ fontFamily: "var(--font-sans)", fontSize: 14, margin: 0, paddingLeft: 18, lineHeight: 1.5 }}>
+                    {(preview.ingredients || []).map((ing, i) => (
+                      <li key={i}>{ing.amount ? ing.amount + " " : ""}{ing.name}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div style={{ marginTop: 14 }}>
+                  <p className="label-uppercase" style={{ marginBottom: 6 }}>Method</p>
+                  <ol style={{ fontFamily: "var(--font-sans)", fontSize: 14, margin: 0, paddingLeft: 20, lineHeight: 1.5 }}>
+                    {(preview.method || []).map((step, i) => (
+                      <li key={i} style={{ marginBottom: 6 }}>{step}</li>
+                    ))}
+                  </ol>
+                </div>
+
+                {preview.notes && (
+                  <div style={{ marginTop: 14 }}>
+                    <p className="label-uppercase" style={{ marginBottom: 6 }}>Notes</p>
+                    <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, fontStyle: "italic", margin: 0 }}>{preview.notes}</p>
+                  </div>
+                )}
               </div>
               <button onClick={handleSave} className="btn btn-primary btn-full">
                 Save to Larder →
