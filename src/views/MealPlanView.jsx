@@ -195,10 +195,10 @@ export default function MealPlanView({ mealPlans, recipes, onAddPlan, onRemovePl
                 <p className="meal-plan-picker-empty">No recipes match</p>
               ) : (
                 filteredRecipes.map(r => (
-                  <div key={r.id} onClick={() => handlePickRecipe(r.id)} className="meal-plan-picker-item">
+                  <button type="button" key={r.id} onClick={() => handlePickRecipe(r.id)} className="meal-plan-picker-item" aria-label={`Pick ${r.title}`}>
                     <span className="meal-plan-picker-title">{r.title}</span>
                     <span className="meal-plan-picker-meta">⏱ {r.prepTime} · 🔥 {r.cookTime}</span>
-                  </div>
+                  </button>
                 ))
               )}
             </div>

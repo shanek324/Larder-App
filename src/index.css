@@ -78,12 +78,18 @@ button.cook-history-delete,
 button.shopping-selected-pill,
 button.meal-plan-entry-title,
 button.meal-plan-entry-remove,
-button.pill {
+button.pill,
+button.pantry-item,
+button.meal-plan-picker-item,
+button.shopping-recipe-card,
+button.home-tag-trigger,
+button.home-tag-trigger-x {
   background: none;
   border: none;
   font: inherit;
   color: inherit;
   padding: 0;
+  text-align: left;
 }
 /* .pill has its own padding+border styling; restore for button.pill. */
 button.pill {
@@ -3726,4 +3732,125 @@ textarea.input { resize: none; }
   text-transform: uppercase;
   color: var(--color-text-muted);
   margin: 0 0 8px;
+}
+
+/* ========================================
+   ROUND 6 A11Y: restore visual styles for new <button> elements
+   ======================================== */
+
+/* Pantry items (button row) */
+button.pantry-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  width: 100%;
+  cursor: pointer;
+}
+button.pantry-item:hover {
+  background: var(--color-bg);
+}
+
+/* Meal plan picker (button row) */
+button.meal-plan-picker-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  transition: border-color 0.15s, background 0.15s;
+}
+button.meal-plan-picker-item:hover {
+  border-color: var(--color-gold);
+  background: var(--color-note-bg);
+}
+
+/* Shopping list recipe selection (button card) */
+button.shopping-recipe-card {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  cursor: pointer;
+  position: relative;
+  width: 100%;
+  transition: all 0.15s;
+}
+button.shopping-recipe-card:hover { border-color: var(--color-gold); }
+button.shopping-recipe-card.selected { background: var(--color-gold-light); border-color: var(--color-gold); }
+
+/* Home tag filter trigger (button, was already a button but now neutralised) */
+button.home-tag-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-muted-dark);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+  height: 38px;
+}
+button.home-tag-trigger:hover {
+  border-color: var(--color-gold);
+  color: var(--color-primary);
+}
+button.home-tag-trigger.active {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+  color: var(--color-surface);
+}
+
+/* Tag trigger group: filter pill + clear-× sit side by side */
+.home-tag-trigger-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+button.home-tag-trigger-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-border);
+  color: var(--color-text-muted-dark);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+button.home-tag-trigger-x:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+/* Stock badge text label (next to emoji dot) */
+.pantry-stock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.pantry-stock-badge-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }

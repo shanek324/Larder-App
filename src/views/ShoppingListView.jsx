@@ -243,7 +243,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
             {filteredRecipes.map(r => {
               const selected = selectedRecipes.includes(r.id);
               return (
-                <div key={r.id} onClick={() => toggleRecipe(r.id)} className={"shopping-recipe-card" + (selected ? " selected" : "")}>
+                <button type="button" key={r.id} onClick={() => toggleRecipe(r.id)} className={"shopping-recipe-card" + (selected ? " selected" : "")} aria-pressed={selected} aria-label={(selected ? "Remove " : "Add ") + r.title}>
                   {selected && <div className="shopping-recipe-check">✓</div>}
                   <h3 className="shopping-recipe-title">{r.title}</h3>
                   <div className="shopping-recipe-meta">
@@ -256,7 +256,7 @@ export default function ShoppingListView({ recipes, pantryItems, onSaveList, sav
                       <span key={t} className="shopping-recipe-tag">{t}</span>
                     ))}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>

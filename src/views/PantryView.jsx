@@ -207,13 +207,16 @@ export default function PantryView({ pantryItems, onUpdatePantry, onSavePrices, 
               </div>
               <div className="pantry-items">
                 {grouped[aisle].map(item => (
-                  <div key={item.id} className="pantry-item" onClick={() => setEditingItem({ ...item })}>
+                  <button type="button" key={item.id} className="pantry-item" onClick={() => setEditingItem({ ...item })} aria-label={`Edit ${item.name}`}>
                     <span className="pantry-item-name">{item.name}</span>
                     <div className="pantry-item-qty">
                       <span className="pantry-item-qty-display">{item.quantity ? item.quantity + " " + (item.unit || "") : "tap to edit"}</span>
                     </div>
-                    <span className={"pantry-stock-badge pantry-stock-" + (item.stockLevel || "high")}>{item.stockLevel === "low" ? "🔴" : item.stockLevel === "medium" ? "🟡" : "🟢"}</span>
-                  </div>
+                    <span className={"pantry-stock-badge pantry-stock-" + (item.stockLevel || "high")} aria-label={`Stock level: ${item.stockLevel || "high"}`}>
+                      <span aria-hidden="true">{item.stockLevel === "low" ? "🔴" : item.stockLevel === "medium" ? "🟡" : "🟢"}</span>
+                      <span className="pantry-stock-badge-label">{(item.stockLevel || "high").charAt(0).toUpperCase() + (item.stockLevel || "high").slice(1)}</span>
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>

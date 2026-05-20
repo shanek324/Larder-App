@@ -202,23 +202,33 @@ export default function HomeView({
           placeholder="Search recipes…" aria-label="Search recipes…"
           className="input home-search-input"
         />
-        <button
-          onClick={() => setShowTagSheet(true)}
-          className={"home-tag-trigger" + (filterTag ? " active" : "")}
-          aria-label="Filter by tag"
-        >
-          {filterTag ? (
-            <>
-              <span>🏷 {filterTag}</span>
-              <span
-                className="home-tag-trigger-x"
-                onClick={e => { e.stopPropagation(); setFilterTag(null); }}
-              >×</span>
-            </>
-          ) : (
-            <span>🏷 Filter</span>
-          )}
-        </button>
+        {filterTag ? (
+          <div className="home-tag-trigger-group">
+            <button
+              type="button"
+              onClick={() => setShowTagSheet(true)}
+              className="home-tag-trigger active"
+              aria-label={`Filter by tag: ${filterTag}. Tap to change.`}
+            >
+              🏷 {filterTag}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterTag(null)}
+              className="home-tag-trigger-x"
+              aria-label="Clear tag filter"
+            >×</button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowTagSheet(true)}
+            className="home-tag-trigger"
+            aria-label="Filter by tag"
+          >
+            🏷 Filter
+          </button>
+        )}
       </div>
 
       {showingAll && recent.length > 0 && (
