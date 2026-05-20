@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { callClaude, slugify } from "../utils";
+import { callClaude, slugify, validateRecipeShape } from "../utils";
 import Tag from "../components/Tag";
 import { toast } from "../toast";
 
@@ -26,7 +26,7 @@ Rules:
 
     try {
       const reply = await callClaude([{ role: "user", content: prompt }], system, 2000);
-      setResult(JSON.parse(reply.replace(/```json|```/g, "").trim()));
+      setResult(validateRecipeShape(JSON.parse(reply.replace(/```json|```/g, "").trim())));
     } catch (e) {
       toast.error(e.message || "Couldn't generate a recipe. Try a more specific description.");
     }

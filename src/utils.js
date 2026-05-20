@@ -172,6 +172,42 @@ export async function estimateRecipeCost(ingredients) {
 }
 
 
+// Schema guards for AI-generated JSON. Throw on malformed shape so we can
+// catch and toast instead of silently writing garbage to Supabase.
+export function validateRecipeShape(obj) {
+  if (!obj || typeof obj !== "object") throw new Error("Recipe response is not an object");
+  if (typeof obj.title !== "string" || !obj.title.trim()) throw new Error("Recipe needs a title");
+  if (!Array.isArray(obj.ingredients)) throw new Error("Recipe ingredients must be an array");
+  if (!Array.isArray(obj.method)) throw new Error("Recipe method must be an array");
+  // Normalise: coerce missing-but-optional fields to sane defaults.
+  return {
+    title: obj.title.trim(),
+    description: typeof obj.description === "string" ? obj.description : "",
+    prepTime: typeof obj.prepTime === "string" ? obj.prepTime : "",
+    cookTime: typeof obj.cookTime === "string" ? obj.cookTime : "",
+    servings: Number.isFinite(Number(obj.servings)) ? Number(obj.servings) : 4,
+    tags: Array.isArray(obj.tags) ? obj.tags.filter(t => typeof t === "string") : [],
+    ingredients: obj.ingredients
+      .filter(i => i && typeof i === "object" && typeof i.name === "string" && i.name.trim())
+      .map(i => ({ name: i.name.trim(), amount: typeof i.amount === "string" ? i.amount : "" })),
+    method: obj.method.filter(s => typeof s === "string" && s.trim()).map(s => s.trim()),
+    notes: typeof obj.notes === "string" ? obj.notes : "",
+  };
+}
+
+export function validatePantrySuggestions(arr) {
+  if (!Array.isArray(arr)) throw new Error("Pantry suggestions response is not an array");
+  return arr
+    .filter(s => s && typeof s === "object" && typeof s.pantryName === "string")
+    .map(s => ({
+      pantryName: s.pantryName.trim(),
+      usedAmount: (typeof s.usedAmount === "number" && Number.isFinite(s.usedAmount)) ? s.usedAmount : null,
+      usedUnit: typeof s.usedUnit === "string" ? s.usedUnit : null,
+      fullyUsed: Boolean(s.fullyUsed),
+    }));
+}
+
+
 // Shape conversion: Supabase row → app-shaped recipe object.
 // Mirrored counterpart `recipeToDb` lives in App.jsx (depends on session/state-ish concerns).
 // Exported so BrowseView and any other view can use a single source of truth.

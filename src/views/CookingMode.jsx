@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { supabase } from "../supabase";
-import { callClaude } from "../utils";
+import { callClaude, validatePantrySuggestions } from "../utils";
 import { toast } from "../toast";
 
 export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecipe, onUpdatePantry, session }) {
@@ -201,7 +201,7 @@ export default function CookingMode({ recipe, pantryItems, onExit, onUpdateRecip
       }];
       const res = await callClaude(messages, "", 1000, "claude-haiku-4-5-20251001");
       const clean = res.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(clean);
+      const parsed = validatePantrySuggestions(JSON.parse(clean));
       // Match to actual pantry items
       const matched = parsed.map(s => {
         const pantryItem = pantryItems.find(p => p.name.toLowerCase() === s.pantryName.toLowerCase());

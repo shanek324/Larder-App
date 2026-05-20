@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../supabase";
-import { callClaude, slugify } from "../utils";
+import { callClaude, slugify, validateRecipeShape } from "../utils";
 import { API_MODEL } from "../constants";
 import { toast } from "../toast";
 
@@ -34,7 +34,7 @@ export default function ImportRecipeModal({ onClose, onAdd }) {
 
       const raw = await callClaude(messages, "", 2000, API_MODEL);
       const clean = raw.replace(/^```json|^```|```$/gm, "").trim();
-      const recipe = JSON.parse(clean);
+      const recipe = validateRecipeShape(JSON.parse(clean));
       setPreview(recipe);
     } catch (e) {
       toast.error("Could not extract recipe. Try a different URL. (" + e.message + ")");
