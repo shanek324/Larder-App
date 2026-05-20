@@ -17,6 +17,11 @@ function emit(type, message, opts = {}) {
   return id;
 }
 
+// Track last-shown error messages to suppress duplicate spam (e.g. repeated
+// network failures during offline shopping). Keyed by message string.
+const lastErrorAt = new Map();
+const DEDUPE_WINDOW_MS = 5000;
+
 export const toast = {
   success: (msg, opts) => emit("success", msg, opts),
   error:   (msg, opts) => emit("error", msg, opts),
@@ -24,6 +29,16 @@ export const toast = {
   // action: shows a toast with an inline button (e.g. for Undo)
   // toast.action("Recipe updated", { actionLabel: "Undo", onAction: () => revert() })
   action:  (msg, opts) => emit("action", msg, opts),
+  // errorDedupe: same as error() but suppresses repeats of the same message
+  // within a 5s window. Use for retrying-network-style errors that may fire many
+  // times in quick succession.
+  errorDedupe: (msg, opts) => {
+    const now = Date.now();
+    const last = lastErrorAt.get(msg) || 0;
+    if (now - last < DEDUPE_WINDOW_MS) return null;
+    lastErrorAt.set(msg, now);
+    return emit("error", msg, opts);
+  },
 };
 
 export function subscribeToasts(fn) {

@@ -361,7 +361,7 @@ export default function App() {
       setSavedShoppingList(s => ({ ...s, ticked }));
     } catch(e) {
       console.error("saveTicked error", e);
-      toast.error("Couldn't sync shopping list. Your ticks are saved locally.");
+      toast.errorDedupe("Couldn't sync — will retry shortly.");
     }
   }
 

@@ -54,8 +54,13 @@ If just a question, reply normally. Be concise. Use metric/Irish measurements.`;
       }
       setMessages([...newMessages, { role: "assistant", content: displayReply }]);
     } catch (e) {
-      toast.error(e.message || "Couldn't process that request");
-      setMessages([...newMessages, { role: "assistant", content: "Sorry, something went wrong." }]);
+      const errMsg = e.message || "Couldn't process that request";
+      const isLimit = /limit reached|credit/i.test(errMsg);
+      toast.error(errMsg);
+      const inChatMsg = isLimit
+        ? `⚠️ ${errMsg} Try again tomorrow or upgrade your plan.`
+        : `⚠️ ${errMsg}`;
+      setMessages([...newMessages, { role: "assistant", content: inChatMsg }]);
     }
     setLoading(false);
   }
