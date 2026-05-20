@@ -9,6 +9,7 @@ import Skeleton from "../components/Skeleton";
 
 export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collections, onUpdateCollections, onStartCooking, onDuplicate, onAddToLibrary, session, authorName, priceMap, onSavePrices }) {
   const [editMode, setEditMode] = useState(false);
+  const [aiMessages, setAiMessages] = useState([]);
   const [draft, setDraft] = useState(recipe);
   const [tab, setTab] = useState("recipe");
   const [newIngredient, setNewIngredient] = useState({ name: "", amount: "" });
@@ -370,7 +371,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
       ) : (
         <div className="recipe-ai-tab">
           {isOwner ? (
-          <AIChat recipe={recipe} onUpdate={handleAIUpdate} />
+          <AIChat recipe={recipe} onUpdate={handleAIUpdate} messages={aiMessages} onMessagesChange={setAiMessages} />
         ) : (
           <div className="empty-state">
             <p className="empty-state-emoji">🔒</p>

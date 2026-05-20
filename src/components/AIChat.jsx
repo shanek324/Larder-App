@@ -9,11 +9,12 @@ const SUGGESTIONS = [
   "What can I substitute for the main protein?",
 ];
 
-export default function AIChat({ recipe, onUpdate }) {
-  const [messages, setMessages] = useState([]);
+export default function AIChat({ recipe, onUpdate, messages, onMessagesChange }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
+  // Local setter wrapper so the rest of the file's setMessages calls keep working.
+  const setMessages = onMessagesChange;
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
