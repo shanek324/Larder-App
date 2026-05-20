@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 import { SkeletonHistoryEntry } from "../components/Skeleton";
+import { toast } from "../toast";
 
 export default function CookHistoryView({ recipes, onLogDeleted }) {
   const [logs, setLogs] = useState([]);
@@ -33,6 +34,7 @@ export default function CookHistoryView({ recipes, onLogDeleted }) {
     const { error } = await supabase.from("cook_logs").delete().eq("id", id);
     if (error) {
       console.error("deleteLog error", error);
+      toast.error("Couldn't delete cook log. Try again.");
       return;
     }
     setLogs(logs => logs.filter(l => l.id !== id));

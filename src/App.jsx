@@ -224,8 +224,22 @@ export default function App() {
   }
 
   function dismissResume() {
+    if (!resumeOffer) { setResumeOffer(null); return; }
+    // Snapshot what we're about to clear so we can restore on Undo.
+    let snapshot = null;
+    try { snapshot = localStorage.getItem("larder:resume-cook"); } catch (_) {}
     setResumeOffer(null);
     try { localStorage.removeItem("larder:resume-cook"); } catch (_) {}
+    if (snapshot) {
+      const restored = resumeOffer;
+      toast.action("Resume cleared", {
+        actionLabel: "Undo",
+        onAction: () => {
+          try { localStorage.setItem("larder:resume-cook", snapshot); } catch (_) {}
+          setResumeOffer(restored);
+        },
+      });
+    }
   }
 
   async function addRecipe(recipe) {
