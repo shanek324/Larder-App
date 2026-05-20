@@ -58,7 +58,7 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
     // Snapshot the pre-update recipe so the user can undo.
     const snapshot = { ...recipe };
     // Only let the AI change content fields. All metadata (cook_count, step_notes,
-    // lastCooked, is_public, is_approved, user_id, image_url) is preserved.
+    // lastCooked, is_public, is_approved, user_id) is preserved.
     const CONTENT_FIELDS = ["title", "description", "ingredients", "method", "tags",
                             "prepTime", "cookTime", "servings", "notes"];
     const safeUpdate = { ...recipe };

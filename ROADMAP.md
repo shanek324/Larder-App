@@ -30,12 +30,12 @@
 - Manual add, AI generate, URL import (consolidated into one Add Recipe dropdown)
 - **AI generate + URL import previews show full ingredients + method before saving** (no more blind commits)
 - GenerateModal raised to 2000 max_tokens to prevent truncation of richer recipes
-- Recipe detail with serving scaler, **interactive cost breakdown**, hero image upload
+- Recipe detail with serving scaler, **interactive cost breakdown**
 - Edit, duplicate, delete (now with confirmation), public/private toggle (now with confirmation)
 - AI recipe assistant per recipe (suggestion chips, trimmed history)
 - **AI chat field whitelist** — only content fields can be modified by Claude; cook_count, step_notes, is_public, etc. preserved across AI edits
 - **AI chat Undo toast** — 10s undo window via toast.action()
-- Photo-led recipe cards (4:3 hero image, emoji fallback by tag)
+- Recipe cards (emoji fallback by tag; hero image upload deferred)
 - Recipe action row collapsed to Cook + overflow menu (mobile cutoff fixed)
 - **Recipe cards are accessible buttons** with keyboard focus + aria-label
 
@@ -110,7 +110,7 @@
 
 ### PWA
 - vite-plugin-pwa: manifest, service worker, Workbox runtime caching
-- App-shell precaching, Google Fonts + recipe images cached for offline viewing
+- App-shell precaching, Google Fonts cached for offline viewing
 - Install prompt component (Android/Chrome) + iOS "Add to Home Screen" hint
 - **iOS hint rate-limited to once every 7 days** (no more permanent floating banner)
 - **iPad iOS 13+ detection** (Mac UA + touch points heuristic)
@@ -134,11 +134,11 @@
 - HomeView today/lowstock fetch narrowed to fire on `[isFirstRun]`, not on every recipe edit
 
 ### Data
-- recipes: cook_count, step_notes, image_url, is_public, is_approved
+- recipes: cook_count, step_notes, is_public, is_approved
 - pantry: quantity, unit, price, stock_level
 - shopping_list: prepared, scanned_items
 - cook_logs, prices, meal_plans, profiles all with RLS
-- Supabase Storage bucket: recipe-images (public, 5MB)
+- Supabase Storage bucket: recipe-images — deferred (image upload not yet implemented)
 - `delete_my_account()` and `delete_my_recipe()` SECURITY DEFINER functions
 - `is_admin()` SECURITY DEFINER function gates moderation policy
 - `check_and_use_ai_credit()` enforces 10/day starter, unlimited power, single-source-of-truth limit

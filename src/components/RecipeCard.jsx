@@ -23,26 +23,17 @@ function emojiForRecipe(recipe) {
 
 export default function RecipeCard({ recipe, onClick, collections = [], compact = false }) {
   const recipeCollections = collections.filter(c => c.recipeIds.includes(recipe.id));
-  const hasImage = Boolean(recipe.image_url);
   const fallbackEmoji = emojiForRecipe(recipe);
 
   return (
     <button type="button" onClick={onClick} className={"recipe-card" + (compact ? " recipe-card-compact" : "")} aria-label={`Open recipe: ${recipe.title}`}>
       {compact ? (
         <div className="recipe-card-thumb">
-          {hasImage ? (
-            <img src={recipe.image_url} alt="" className="recipe-card-thumb-img" loading="lazy" />
-          ) : (
-            <div className="recipe-card-thumb-fallback" aria-hidden="true">{fallbackEmoji}</div>
-          )}
+          <div className="recipe-card-thumb-fallback" aria-hidden="true">{fallbackEmoji}</div>
         </div>
       ) : (
         <div className="recipe-card-image">
-          {hasImage ? (
-            <img src={recipe.image_url} alt="" className="recipe-card-image-img" loading="lazy" />
-          ) : (
-            <div className="recipe-card-image-fallback" aria-hidden="true">{fallbackEmoji}</div>
-          )}
+          <div className="recipe-card-image-fallback" aria-hidden="true">{fallbackEmoji}</div>
           {recipe.cook_count > 0 && (
             <span className="recipe-card-cooked-badge">👨‍🍳 {recipe.cook_count}x</span>
           )}
