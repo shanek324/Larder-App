@@ -4007,3 +4007,44 @@ button.moderation-queue-refresh:hover {
   padding: 8px 10px;
   margin: 8px 0 0;
 }
+
+/* ========================================
+   ROUND 6 #17/18/19: Layout fixes
+   ======================================== */
+
+/* #17: when only one home-today block renders (e.g. low stock only,
+   or today-only, or the empty-state prompt), let it span full width.
+   Default grid is 2 columns; :only-child wins when there's no sibling. */
+.home-today > .home-today-block:only-child {
+  grid-column: 1 / -1;
+}
+
+/* #18: stack InShopView header buttons under the title on small screens.
+   The view-header is already a flex/grid container; on phones, let buttons
+   wrap onto a second row instead of squeezing onto the same row as title. */
+@media (max-width: 600px) {
+  .view-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .view-header > div:first-child {
+    flex: 1 1 100%;
+  }
+  /* Lock secondary buttons to a min height so wrapped row looks intentional. */
+  .view-header > .btn {
+    min-height: 36px;
+  }
+}
+
+/* #19: defensive overflow on profile stat tiles so 4-digit values
+   ellipsis cleanly rather than breaking the grid. */
+.profile-stat-tile {
+  min-width: 0;
+  overflow: hidden;
+}
+.profile-stat-tile-value {
+  max-width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
