@@ -97,6 +97,11 @@ export default function RecipeView({ recipe, onBack, onUpdate, onDelete, collect
           <div>
             <h1 className="page-title recipe-title">{recipe.title}</h1>
             {authorName && <p className="recipe-author-byline">by {authorName}</p>}
+            {isOwner && recipe.is_public && !recipe.is_approved && (
+              <p className="recipe-pending-badge" role="status" aria-label="This recipe is pending admin review">
+                🕓 Pending review
+              </p>
+            )}
           </div>
         )}
 

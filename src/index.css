@@ -3854,3 +3854,156 @@ button.home-tag-trigger-x:hover {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
+/* ========================================
+   ROUND 6 #12: Moderation queue (ProfileView, admin-only)
+   ======================================== */
+.moderation-queue-count {
+  background: var(--color-gold-light);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  margin-left: 6px;
+}
+.moderation-queue-empty {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-text-muted-dark);
+  margin: 0;
+}
+.moderation-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+.moderation-queue-item {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--color-bg);
+}
+.moderation-queue-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+}
+.moderation-queue-title {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  margin: 0;
+}
+.moderation-queue-meta {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--color-text-muted-dark);
+  margin: 4px 0 0;
+}
+.moderation-queue-desc {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-text);
+  margin: 6px 0 0;
+  line-height: 1.4;
+}
+.moderation-queue-details {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--color-border);
+}
+.moderation-queue-section-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-muted);
+  margin: 10px 0 4px;
+}
+.moderation-queue-section-label:first-child {
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+.moderation-queue-ingredients {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  margin: 0;
+  padding-left: 16px;
+}
+.moderation-queue-method {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  margin: 0;
+  padding-left: 18px;
+}
+.moderation-queue-method li {
+  margin-bottom: 4px;
+}
+.moderation-queue-notes {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  margin: 0;
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+.moderation-queue-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.moderation-queue-btn {
+  flex: 1;
+  font-size: 13px;
+}
+
+/* ========================================
+   ROUND 6 #13: Pending review badge (RecipeView header, owner-only)
+   ======================================== */
+.recipe-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-gold-light);
+  color: var(--color-primary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  margin: 6px 0 0;
+}
+
+/* ROUND 6 #16: moderation queue refresh + error banner */
+.moderation-queue-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+button.moderation-queue-refresh {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--color-text-muted-dark);
+  cursor: pointer;
+}
+button.moderation-queue-refresh:hover {
+  border-color: var(--color-gold);
+  color: var(--color-primary);
+}
+.moderation-queue-error {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  margin: 8px 0 0;
+}

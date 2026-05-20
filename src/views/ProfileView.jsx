@@ -65,6 +65,8 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
   const [pending, setPending] = useState([]);
   const [expandedPending, setExpandedPending] = useState(null);
   const [pendingAuthors, setPendingAuthors] = useState({});
+  const [pendingLoadError, setPendingLoadError] = useState(false);
+  const [pendingRefreshKey, setPendingRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -77,7 +79,12 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
         .eq("is_approved", false)
         .order("created_at", { ascending: false });
       if (cancelled) return;
-      if (error) { toast.error("Couldn't load moderation queue."); return; }
+      if (error) {
+        toast.error("Couldn't load moderation queue.");
+        setPendingLoadError(true);
+        return;
+      }
+      setPendingLoadError(false);
       setPending(data || []);
       // Resolve author usernames in a single call
       const userIds = [...new Set((data || []).map(r => r.user_id).filter(Boolean))];
@@ -95,7 +102,7 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
     }
     loadPending();
     return () => { cancelled = true; };
-  }, [isAdmin]);
+  }, [isAdmin, pendingRefreshKey]);
 
   async function approveRecipe(id) {
     const { error } = await supabase.from("recipes").update({ is_approved: true }).eq("id", id);
@@ -236,48 +243,64 @@ export default function ProfileView({ session, onSignOut, onNavigate, recipes, c
       </div>
 
       {isAdmin && (
-        <div className="profile-card">
-          <p className="profile-card-label">Moderation queue {pending.length > 0 && <span style={{ background: "var(--color-gold-light)", padding: "2px 8px", borderRadius: 10, fontSize: 12, marginLeft: 6 }}>{pending.length}</span>}</p>
+        <div className="profile-card moderation-queue">
+          <div className="moderation-queue-header">
+            <p className="profile-card-label" style={{ margin: 0 }}>
+              Moderation queue
+              {pending.length > 0 && <span className="moderation-queue-count">{pending.length}</span>}
+            </p>
+            <button
+              type="button"
+              onClick={() => setPendingRefreshKey(k => k + 1)}
+              className="moderation-queue-refresh"
+              aria-label="Refresh moderation queue"
+            >↻ Refresh</button>
+          </div>
+          {pendingLoadError && (
+            <p className="moderation-queue-error">⚠️ Couldn't load. Tap refresh to try again.</p>
+          )}
           {pending.length === 0 ? (
-            <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--color-text-muted-dark)", margin: 0 }}>Nothing pending review. ✨</p>
+            <p className="moderation-queue-empty">Nothing pending review. ✨</p>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+            <div className="moderation-queue-list">
               {pending.map(r => {
                 const expanded = expandedPending === r.id;
                 const author = pendingAuthors[r.user_id] || "Anonymous";
                 return (
-                  <div key={r.id} style={{ border: "1px solid var(--color-border)", borderRadius: 10, padding: 12, background: "var(--color-bg)" }}>
+                  <div key={r.id} className="moderation-queue-item">
                     <button
+                      type="button"
                       onClick={() => setExpandedPending(expanded ? null : r.id)}
-                      style={{ background: "none", border: "none", padding: 0, textAlign: "left", width: "100%", cursor: "pointer", fontFamily: "inherit", color: "inherit" }}
+                      className="moderation-queue-toggle"
+                      aria-expanded={expanded}
                     >
-                      <h3 style={{ fontFamily: "var(--font-serif)", fontSize: 18, margin: 0 }}>{r.title}</h3>
-                      <p style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--color-text-muted-dark)", margin: "4px 0 0" }}>
+                      <h3 className="moderation-queue-title">{r.title}</h3>
+                      <p className="moderation-queue-meta">
                         by {author} · {(r.tags || []).slice(0, 3).join(" · ") || "untagged"} · {expanded ? "▲ hide details" : "▼ view full"}
                       </p>
-                      {r.description && <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--color-text)", margin: "6px 0 0", lineHeight: 1.4 }}>{r.description}</p>}
+                      {r.description && <p className="moderation-queue-desc">{r.description}</p>}
                     </button>
                     {expanded && (
-                      <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px dashed var(--color-border)" }}>
-                        <p style={{ fontFamily: "var(--font-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: "var(--color-text-muted)", marginBottom: 4 }}>Ingredients</p>
-                        <ul style={{ fontFamily: "var(--font-sans)", fontSize: 13, margin: 0, paddingLeft: 16 }}>
+                      <div className="moderation-queue-details">
+                        <p className="moderation-queue-section-label">Ingredients</p>
+                        <ul className="moderation-queue-ingredients">
                           {(r.ingredients || []).map((ing, i) => <li key={i}>{ing.amount ? ing.amount + " " : ""}{ing.name}</li>)}
                         </ul>
-                        <p style={{ fontFamily: "var(--font-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: "var(--color-text-muted)", margin: "10px 0 4px" }}>Method</p>
-                        <ol style={{ fontFamily: "var(--font-sans)", fontSize: 13, margin: 0, paddingLeft: 18 }}>
-                          {(r.method || []).map((step, i) => <li key={i} style={{ marginBottom: 4 }}>{step}</li>)}
+                        <p className="moderation-queue-section-label">Method</p>
+                        <ol className="moderation-queue-method">
+                          {(r.method || []).map((step, i) => <li key={i}>{step}</li>)}
                         </ol>
                         {r.notes && (
                           <>
-                            <p style={{ fontFamily: "var(--font-sans)", fontSize: 11, textTransform: "uppercase", letterSpacing: 1, color: "var(--color-text-muted)", margin: "10px 0 4px" }}>Notes</p>
-                            <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, margin: 0, fontStyle: "italic", color: "var(--color-text-secondary)" }}>{r.notes}</p>
+                            <p className="moderation-queue-section-label">Notes</p>
+                            <p className="moderation-queue-notes">{r.notes}</p>
                           </>
                         )}
                       </div>
                     )}
-                    <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-                      <button onClick={() => approveRecipe(r.id)} className="btn btn-primary" style={{ flex: 1, fontSize: 13 }}>Approve</button>
-                      <button onClick={() => unpublishRecipe(r.id)} className="btn btn-secondary" style={{ flex: 1, fontSize: 13 }}>Unpublish</button>
+                    <div className="moderation-queue-actions">
+                      <button onClick={() => approveRecipe(r.id)} className="btn btn-primary moderation-queue-btn">Approve</button>
+                      <button onClick={() => unpublishRecipe(r.id)} className="btn btn-secondary moderation-queue-btn">Unpublish</button>
                     </div>
                   </div>
                 );
