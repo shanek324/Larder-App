@@ -63,7 +63,7 @@ function CostRow({ row, onAddPrice, ratio }) {
       {row.estimate !== null ? (
         <div className="cost-row-body">
           <p className="cost-row-math">
-            {row.qty} × {formatPerUnit(row.avgPricePerUnit, row.unit)} avg = <strong>{formatPrice(scaledEstimate)}</strong>
+            {row.amount || (row.qty + (row.unit || ""))} @ {formatPerUnit(row.avgPricePerUnit, row.unit)} avg = <strong>{formatPrice(scaledEstimate)}</strong>
           </p>
           <p className="cost-row-source">Based on {row.sourceCount} past purchase{row.sourceCount === 1 ? "" : "s"}</p>
         </div>
