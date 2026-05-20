@@ -192,7 +192,7 @@ export default function App() {
             const parsed = JSON.parse(raw);
             const ageMs = Date.now() - (parsed.savedAt || 0);
             const stillExists = loadedRecipes.find(r => r.id === parsed.recipeId);
-            if (stillExists && ageMs < 6 * 60 * 60 * 1000 && parsed.currentStep > 0) {
+            if (stillExists && ageMs < 6 * 60 * 60 * 1000 && (parsed.currentStep > 0 || (parsed.lastNonIngredientStep || 0) > 0)) {
               setResumeOffer({ recipe: stillExists, currentStep: parsed.currentStep });
             } else {
               localStorage.removeItem("larder:resume-cook");
