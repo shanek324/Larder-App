@@ -21,6 +21,7 @@ export default function BrowseView({ session, onAdd, ownRecipeIds }) {
         .from("recipes")
         .select("*")
         .eq("is_public", true)
+        .eq("is_approved", true)
         .order("created_at", { ascending: false });
 
       if (recipeData) {
